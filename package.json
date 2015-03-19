@@ -1,0 +1,30 @@
+{
+  "name": "nw-demo",
+  "main": "index.html",
+  "window": {
+    "resizable": true,
+    "frame": true,
+    "toolbar": true,
+    "fullscreen": true,
+    "width": 900,
+    "height": 660
+  },
+  "webkit": {
+    "plugin": true
+  },
+  "dependencies": {
+    "express": "^4.12.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "description": "Touch Table =========== Touch table interface and touch input mapping built with web technologies.",
+  "version": "1.0.0",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://vilnius-leopold@bitbucket.org/vilnius-leopold/touch-table.git"
+  },
+  "author": "",
+  "license": "ISC"
+}

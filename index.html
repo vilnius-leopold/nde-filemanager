@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Touh UI</title>
+
+	<link rel="stylesheet" type="text/css" href="interface.css">
+	<style type="text/css">
+		*{
+			box-sizing: border-box;
+			padding: 0;
+			margin:  0;
+		}
+		div{
+			border: 1px solid #ddd;
+		}
+		#menu-bar{
+			width: 800px;
+			height: 60px;
+		}
+		#sidebar{
+			float: left;
+			width: 200px;
+			height: 600px;
+		}
+		#content{
+			float: left;
+			width: 600px;
+			height: 600px;
+			overflow-y: auto;
+			overflow-x: hidden;
+		}
+		.item{
+			float: left;
+			width: 150px;
+			height: 150px;
+		}
+	</style>
+</head>
+<body ondragstart="return false;" ondrop="return false;">
+	<div id="menu-bar">
+		<input id="location" type="text" value="/home/leo/">
+	</div>
+	<div id="sidebar">
+		<ul>
+			<li><a href="Project">Projects</a></li>
+		</ul>
+	</div>
+	<div id="content">
+		<div class="item file">
+			<img src="file.svg">
+			<p>Filename</p>
+		</div>
+		<div class="item directory">
+			<img src="directory.svg">
+			<p>directory name</p>
+		</div>
+	</div>
+	<script src="FileManager.js"></script>
+</body>
+</html>
