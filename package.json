@@ -6,6 +6,7 @@
     "frame": true,
     "toolbar": true,
     "fullscreen": true,
+    "position": null,
     "width": 900,
     "height": 660
   },

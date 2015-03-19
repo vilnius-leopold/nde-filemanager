@@ -1,6 +1,12 @@
 PACKAGE_NAME=nde-filemanger
 
-all: build
+all: dev
+
+
+kill:
+	-pkill nw
+
+dev: kill run
 
 clean:
 	rm -rf dist/

@@ -1,6 +1,7 @@
 var fs = require('fs');
 
-var currentDirectory = '/home/leo/';
+var currentDirectory = '/home/leo/',
+    debug = true;
 
 var UI = {
 	getLocation: function(){
@@ -61,7 +62,7 @@ function File( options ) {
 			hiddenClass = ' hidden-item';
 
 		fileElement.className = 'item file' + hiddenClass;
-		fileElement.innerHTML = '<img src="file.svg"><p>' + that.fileName + '</p>';
+		fileElement.innerHTML = '<img src="/usr/share/icons/Flattr/places/64/folder.svg"><p>' + that.fileName + '</p>';
 
 		return fileElement;
 	};
@@ -115,8 +116,17 @@ function openDir( path ) {
 	});
 }
 
-UI.onLocationChange(function( path ){
-	openDir( path );
-});
+function init() {
+	if ( debug ) {
+		require('nw.gui').Window.get().showDevTools();
+	}
 
-openDir( currentDirectory );
+	UI.onLocationChange(function( path ){
+		openDir( path );
+	});
+
+	openDir( currentDirectory );
+}
+
+
+init();
