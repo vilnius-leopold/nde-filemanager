@@ -1,14 +1,14 @@
 {
-  "name": "nw-demo",
+  "name": "nde-filemanager",
   "main": "index.html",
   "window": {
     "resizable": true,
     "frame": true,
-    "toolbar": true,
-    "fullscreen": true,
+    "toolbar": false,
     "position": null,
-    "width": 900,
-    "height": 660
+    "width": 800,
+    "height": 660,
+    "icon": "/usr/share/icons/Flattr/places/64/folder.svg"
   },
   "webkit": {
     "plugin": true
@@ -19,7 +19,7 @@
   "scripts": {
     "start": "node server.js"
   },
-  "description": "Touch Table =========== Touch table interface and touch input mapping built with web technologies.",
+  "description": "NDE file manager",
   "version": "1.0.0",
   "devDependencies": {},
   "repository": {
