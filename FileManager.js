@@ -23,8 +23,11 @@ var bookmarks = [
 	'/home/leo/Downloads',
 	'/home/leo/Videos',
 	'/home/leo/Documents',
-	'/home/leo/bin',
 	'/home/leo/Projects',
+	// '/home/leo/Applications',
+	'/home/leo/bin',
+	'/home/leo/.local',
+	'/home/leo/.config',
 	'/',
 ];
 

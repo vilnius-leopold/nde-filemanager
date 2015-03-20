@@ -93,11 +93,11 @@ div{
 	top: 60px;
 	padding: 20px 10px;
 	right: 12px;
-	transition: opacity .15s;
 	opacity: 0;
 	width: 70px;
 	min-height: 580px;
 	/*border: 1px solid #ddd;*/
+	transition: opacity .15s .5s;
 	background: transparent;
 }
 #actions:hover {
@@ -210,17 +210,17 @@ button.right-button{
 	margin-left: 0;
 }
 
+button.action-button{
+	padding: 0;
+	width: 40px
+}
+
 #prev-button, #next-button{
 	float: left;
 }
 
 #up-button{
 	float: right;
-}
-
-#hide-button{
-	padding-left: 10px;
-	padding-right: 10px;
 }
 
 input{
@@ -234,7 +234,7 @@ input{
 	font-size: 14px;
 	color: #333;
 	margin: 5px;
-	-webkit-transition: background-color .1s;
+	-webkit-transition: background-color .15s;
 }
 input:hover, input:focus{
 	background-color: white;
