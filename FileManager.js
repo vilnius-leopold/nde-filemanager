@@ -41,8 +41,21 @@ var UI = {
 		document.querySelector('#location')
 		.addEventListener('keypress', function( ev ){
 			if (ev.keyCode == 13) {
-				currentDirectory = UI.getLocation();
-				callback(currentDirectory);
+				var location = UI.getLocation();
+
+				if ( location.substr(location.length - 1) != '/' ) {
+					location += '/';
+				}
+
+				fs.stat(location, function(err, stats){
+					if ( ! err && stats.isDirectory() ) {
+						currentDirectory = location;
+						callback(currentDirectory);
+					} else {
+						alert('Directory does not exist');
+					}
+				});
+
 			}
 		});
 	},

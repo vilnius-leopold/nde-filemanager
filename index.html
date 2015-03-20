@@ -17,6 +17,13 @@
 			-ms-user-select: none;
 			user-select: none;
 		}
+
+		.group:after {
+			content: "";
+			display: table;
+			clear: both;
+		}
+
 		::-webkit-scrollbar {
 			height: 12px;
 			width: 12px;
@@ -46,7 +53,7 @@
 		}
 		#menu-bar{
 			width: 800px;
-			height: 60px;
+			height: 51px;
 			border-bottom: 1px solid #bbb;
 		}
 		#sidebar{
@@ -133,19 +140,43 @@
 			border-left: none;
 			margin-left: 0;
 		}
+
+		#prev-button, #next-button{
+			float: left;
+		}
+
+		#up-button{
+			float: right;
+		}
+
 		input{
+			border: 1px solid #aaa;
+			background: #f9f9f9;
+			border-radius: 2px;
+			display: inline-block;
 			width: 600px;
 			height: 32px;
 			padding: 0 5px;
 			font-size: 14px;
 			color: #333;
 			margin: 5px;
+			-webkit-transition: background-color .1s;
 		}
+		input:hover, input:focus{
+			background-color: white;
+		}
+
+		#location {
+			float: right;
+			margin-right: 15px;
+			margin-top: 9px;
+		}
+
 	</style>
 </head>
 <body ondragstart="return false;" ondrop="return false;">
 	<div id="menu-bar">
-		<div id="nav-button-container">
+		<div id="nav-button-container" class="group">
 			<button id="prev-button" class="left-button"><img src="/usr/share/icons/Flattr/actions/22/draw-arrow-back.svg"></button><button id="next-button" class="right-button"><img src="/usr/share/icons/Flattr/actions/22/draw-arrow-forward.svg"></button>
 			<button id="up-button"><img src="/usr/share/icons/Flattr/actions/22/draw-arrow-up.svg"></button>
 		</div>
