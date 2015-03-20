@@ -1,8 +1,10 @@
 var fs    = require('fs'),
     mime  = require('mime'),
-    exec = require('child_process').exec;
+    exec = require('child_process').exec,
+    nwGui = require('nw.gui');
 
 var historyPosition  = 0,
+    debug            = false,
     historyData      = {},
     history          = [];
 
@@ -164,7 +166,7 @@ function getFileTypeIconPath( file, size ) {
 		}
 	}
 
-	console.log('iconName', iconName);
+	// console.log('iconName', iconName);
 
 	if ( size )
 		iconName = iconName.replace(/\/\d+\//, '/' + size + '/');
@@ -227,7 +229,7 @@ function File( options ) {
 	this.renderInline = function() {
 		var iconPath = getFileTypeIconPath(this, 16);
 
-		console.log('Inline icon:', iconPath);
+		// console.log('Inline icon:', iconPath);
 
 		var element = this.render(iconPath);
 
@@ -243,7 +245,7 @@ function getFileName( filePath ) {
 
 
 	var segments = filePath.split('/');
-	console.log('segments', segments);
+	// console.log('segments', segments);
 
 	if ( filePath.substr(filePath.length - 1) === '/')
 		return segments[segments.length - 2];
@@ -284,10 +286,10 @@ function openDir( path, resetHistory ) {
 	resetHistory = typeof resetHistory === 'undefined' ? true : false;
 
 	if ( resetHistory ){
-		console.log('Resetting', history, 0, historyPosition+1);
+		// console.log('Resetting', history, 0, historyPosition+1);
 		history = history.slice(0, historyPosition+1);
 		historyPosition = 0;
-		console.log('Reset History', history);
+		// console.log('Reset History', history);
 	}
 
 
@@ -298,15 +300,15 @@ function openDir( path, resetHistory ) {
 
 	var scrollTop = UI.getScrollPosition();
 
-	console.log('scrollTop', scrollTop);
+	// console.log('scrollTop', scrollTop);
 
 	historyData[path] = {
 		scrollPosition: scrollTop
 	};
 
-	console.log('History', history);
-	console.log('historyData', historyData);
-	console.log('historyPosition', historyPosition);
+	// console.log('History', history);
+	// console.log('historyData', historyData);
+	// console.log('historyPosition', historyPosition);
 
 	UI.clear('files');
 	UI.setLocation( path );
@@ -372,10 +374,10 @@ function addBookmarks() {
 			var sectionItems = bookmarks[sectionName];
 
 			sectionItems.forEach(function( filePath ) {
-				console.log('Bookmark', filePath);
+				// console.log('Bookmark', filePath);
 
 				getFile(filePath, function( err, file ) {
-					console.log('Bookmark File', err, file);
+					// console.log('Bookmark File', err, file);
 					if ( err || ! file )
 						return;
 
@@ -427,12 +429,20 @@ function openNextDir(){
 
 
 function init() {
+
+	// parse args
+	var args = require('optimist')
+	.default({ debug : false })
+	.boolean(['debug'])
+	.parse(nwGui.App.argv);
+
+	// set settings
+	debug = args.debug;
+	currentDirectory = args._[0] || currentDirectory;
+
 	if ( debug ) {
 		require('nw.gui').Window.get().showDevTools();
 	}
-
-	currentDirectory = UI.getLocation();
-
 
 	UI.onLocationChange(function( path ){
 		openDir( path );

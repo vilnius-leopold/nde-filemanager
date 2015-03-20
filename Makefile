@@ -19,9 +19,9 @@ build: clean
 
 install: build
 	install $(PACKAGE_NAME).desktop $(PREFX)/share/applications
-	install $(PACKAGE_NAME) ~/bin
+	install $(PACKAGE_NAME) $(PREFX)/bin
 	mkdir -p $(PREFX)/share/$(PACKAGE_NAME)
 	install dist/$(PACKAGE_NAME).nw $(PREFX)/share/$(PACKAGE_NAME)
 
 run: build
-	nw dist/$(PACKAGE_NAME).nw
+	$(PREFX)/bin/$(PACKAGE_NAME) --debug

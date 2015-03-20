@@ -7,3 +7,8 @@ Terminal=false
 Type=Application
 Categories=System;
 
+Actions=Videos;
+
+[Desktop Action Videos]
+Name=Videos
+Exec=nw /home/leo/.local/share/nde-filemanager/nde-filemanager.nw $HOME/Videos

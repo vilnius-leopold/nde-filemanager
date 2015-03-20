@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/usr/bin/nw /usr/share/nde-filemanager.nw
+/usr/bin/nw /home/leo/.local/share/nde-filemanager/nde-filemanager.nw $@
