@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=NDE Files
 Comment=NDE File Manager
-Exec=nw ~/.local/share/nde-filemanager/nde-filemanager.nw
+Exec=nw /home/leo/.local/share/nde-filemanager/nde-filemanager.nw
 Icon=folder
 Terminal=false
 Type=Application

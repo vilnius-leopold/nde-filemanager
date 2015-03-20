@@ -1,11 +1,21 @@
-var fs   = require('fs'),
-    mime = require('mime');
+var fs    = require('fs'),
+    mime  = require('mime'),
+    exec = require('child_process').exec;
 
 var currentDirectory = '/home/leo/',
     debug = true,
     historyPosition = 0,
+    historyData = {},
     history = [];
 
+var folderIconMapping = {
+	'/home/leo/Downloads': 'places/64/folder-download',
+	'/home/leo/Videos':    'places/64/folder-videos',
+	'/home/leo/Documents': 'places/64/folder-documents',
+	'/home/leo/Desktop':   'places/64/user-desktop'
+};
+
+var folderIconMappingList = Object.keys(folderIconMapping);
 
 var UI = {
 	getLocation: function(){
@@ -20,6 +30,12 @@ var UI = {
 	},
 	clearFiles: function( fileElement ){
 		document.querySelector('#content').innerHTML = '';
+	},
+	getScrollPosition: function(){
+		return document.querySelector('#content').scrollTop;
+	},
+	setScrollPosition: function(value){
+		document.querySelector('#content').scrollTop = value;
 	},
 	onLocationChange: function( callback ){
 		document.querySelector('#location')
@@ -55,6 +71,12 @@ var UI = {
 		.addEventListener('click', function( ev ) {
 			callback();
 		});
+	},
+	onUpClick: function( callback ) {
+		document.querySelector('#up-button')
+		.addEventListener('click', function( ev ) {
+			callback();
+		});
 	}
 };
 
@@ -71,8 +93,8 @@ function getIconPath( iconName ) {
 	return iconDirectory + iconTheme + '/' + iconName + '.svg';
 }
 
-function getMimeTypeIconName( fileName ) {
-	var mimeType = mime.lookup( fileName );
+function getMimeTypeIconName( filePath ) {
+	var mimeType = mime.lookup( filePath );
 
 	mimeType = mimeType.replace(/\//g, '-');
 
@@ -85,7 +107,15 @@ function getFileTypeIconPath( file ) {
 	if ( file.stats.isFile() ) {
 		iconName = getMimeTypeIconName( file.fileName );
 	} else if ( file.stats.isDirectory() ) {
-		iconName = 'places/64/folder'
+
+		var mappedPathIndex = folderIconMappingList.indexOf(file.absolutePath);
+
+		if ( mappedPathIndex === -1 ) {
+			iconName = 'places/64/folder'
+		} else {
+			var mappedPath = folderIconMappingList[mappedPathIndex];
+			iconName = folderIconMapping[mappedPath];
+		}
 	}
 
 	return getIconPath( iconName );
@@ -94,8 +124,11 @@ function getFileTypeIconPath( file ) {
 function File( options ) {
 	var that = this;
 
-	this.hidden = false;
-	this.stats  = null;
+	this.hidden         = false;
+	this.stats          = null;
+	this.type           = 'file';
+	this.absolutePath   = null;
+	this.fileName       = null;
 
 	(function init( options ){
 		// console.log("Options:", options);
@@ -105,7 +138,13 @@ function File( options ) {
 
 		that.stats  = options.stats;
 
-		that.fileName = options.fileName;
+
+		if ( that.stats.isDirectory() )
+			that.type = 'directory';
+
+
+		that.fileName     = options.fileName;
+		that.absolutePath = options.absolutePath;
 
 		if (that.fileName[0] === '.')
 			that.hidden = true;
@@ -153,16 +192,30 @@ function getFile(filePath, callback) {
 }
 
 function openDir( path, resetHistory ) {
-	if ( resetHistory )
+	// clear history up to this point
+	resetHistory = typeof resetHistory === 'undefined' ? true : false;
+
+	if ( resetHistory ){
+		console.log('Resetting', history, 0, historyPosition+1);
+		history = history.slice(0, historyPosition+1);
 		historyPosition = 0;
+		console.log('Reset History', history);
+	}
 
 	UI.clearFiles();
 	UI.setLocation( path );
 
-	if ( history.indexOf(path) === -1)
+	if ( history.indexOf(path) === -1){
+
 		history.unshift( path );
+	}
+
+	historyData[path] = {
+		scrollPosition: UI.getScrollPosition()
+	};
 
 	console.log('History', history);
+	console.log('historyPosition', historyPosition);
 
 	currentDirectory = path;
 
@@ -191,17 +244,41 @@ function openDir( path, resetHistory ) {
 	});
 }
 
+function openHistoryDir(position) {
+	var historyPath = history[position];
+
+	openDir( historyPath, false);
+
+	UI.setScrollPosition(historyData[historyPath].scrollPosition);
+}
+
 function openPrevDir(){
 	historyPosition = Math.min(historyPosition+1, history.length -1);
+	openHistoryDir(historyPosition);
+}
 
-	openDir(history[historyPosition], false);
+String.prototype.reverse = function() {
+	return this.split("").reverse().join("");
 };
+
+function openParentDir(){
+	console.log('currentDirectory:', currentDirectory);
+	var segments = currentDirectory.split('/');
+	console.log('segments:', segments);
+	segments.pop();
+	segments.pop();
+
+	var parentDir = (segments.join("/")) + '/';
+
+	console.log('Parent dir:', parentDir);
+
+	openDir(parentDir, false);
+}
 
 function openNextDir(){
 	historyPosition = Math.max(historyPosition-1, 0);
-
-	openDir(history[historyPosition], false);
-};
+	openHistoryDir(historyPosition);
+}
 
 
 function init() {
@@ -221,13 +298,39 @@ function init() {
 		openPrevDir();
 	});
 
+	UI.onUpClick(function(){
+		openParentDir();
+	});
+
 	UI.onFileClick(function( element ) {
-		var path = UI.getLocation() + element.obj.fileName + '/';
+		var fileObj = element.obj;
 
+		if ( fileObj.type === 'directory' ) {
+			var path = UI.getLocation() + fileObj.fileName + '/';
+			openDir( path );
+		} else {
+			var command = '/usr/bin/xdg-open ' + fileObj.absolutePath;
 
-		console.log('Clicked', element);
-		console.log('Clicked', path);
-		openDir( path );
+			console.log('fileObj', fileObj);
+			console.log('command', command);
+
+			exec(command);
+
+			// xdgOpen.stdout.on('data', function (data) {
+			// 	console.log('stdout: ' + data);
+			// });
+
+			// xdgOpen.stderr.on('data', function (data) {
+			// 	console.log('stderr: ' + data);
+			// });
+
+			// xdgOpen.on('close', function (code) {
+			// 	console.log('child process exited with code ' + code);
+			// });
+		}
+
+		// console.log('Clicked', element);
+		// console.log('Clicked', path);
 	});
 
 	openDir( currentDirectory );
