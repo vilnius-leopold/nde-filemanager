@@ -22,12 +22,19 @@ var UI = {
 		        .appendChild( fileElement );
 	},
 	addSidebarSection: function( sectionName ) {
+
+
 		var sectionId = sectionName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+		if (sectionName === '')
+			sectionId = 'hidden-section';
 
 		var section = document.createElement('div');
 		section.id = sectionId;
 		section.className = 'sidebar-section';
-		section.innerHTML = '<h3>'+ sectionName + '</h3>';
+
+		if (sectionId !== 'hidden-section')
+			section.innerHTML = '<h3>'+ sectionName + '</h3>';
 
 		document.querySelector('#sidebar')
 		        .appendChild( section );
@@ -352,6 +359,7 @@ function addBookmarks() {
 	for ( sectionName in bookmarks ) {
 		(function() {
 			var sectionId = UI.addSidebarSection(sectionName);
+
 			var sectionItems = bookmarks[sectionName];
 
 			sectionItems.forEach(function( filePath ) {
@@ -470,5 +478,6 @@ function init() {
 	openDir( currentDirectory );
 }
 
-
-init();
+window.requestAnimationFrame(function(){
+	init();
+});

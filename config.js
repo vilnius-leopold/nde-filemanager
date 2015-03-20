@@ -13,6 +13,9 @@ var folderIconMapping = {
 	'/media/Share':        'devices/64/drive-harddisk'
 };
 
+// set empty string ''
+// to have a section
+// without title
 var bookmarks = {
 	'Favorite': [
 		'/home/leo',
