@@ -6,7 +6,8 @@ var currentDirectory = '/home/leo/',
     debug = true,
     historyPosition = 0,
     historyData = {},
-    history = [];
+    history = [],
+    iconTheme = 'Flattr';
 
 var folderIconMapping = {
 	'/home/leo':           'places/64/user-home',
@@ -22,6 +23,7 @@ var bookmarks = [
 	'/home/leo/Downloads',
 	'/home/leo/Videos',
 	'/home/leo/Documents',
+	'/home/leo/bin',
 	'/home/leo/Projects',
 	'/',
 ];
@@ -29,32 +31,29 @@ var bookmarks = [
 var folderIconMappingList = Object.keys(folderIconMapping);
 
 var UI = {
-	getLocation: function(){
+	getLocation: function() {
 		return document.querySelector('#location').value;
 	},
-	setLocation: function( path ){
+	setLocation: function( path ) {
 		document.querySelector('#location').value = path;
 	},
-	addFile: function( fileElement, container ){
-		container = container || 'content';
+	addFile: function( fileElement, container ) {
+		container = container || 'files';
 
 		document.querySelector('#' + container)
 		        .appendChild( fileElement );
 	},
-	clearFiles: function(){
-		document.querySelector('#content').innerHTML = '';
-	},
 	clear: function( container ){
-		container = container || 'content';
+		container = container || 'files';
 		document.querySelector('#' + container).innerHTML = '';
 	},
-	getScrollPosition: function(){
+	getScrollPosition: function() {
 		return document.querySelector('#content').scrollTop;
 	},
-	setScrollPosition: function(value){
+	setScrollPosition: function(value) {
 		document.querySelector('#content').scrollTop = value;
 	},
-	onLocationChange: function( callback ){
+	onLocationChange: function( callback ) {
 		document.querySelector('#location')
 		.addEventListener('keypress', function( ev ){
 			if (ev.keyCode == 13) {
@@ -112,16 +111,19 @@ var UI = {
 		.addEventListener('click', function( ev ) {
 			callback();
 		});
+	},
+	onHideClick: function( callback ) {
+		document.querySelector('#hide-button').addEventListener('click', function( ev ) {
+			document.querySelector('#files').classList.toggle('hide-hidden');
+		});
 	}
 };
 
-currentDirectory = UI.getLocation();
 
 console.log("Test", currentDirectory);
 
 
 function getIconPath( iconName ) {
-	var iconTheme = 'Flattr';
 
 	var iconDirectory = '/usr/share/icons/';
 
@@ -194,6 +196,8 @@ function File( options ) {
 	this.render = function( iconPath ) {
 		var fileElement = document.createElement('div');
 
+		var iconName = (that.absolutePath === '/home/leo') && iconPath ? 'Home' : that.fileName;
+
 		if ( ! iconPath )
 			iconPath = getFileTypeIconPath(this);
 
@@ -202,8 +206,9 @@ function File( options ) {
 		if (that.hidden)
 			hiddenClass = ' hidden-item';
 
+
 		fileElement.className = 'item file' + hiddenClass;
-		fileElement.innerHTML = '<img src="'+iconPath+'"><p>' + that.fileName + '</p>';
+		fileElement.innerHTML = '<img src="'+iconPath+'"><p>' + iconName + '</p>';
 		fileElement.obj = that;
 
 		return fileElement;
@@ -293,7 +298,7 @@ function openDir( path, resetHistory ) {
 	console.log('historyData', historyData);
 	console.log('historyPosition', historyPosition);
 
-	UI.clearFiles();
+	UI.clear('files');
 	UI.setLocation( path );
 	currentDirectory = path;
 
@@ -383,9 +388,14 @@ function init() {
 		require('nw.gui').Window.get().showDevTools();
 	}
 
+	currentDirectory = UI.getLocation();
+
+
 	UI.onLocationChange(function( path ){
 		openDir( path );
 	});
+
+	UI.onHideClick();
 
 	UI.onNextClick(function(){
 		openNextDir();
@@ -405,7 +415,7 @@ function init() {
 		if ( fileObj.type === 'directory' ) {
 			openDir( fileObj.absolutePath );
 		} else {
-			var command = '/usr/bin/xdg-open ' + fileObj.absolutePath;
+			var command = '/usr/bin/xdg-open "' + fileObj.absolutePath + '"';
 
 			console.log('fileObj', fileObj);
 			console.log('command', command);

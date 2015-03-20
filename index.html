@@ -11,7 +11,7 @@
 			<button id="prev-button" class="left-button"><img src="/usr/share/icons/Flattr/actions/22/draw-arrow-back.svg"></button><button id="next-button" class="right-button"><img src="/usr/share/icons/Flattr/actions/22/draw-arrow-forward.svg"></button>
 			<button id="up-button"><img src="/usr/share/icons/Flattr/actions/22/draw-arrow-up.svg"></button>
 		</div>
-		<input id="location" type="text" value="/home/leo/">
+		<input id="location" type="text" class="float-right" value="/home/leo/">
 	</div>
 	<div id="sidebar">
 		<div class="item inline-item directory">
@@ -28,13 +28,11 @@
 		</div>
 	</div>
 	<div id="content">
-		<div class="item file">
-			<img src="file.svg">
-			<p>Filename</p>
-		</div>
-		<div class="item directory">
-			<img src="directory.svg">
-			<p>directory name</p>
+		<div id="files"></div>
+		<div id="actions">
+			<button id="hide-button">.</button>
+			<button id="hide-button">ND</button>
+			<button id="hide-button">NF</button>
 		</div>
 	</div>
 	<script src="FileManager.js"></script>
