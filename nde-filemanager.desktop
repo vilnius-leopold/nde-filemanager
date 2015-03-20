@@ -11,4 +11,4 @@ Actions=Videos;
 
 [Desktop Action Videos]
 Name=Videos
-Exec=nw /home/leo/.local/share/nde-filemanager/nde-filemanager.nw $HOME/Videos
+Exec=nw /home/leo/.local/share/nde-filemanager/nde-filemanager.nw /home/leo/Videos
