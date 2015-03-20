@@ -2,34 +2,9 @@ var fs    = require('fs'),
     mime  = require('mime'),
     exec = require('child_process').exec;
 
-var currentDirectory = '/home/leo/',
-    debug = true,
-    historyPosition = 0,
-    historyData = {},
-    history = [],
-    iconTheme = 'Flattr';
-
-var folderIconMapping = {
-	'/home/leo':           'places/64/user-home',
-	'/home/leo/Downloads': 'places/64/folder-download',
-	'/home/leo/Videos':    'places/64/folder-videos',
-	'/home/leo/Documents': 'places/64/folder-documents',
-	'/home/leo/Projects':  'places/64/folder-templates',
-	'/home/leo/Desktop':   'places/64/user-desktop'
-};
-
-var bookmarks = [
-	'/home/leo',
-	'/home/leo/Downloads',
-	'/home/leo/Videos',
-	'/home/leo/Documents',
-	'/home/leo/Projects',
-	// '/home/leo/Applications',
-	'/home/leo/bin',
-	'/home/leo/.local',
-	'/home/leo/.config',
-	'/',
-];
+var historyPosition  = 0,
+    historyData      = {},
+    history          = [];
 
 var folderIconMappingList = Object.keys(folderIconMapping);
 
@@ -45,6 +20,19 @@ var UI = {
 
 		document.querySelector('#' + container)
 		        .appendChild( fileElement );
+	},
+	addSidebarSection: function( sectionName ) {
+		var sectionId = sectionName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+		var section = document.createElement('div');
+		section.id = sectionId;
+		section.className = 'sidebar-section';
+		section.innerHTML = '<h3>'+ sectionName + '</h3>';
+
+		document.querySelector('#sidebar')
+		        .appendChild( section );
+
+		return sectionId;
 	},
 	clear: function( container ){
 		container = container || 'files';
@@ -108,6 +96,12 @@ var UI = {
 		.addEventListener('click', function( ev ) {
 			callback();
 		});
+	},
+	showButton:  function( id ) {
+		document.querySelector('#' + id).classList.remove('hide');
+	},
+	hideButton:  function( id ) {
+		document.querySelector('#' + id).classList.add('hide');
 	},
 	onUpClick: function( callback ) {
 		document.querySelector('#up-button')
@@ -305,6 +299,26 @@ function openDir( path, resetHistory ) {
 	UI.setLocation( path );
 	currentDirectory = path;
 
+	if (currentDirectory === '/home/leo/' || currentDirectory === '/' ) {
+		UI.hideButton('up-button');
+	} else {
+		UI.showButton('up-button');
+	}
+
+
+	if (history.length <= 1) {
+		UI.hideButton('next-button');
+		UI.hideButton('prev-button');
+	} else if ( historyPosition === 0 ) {
+		UI.showButton('prev-button');
+		UI.hideButton('next-button');
+	} else if ( historyPosition === history.length -1 ) {
+		UI.showButton('next-button');
+		UI.hideButton('prev-button');
+	} else {
+		UI.showButton('next-button');
+		UI.showButton('prev-button');
+	}
 
 	fs.readdir( path, function(err,files) {
 		"use strict";
@@ -333,17 +347,26 @@ function openDir( path, resetHistory ) {
 function addBookmarks() {
 	UI.clear('sidebar');
 
-	bookmarks.forEach(function( filePath ) {
-		console.log('Bookmark', filePath);
+	var sectionName;
 
-		getFile(filePath, function( err, file ) {
-			console.log('Bookmark File', err, file);
-			if ( err || ! file )
-				return;
+	for ( sectionName in bookmarks ) {
+		(function() {
+			var sectionId = UI.addSidebarSection(sectionName);
+			var sectionItems = bookmarks[sectionName];
 
-			UI.addFile( file.renderInline(), 'sidebar' );
-		});
-	});
+			sectionItems.forEach(function( filePath ) {
+				console.log('Bookmark', filePath);
+
+				getFile(filePath, function( err, file ) {
+					console.log('Bookmark File', err, file);
+					if ( err || ! file )
+						return;
+
+					UI.addFile( file.renderInline(), sectionId );
+				});
+			});
+		}());
+	}
 }
 
 function openHistoryDir(position) {

@@ -1,0 +1,12 @@
+- scroll on action panel
+- integrated software center: application app
+	--> one click uninstall
+	--> click run
+- search on type: dash/hud like location bar
+	- application
+	- file search
+	- recent history
+	- most used
+	- inside current directory
+- hide next/prev if not available
+- hide up if in /home/leo or /root
