@@ -110,6 +110,12 @@ var UI = {
 	hideButton:  function( id ) {
 		document.querySelector('#' + id).classList.add('hide');
 	},
+	disableButton:  function( id ) {
+		document.querySelector('#' + id).classList.add('disabled');
+	},
+	enableButton:  function( id ) {
+		document.querySelector('#' + id).classList.remove('disabled');
+	},
 	onUpClick: function( callback ) {
 		document.querySelector('#up-button')
 		.addEventListener('click', function( ev ) {
@@ -316,15 +322,18 @@ function openDir( path, resetHistory ) {
 	if (history.length <= 1) {
 		UI.hideButton('next-button');
 		UI.hideButton('prev-button');
-	} else if ( historyPosition === 0 ) {
-		UI.showButton('prev-button');
-		UI.hideButton('next-button');
-	} else if ( historyPosition === history.length -1 ) {
-		UI.showButton('next-button');
-		UI.hideButton('prev-button');
 	} else {
-		UI.showButton('next-button');
 		UI.showButton('prev-button');
+		UI.showButton('next-button');
+	} if ( historyPosition === 0 ) {
+		UI.disableButton('next-button');
+		UI.enableButton('prev-button');
+	} else if ( historyPosition === history.length -1 ) {
+		UI.enableButton('next-button');
+		UI.disableButton('prev-button');
+	} else {
+		UI.enableButton('next-button');
+		UI.enableButton('prev-button');
 	}
 
 	fs.readdir( path, function(err,files) {

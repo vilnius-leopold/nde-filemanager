@@ -1,5 +1,5 @@
 var currentDirectory = '/home/leo/',
-    debug            =  false,
+    debug            =  true,
     iconTheme        = 'Flattr';
 
 
