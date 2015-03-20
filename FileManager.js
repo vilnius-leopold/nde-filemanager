@@ -9,17 +9,20 @@ var currentDirectory = '/home/leo/',
     history = [];
 
 var folderIconMapping = {
+	'/home/leo':           'places/64/user-home',
 	'/home/leo/Downloads': 'places/64/folder-download',
 	'/home/leo/Videos':    'places/64/folder-videos',
 	'/home/leo/Documents': 'places/64/folder-documents',
+	'/home/leo/Projects':  'places/64/folder-templates',
 	'/home/leo/Desktop':   'places/64/user-desktop'
 };
 
 var bookmarks = [
-	'/home/leo/',
+	'/home/leo',
 	'/home/leo/Downloads',
 	'/home/leo/Videos',
 	'/home/leo/Documents',
+	'/home/leo/Projects',
 	'/',
 ];
 
@@ -32,12 +35,18 @@ var UI = {
 	setLocation: function( path ){
 		document.querySelector('#location').value = path;
 	},
-	addFile: function( fileElement ){
-		document.querySelector('#content')
+	addFile: function( fileElement, container ){
+		container = container || 'content';
+
+		document.querySelector('#' + container)
 		        .appendChild( fileElement );
 	},
-	clearFiles: function( fileElement ){
+	clearFiles: function(){
 		document.querySelector('#content').innerHTML = '';
+	},
+	clear: function( container ){
+		container = container || 'content';
+		document.querySelector('#' + container).innerHTML = '';
 	},
 	getScrollPosition: function(){
 		return document.querySelector('#content').scrollTop;
@@ -51,9 +60,9 @@ var UI = {
 			if (ev.keyCode == 13) {
 				var location = UI.getLocation();
 
-				if ( location.substr(location.length - 1) != '/' ) {
+				if ( location.substr(location.length - 1) != '/' )
 					location += '/';
-				}
+
 
 				fs.stat(location, function(err, stats){
 					if ( ! err && stats.isDirectory() ) {
@@ -68,12 +77,17 @@ var UI = {
 		});
 	},
 	onFileClick: function( callback ) {
-		document.querySelector('#content')
+		document.querySelector('body')
 		.addEventListener('click', function( ev ) {
 			var target = ev.target,
 			    parent = target.parentNode;
 
 			console.log('click');
+
+			if (target.classList.contains('item') )  {
+				console.log('click item');
+				callback( target );
+			}
 
 			if (parent.classList.contains('item') )  {
 				console.log('click item');
@@ -122,13 +136,12 @@ function getMimeTypeIconName( filePath ) {
 	return 'mimetypes/48/' + mimeType;
 }
 
-function getFileTypeIconPath( file ) {
+function getFileTypeIconPath( file, size ) {
 	var iconName = '';
 
 	if ( file.stats.isFile() ) {
 		iconName = getMimeTypeIconName( file.fileName );
 	} else if ( file.stats.isDirectory() ) {
-
 		var mappedPathIndex = folderIconMappingList.indexOf(file.absolutePath);
 
 		if ( mappedPathIndex === -1 ) {
@@ -138,6 +151,11 @@ function getFileTypeIconPath( file ) {
 			iconName = folderIconMapping[mappedPath];
 		}
 	}
+
+	console.log('iconName', iconName);
+
+	if ( size )
+		iconName = iconName.replace(/\/\d+\//, '/' + size + '/');
 
 	return getIconPath( iconName );
 }
@@ -173,10 +191,11 @@ function File( options ) {
 		// console.log("Filename:", options.fileName);
 	}( options ));
 
-	this.render = function() {
+	this.render = function( iconPath ) {
 		var fileElement = document.createElement('div');
 
-		var iconPath = getFileTypeIconPath(this);
+		if ( ! iconPath )
+			iconPath = getFileTypeIconPath(this);
 
 		var hiddenClass = '';
 
@@ -189,14 +208,44 @@ function File( options ) {
 
 		return fileElement;
 	};
+
+	this.renderInline = function() {
+		var iconPath = getFileTypeIconPath(this, 16);
+
+		console.log('Inline icon:', iconPath);
+
+		var element = this.render(iconPath);
+
+		element.classList.add('inline-item');
+
+		return element;
+	};
 }
 
+function getFileName( filePath ) {
+	if ( filePath == '/' )
+		return '/';
 
-function getFile(filePath, callback) {
+
+	var segments = filePath.split('/');
+	console.log('segments', segments);
+
+	if ( filePath.substr(filePath.length - 1) === '/')
+		return segments[segments.length - 2];
+
+	return segments[segments.length - 1];
+}
+
+function getFile(fileName, callback) {
 	// console.log("filePath",filePath);
+	var absolutePath = currentDirectory + fileName;
 
-	var absolutePath = currentDirectory + filePath;
+	if ( fileName.substr(0,1) == '/') {
+		absolutePath = fileName;
+		fileName = getFileName( fileName );
+	}
 	// console.log("absolutePath",absolutePath);
+
 
 	fs.stat(absolutePath, function(err,stats) {
 		// console.log(err,stats);
@@ -205,7 +254,7 @@ function getFile(filePath, callback) {
 			err,
 			new File({
 				stats: stats,
-				fileName: filePath,
+				fileName: fileName,
 				absolutePath: absolutePath
 			})
 		);
@@ -213,6 +262,9 @@ function getFile(filePath, callback) {
 }
 
 function openDir( path, resetHistory ) {
+	if ( path.substr(path.length - 1) != '/' )
+		path += '/';
+
 	// clear history up to this point
 	resetHistory = typeof resetHistory === 'undefined' ? true : false;
 
@@ -267,6 +319,22 @@ function openDir( path, resetHistory ) {
 				UI.addFile( file.render() );
 			});
 		}
+	});
+}
+
+function addBookmarks() {
+	UI.clear('sidebar');
+
+	bookmarks.forEach(function( filePath ) {
+		console.log('Bookmark', filePath);
+
+		getFile(filePath, function( err, file ) {
+			console.log('Bookmark File', err, file);
+			if ( err || ! file )
+				return;
+
+			UI.addFile( file.renderInline(), 'sidebar' );
+		});
 	});
 }
 
@@ -335,8 +403,7 @@ function init() {
 		var fileObj = element.obj;
 
 		if ( fileObj.type === 'directory' ) {
-			var path = UI.getLocation() + fileObj.fileName + '/';
-			openDir( path );
+			openDir( fileObj.absolutePath );
 		} else {
 			var command = '/usr/bin/xdg-open ' + fileObj.absolutePath;
 
@@ -361,6 +428,8 @@ function init() {
 		// console.log('Clicked', element);
 		// console.log('Clicked', path);
 	});
+
+	addBookmarks();
 
 	openDir( currentDirectory );
 }
