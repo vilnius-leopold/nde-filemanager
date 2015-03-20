@@ -10,6 +10,13 @@ var historyPosition  = 0,
 
 var folderIconMappingList = Object.keys(folderIconMapping);
 
+var contentElement  = document.querySelector('#content');
+var menuElement     = document.querySelector('#menu-bar');
+var sidebarElement  = document.querySelector('#sidebar');
+var filesElement    = document.querySelector('#files');
+var locationElement = document.querySelector('#location');
+var actionElement   = document.querySelector('#actions');
+
 var UI = {
 	getLocation: function() {
 		return document.querySelector('#location').value;
@@ -131,9 +138,28 @@ var UI = {
 	}
 };
 
+window.onresize = function(){
+	window.requestAnimationFrame(function(){
+		console.log('Resizing');
 
-console.log("Test", currentDirectory);
+		var width  = window.innerWidth,
+		    height = window.innerHeight;
 
+
+
+		var menuHeight   = menuElement.offsetHeight;
+		var sidebarWidth = sidebarElement.offsetWidth;
+		var actionWidth  = actionElement.offsetWidth;
+
+		console.log(width,height,menuHeight,sidebarWidth);
+
+		filesElement.style.width = (width - sidebarWidth - actionWidth) + 'px';
+		contentElement.style.width = (width - sidebarWidth) + 'px';
+		locationElement.style.width = (width - sidebarWidth - 30) + 'px';
+		contentElement.style.height = (height - menuHeight) + 'px';
+		sidebarElement.style.height = (height - menuHeight) + 'px';
+	});
+};
 
 function getIconPath( iconName ) {
 
@@ -142,19 +168,30 @@ function getIconPath( iconName ) {
 	return iconDirectory + iconTheme + '/' + iconName + '.svg';
 }
 
-function getMimeTypeIconName( filePath ) {
-	var mimeType = mime.lookup( filePath );
+function getMimeTypeIconName( filePath, callback ) {
+	var command = 'xdg-mime query filetype "' + currentDirectory + filePath + '"';
 
-	mimeType = mimeType.replace(/\//g, '-');
+	exec(command, function(error, stdout, stderr){
+		console.log('Mime:', error, stdout, stderr, command);
 
-	return 'mimetypes/48/' + mimeType;
+		var mimeType = stdout.replace(/\//g, '-');
+
+		callback( 'mimetypes/48/' + mimeType );
+	});
 }
 
-function getFileTypeIconPath( file, size ) {
+function getFileTypeIconPath( file, size, callback ) {
 	var iconName = '';
 
+	function mimeCallback( iconName ) {
+		if ( size )
+			iconName = iconName.replace(/\/\d+\//, '/' + size + '/');
+
+		callback( getIconPath( iconName ) );
+	}
+
 	if ( file.stats.isFile() ) {
-		iconName = getMimeTypeIconName( file.fileName );
+		getMimeTypeIconName( file.fileName, mimeCallback );
 	} else if ( file.stats.isDirectory() ) {
 		var mappedPathIndex = folderIconMappingList.indexOf(file.absolutePath);
 
@@ -164,14 +201,11 @@ function getFileTypeIconPath( file, size ) {
 			var mappedPath = folderIconMappingList[mappedPathIndex];
 			iconName = folderIconMapping[mappedPath];
 		}
+
+		mimeCallback(iconName);
+	} else {
+		mimeCallback(iconName);
 	}
-
-	// console.log('iconName', iconName);
-
-	if ( size )
-		iconName = iconName.replace(/\/\d+\//, '/' + size + '/');
-
-	return getIconPath( iconName );
 }
 
 function File( options ) {
@@ -205,37 +239,45 @@ function File( options ) {
 		// console.log("Filename:", options.fileName);
 	}( options ));
 
-	this.render = function( iconPath ) {
+	this.render = function( callback, iconPath ) {
 		var fileElement = document.createElement('div');
 
 		var iconName = (that.absolutePath === '/home/leo') && iconPath ? 'Home' : that.fileName;
 
-		if ( ! iconPath )
-			iconPath = getFileTypeIconPath(this);
+		function iconCallback( iconPath ) {
+			var hiddenClass = '';
 
-		var hiddenClass = '';
-
-		if (that.hidden)
-			hiddenClass = ' hidden-item';
+			if (that.hidden)
+				hiddenClass = ' hidden-item';
 
 
-		fileElement.className = 'item file' + hiddenClass;
-		fileElement.innerHTML = '<img src="'+iconPath+'"><p>' + iconName + '</p>';
-		fileElement.obj = that;
+			fileElement.className = 'item file' + hiddenClass;
+			fileElement.innerHTML = '<img src="'+iconPath+'"><p>' + iconName + '</p>';
+			fileElement.obj = that;
 
-		return fileElement;
+			callback( fileElement );
+		}
+
+		if ( ! iconPath ){
+			getFileTypeIconPath(that, undefined, iconCallback);
+		} else {
+			iconCallback( iconPath );
+		}
+
+
 	};
 
-	this.renderInline = function() {
-		var iconPath = getFileTypeIconPath(this, 16);
+	this.renderInline = function( callback ) {
+		getFileTypeIconPath(this, 16, function( iconPath ){
 
-		// console.log('Inline icon:', iconPath);
+			// console.log('Inline icon:', iconPath);
 
-		var element = this.render(iconPath);
+			that.render( function( element ){
+				element.classList.add('inline-item');
 
-		element.classList.add('inline-item');
-
-		return element;
+				callback(element);
+			}, iconPath);
+		});
 	};
 }
 
@@ -356,7 +398,9 @@ function openDir( path, resetHistory ) {
 				if ( err || ! file )
 					return;
 
-				UI.addFile( file.render() );
+				file.render(function( fileElement ){
+					UI.addFile( fileElement );
+				});
 			});
 		}
 	});
@@ -381,7 +425,9 @@ function addBookmarks() {
 					if ( err || ! file )
 						return;
 
-					UI.addFile( file.renderInline(), sectionId );
+					file.renderInline(function( fileElement ) {
+						UI.addFile( fileElement, sectionId );
+					});
 				});
 			});
 		}());
