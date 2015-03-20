@@ -3,176 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<title>NDE File Manager</title>
-
-	<link rel="stylesheet" type="text/css" href="interface.css">
-	<style type="text/css">
-		*{
-			box-sizing: border-box;
-			padding: 0;
-			margin:  0;
-			-webkit-touch-callout: none;
-			-webkit-user-select: none;
-			-khtml-user-select: none;
-			-moz-user-select: none;
-			-ms-user-select: none;
-			user-select: none;
-		}
-
-		.group:after {
-			content: "";
-			display: table;
-			clear: both;
-		}
-
-		::-webkit-scrollbar {
-			height: 12px;
-			width: 12px;
-			background: #dfdfdf;
-			/*border-left: 1px solid #ddd;*/
-			}
-		::-webkit-scrollbar-thumb:hover {
-			background: #bbb;
-		}
-		::-webkit-scrollbar-thumb {
-			background: #ccc;
-			border: 1px solid #aaa;
-			/*-webkit-border-radius: 1ex;*/
-			/*-webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);*/
-		}
-		::-webkit-scrollbar-corner {
-			background: #000;
-		}
-		html,body{
-			padding: 0;
-			margin:  0;
-			overflow: hidden;
-		}
-
-		div{
-			background: #ddd;
-		}
-		#menu-bar{
-			width: 800px;
-			height: 51px;
-			border-bottom: 1px solid #bbb;
-		}
-		#sidebar{
-			float: left;
-			width: 200px;
-			height: 600px;
-			border-right: 1px solid #bbb;
-		}
-		#content{
-			float: left;
-			width: 600px;
-			height: 600px;
-			overflow-y: auto;
-			overflow-x: hidden;
-			background: #f9f9f9;
-			padding: 15px 0;
-		}
-		.item{
-			float: left;
-			padding: 10px;
-			width: 130px;
-			height: 130px;
-			margin: 0 20px;
-			font-family: DroidSans, Sans;
-			text-align: center;
-			overflow: hidden;
-			color: #333;
-			border: 1px solid transparent;
-			border-radius: 2px;
-			cursor: pointer;
-			font-size: 13px;
-			background: transparent;
-		}
-		.item:hover{
-			background: #eee;
-			border-color: #ddd;
-			color: black;
-		}
-		.item:hover>img{
-			-webkit-filter: contrast(1.1) brightness(1.05);
-		}
-		.item>img{
-			height: 60px;
-			max-width: 120px;
-			max-height: 60px;
-		}
-		.item>p{
-			height: 80px;
-			word-wrap: break-word;
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-		#nav-button-container{
-			width: 150px;
-			display: inline-block;
-		}
-
-		button{
-			border: 1px solid #aaa;
-			background: #eee;
-			border-radius: 2px;
-			color: #333;
-			display: inline-block;
-			height: 40px;
-			vertical-align: middle;
-			text-align: center;
-			padding: 0 3px;
-			margin: 5px;
-			-webkit-transition: border-color .1s, background-color .1s;
-		}
-		button:hover{
-			background-color: #f5f5f5;
-			border-color: #999;
-		}
-		button.left-button{
-			border-top-right-radius: 0px;
-			border-bottom-right-radius: 0px;
-			margin-right: 0;
-		}
-		button.right-button{
-			border-top-left-radius: 0px;
-			border-bottom-left-radius: 0px;
-			border-left: none;
-			margin-left: 0;
-		}
-
-		#prev-button, #next-button{
-			float: left;
-		}
-
-		#up-button{
-			float: right;
-		}
-
-		input{
-			border: 1px solid #aaa;
-			background: #f9f9f9;
-			border-radius: 2px;
-			display: inline-block;
-			width: 600px;
-			height: 32px;
-			padding: 0 5px;
-			font-size: 14px;
-			color: #333;
-			margin: 5px;
-			-webkit-transition: background-color .1s;
-		}
-		input:hover, input:focus{
-			background-color: white;
-		}
-
-		#location {
-			float: right;
-			margin-right: 15px;
-			margin-top: 9px;
-		}
-
-	</style>
+	<link rel="stylesheet" type="text/css" href="filemanager.css">
 </head>
 <body ondragstart="return false;" ondrop="return false;">
 	<div id="menu-bar">
@@ -183,11 +14,18 @@
 		<input id="location" type="text" value="/home/leo/">
 	</div>
 	<div id="sidebar">
-		<ul>
-			<li><a href="#/home/leo/">Home</a></li>
-			<li><a href="#/home/leo/Projects/">Projects</a></li>
-			<li><a href="#/home/leo/Downloads/">Downloads</a></li>
-		</ul>
+		<div class="item inline-item directory">
+			<img src="/usr/share/icons/Flattr/places/16/user-home.svg">
+			<p>Home</p>
+		</div>
+		<div class="item inline-item directory">
+			<img src="/usr/share/icons/Flattr/places/16/folder-download.svg">
+			<p>Downloads</p>
+		</div>
+		<div class="item inline-item directory">
+			<img src="/usr/share/icons/Flattr/places/16/folder-documents.svg">
+			<p>Documents</p>
+		</div>
 	</div>
 	<div id="content">
 		<div class="item file">

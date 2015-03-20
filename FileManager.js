@@ -15,6 +15,14 @@ var folderIconMapping = {
 	'/home/leo/Desktop':   'places/64/user-desktop'
 };
 
+var bookmarks = [
+	'/home/leo/',
+	'/home/leo/Downloads',
+	'/home/leo/Videos',
+	'/home/leo/Documents',
+	'/',
+];
+
 var folderIconMappingList = Object.keys(folderIconMapping);
 
 var UI = {
@@ -215,21 +223,26 @@ function openDir( path, resetHistory ) {
 		console.log('Reset History', history);
 	}
 
-	UI.clearFiles();
-	UI.setLocation( path );
 
 	if ( history.indexOf(path) === -1){
 
 		history.unshift( path );
 	}
 
+	var scrollTop = UI.getScrollPosition();
+
+	console.log('scrollTop', scrollTop);
+
 	historyData[path] = {
-		scrollPosition: UI.getScrollPosition()
+		scrollPosition: scrollTop
 	};
 
 	console.log('History', history);
+	console.log('historyData', historyData);
 	console.log('historyPosition', historyPosition);
 
+	UI.clearFiles();
+	UI.setLocation( path );
 	currentDirectory = path;
 
 
@@ -261,6 +274,9 @@ function openHistoryDir(position) {
 	var historyPath = history[position];
 
 	openDir( historyPath, false);
+
+	console.log('History', historyPath);
+	console.log('HistoryData', historyData[historyPath]);
 
 	UI.setScrollPosition(historyData[historyPath].scrollPosition);
 }
