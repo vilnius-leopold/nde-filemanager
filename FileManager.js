@@ -17,6 +17,9 @@ var filesElement       = document.querySelector('#files');
 var locationElement    = document.querySelector('#location');
 var actionElement      = document.querySelector('#actions');
 var contextmenuElement = document.querySelector('.context-menu');
+var navButtonContainer = document.querySelector('#nav-button-container');
+var nextButtonElement  = document.querySelector('#next-button');
+var prevButtonElement  = document.querySelector('#prev-button');
 
 var UI = {
 	getLocation: function() {
@@ -122,15 +125,15 @@ var UI = {
 		});
 	},
 	onPrevClick: function( callback ) {
-		document.querySelector('#prev-button')
-		.addEventListener('click', function( ev ) {
-			callback();
+		prevButtonElement.addEventListener('click', function( ev ) {
+			if ( ! prevButtonElement.classList.contains('disabled') )
+				callback();
 		});
 	},
 	onNextClick: function( callback ) {
-		document.querySelector('#next-button')
-		.addEventListener('click', function( ev ) {
-			callback();
+		nextButtonElement.addEventListener('click', function( ev ) {
+			if ( ! nextButtonElement.classList.contains('disabled') )
+				callback();
 		});
 	},
 	showButton:  function( id ) {
@@ -170,12 +173,14 @@ function updateLayout() {
 		var menuHeight   = menuElement.offsetHeight;
 		var sidebarWidth = sidebarElement.offsetWidth;
 		var actionWidth  = actionElement.offsetWidth;
+		var navButtonContainerWidth = navButtonContainer.offsetWidth;
+		var locationMarginRight = 5;
 
 		console.log(width,height,menuHeight,sidebarWidth);
 
 		filesElement.style.width = (width - sidebarWidth - actionWidth) + 'px';
 		contentElement.style.width = (width - sidebarWidth) + 'px';
-		locationElement.style.width = (width - sidebarWidth + 25 ) + 'px';
+		locationElement.style.width = (width - navButtonContainerWidth - locationMarginRight ) + 'px';
 		contentElement.style.height = (height - menuHeight) + 'px';
 		sidebarElement.style.height = (height - menuHeight) + 'px';
 	});

@@ -51,6 +51,7 @@ html,body{
 	height: 51px;
 	border-bottom: 1px solid #bbb;
 	overflow: hidden;
+	font-size: 0;
 }
 #sidebar{
 	background: #ddd;
@@ -181,7 +182,9 @@ html,body{
 
 
 #nav-button-container{
-	width: 150px;
+	font-size: 0;
+	position: relative;
+	width: 109px;
 	display: inline-block;
 }
 
@@ -249,11 +252,18 @@ button:hover.disabled{
 }
 
 #prev-button, #next-button{
-	float: left;
+	/*float: left;*/
 }
 
-#up-button{
-	float: right;
+#up-button {
+	margin-right: 0;
+	position: absolute;
+	right: -1px;
+	top: 4px;
+	height: 32px;
+	width: 40px;
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
 }
 
 input{
@@ -274,8 +284,12 @@ input:hover, input:focus{
 }
 
 #location {
-	margin-right: 15px;
+	width: 686px;
+	vertical-align: top;
+	margin: 0;
 	margin-top: 9px;
+/*	margin-right: 15px;
+	margin-top: 9px;*/
 }
 
 .sidebar-section>h3 {
