@@ -1,5 +1,8 @@
+var iconTheme        = 'Flattr';
+
+// defaults
 var currentDirectory = '/home/leo/',
-    iconTheme        = 'Flattr';
+    view             = 'rows'; // rows/icons, default is icons
 
 // Mimetype determination
 //

@@ -34,6 +34,9 @@ var UI = {
 		document.querySelector('#' + container)
 		        .appendChild( fileElement );
 	},
+	setView: function( view ) {
+		filesElement.classList.add('view-' + view);
+	},
 	addSidebarSection: function( sectionName ) {
 
 
@@ -586,6 +589,8 @@ function init() {
 			exec(command);
 		}
 	});
+
+	UI.setView(view);
 
 	updateLayout();
 
