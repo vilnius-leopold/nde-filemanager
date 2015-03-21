@@ -10,12 +10,13 @@ var historyPosition  = 0,
 
 var folderIconMappingList = Object.keys(folderIconMapping);
 
-var contentElement  = document.querySelector('#content');
-var menuElement     = document.querySelector('#menu-bar');
-var sidebarElement  = document.querySelector('#sidebar');
-var filesElement    = document.querySelector('#files');
-var locationElement = document.querySelector('#location');
-var actionElement   = document.querySelector('#actions');
+var contentElement     = document.querySelector('#content');
+var menuElement        = document.querySelector('#menu-bar');
+var sidebarElement     = document.querySelector('#sidebar');
+var filesElement       = document.querySelector('#files');
+var locationElement    = document.querySelector('#location');
+var actionElement      = document.querySelector('#actions');
+var contextmenuElement = document.querySelector('.context-menu');
 
 var UI = {
 	getLocation: function() {
@@ -189,16 +190,34 @@ function getIconPath( iconName ) {
 	return iconDirectory + iconTheme + '/' + iconName + '.svg';
 }
 
+function mimeTypeToPath( mimeType ) {
+	return 'mimetypes/48/' + mimeType.replace(/\//g, '-');
+}
+
 function getMimeTypeIconName( filePath, callback ) {
-	var command = 'xdg-mime query filetype "' + currentDirectory + filePath + '"';
+	var mimeType = mime.lookup(currentDirectory + filePath);
 
-	exec(command, function(error, stdout, stderr){
-		console.log('Mime:', error, stdout, stderr, command);
+	// quick and dirty lookup
+	// based on file extensions
+	if (
+		(mimeLookup == 'quick' || mimeLookup == 'combined') &&
+		mimeType != 'application/octet-stream' && mimeType != 'text/x-shellscript')
+	{
+		console.log('Quick n dirty lookup:', mimeType);
 
-		var mimeType = stdout.replace(/\//g, '-');
+		callback( mimeTypeToPath( mimeType ) );
 
-		callback( 'mimetypes/48/' + mimeType );
-	});
+	// thourough lookup
+	// if returns default
+	} else if (mimeLookup == 'exact' || mimeLookup == 'combined') {
+		var command = 'xdg-mime query filetype "' + currentDirectory + filePath + '"';
+
+		exec(command, function(error, stdout, stderr){
+			console.log('Expensive lookup:', error, stdout, stderr, command);
+
+			callback( mimeTypeToPath( stdout ) );
+		});
+	}
 }
 
 function getFileTypeIconPath( file, size, callback ) {
@@ -536,9 +555,9 @@ function init() {
 	UI.onFileContextClick(function( element, x, y ) {
 		var fileObj = element.obj;
 
-		document.querySelector('.context-menu').style.top  = y + 'px';
-		document.querySelector('.context-menu').style.left = x + 'px';
-		document.querySelector('.context-menu').classList.toggle('hide');
+		contextmenuElement.style.top  = y + 'px';
+		contextmenuElement.style.left = x + 'px';
+		contextmenuElement.classList.toggle('hide');
 
 		// var command = 'rm -r "' + fileObj.absolutePath + '"';
 

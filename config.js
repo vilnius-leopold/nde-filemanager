@@ -1,6 +1,14 @@
 var currentDirectory = '/home/leo/',
     iconTheme        = 'Flattr';
 
+// Mimetype determination
+//
+// quick    (quick but only extension based)
+// exact    (exact but slow)
+// combined (quick else exact)
+// assured  (like combined but double check quick ones)
+var mimeLookup = 'combined';
+
 
 var folderIconMapping = {
 	'/home/leo':           'places/64/user-home',
