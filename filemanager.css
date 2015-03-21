@@ -367,8 +367,9 @@ input:hover, input:focus{
 #files.view-rows>.item>p {
 	height: 30px;
 	word-wrap: break-word;
-	display: inline-block;
+	display: inline;
 	font-size: 13px;
 	vertical-align: top;
 	line-height: 33px;
+	white-space: pre;
 }

@@ -300,7 +300,15 @@ function File( options ) {
 
 
 			fileElement.className = 'item file' + hiddenClass;
-			fileElement.innerHTML = '<img src="'+iconPath+'"><p>' + iconName + '</p>';
+
+			var iconElement = new Image();
+			iconElement.src = iconPath;
+
+			var fileNameElement = document.createElement('p');
+			fileNameElement.textContent = that.fileName;
+
+			fileElement.appendChild(iconElement);
+			fileElement.appendChild(fileNameElement);
 			fileElement.obj = that;
 
 			callback( fileElement );
