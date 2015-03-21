@@ -86,10 +86,10 @@ html,body{
 	overflow-y: auto;
 	overflow-x: hidden;
 	background: #f9f9f9;
-	padding: 15px 0;
 	position: static;
 }
 #files {
+	padding: 15px 0;
 	float: left;
 	width: 510px;
 	background: transparent;
@@ -331,6 +331,11 @@ input:hover, input:focus{
 	background: #cc3333;
 }
 
+/* View Mode: Rows */
+#files.view-rows{
+	padding: 0;
+}
+
 #files.view-rows>.item {
 	/* float: left; */
 	display: block;
@@ -341,10 +346,10 @@ input:hover, input:focus{
 	text-align: left;
 	overflow: hidden;
 	color: #333;
-	border: 1px solid transparent;
+	/*border: 1px solid transparent;*/
 	border-radius: 0;
 	cursor: pointer;
-	background: transparent;
+	/*background: transparent;*/
 	transition: background-color .15s, border-color .15s;
 	font-size: 0;
 	border-left: none;
