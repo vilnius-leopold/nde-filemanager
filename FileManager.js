@@ -101,6 +101,25 @@ var UI = {
 			}
 		});
 	},
+	onFileContextClick: function( callback ) {
+		document.querySelector('body')
+		.addEventListener('contextmenu', function( ev ) {
+			var target = ev.target,
+			    parent = target.parentNode;
+
+			console.log('click');
+
+			if (target.classList.contains('item') )  {
+				console.log('click item');
+				callback( target, ev.clientX, ev.clientY );
+			}
+
+			if (parent.classList.contains('item') )  {
+				console.log('click item');
+				callback( parent, ev.clientX, ev.clientY );
+			}
+		});
+	},
 	onPrevClick: function( callback ) {
 		document.querySelector('#prev-button')
 		.addEventListener('click', function( ev ) {
@@ -138,7 +157,7 @@ var UI = {
 	}
 };
 
-window.onresize = function(){
+function updateLayout() {
 	window.requestAnimationFrame(function(){
 		console.log('Resizing');
 
@@ -155,11 +174,13 @@ window.onresize = function(){
 
 		filesElement.style.width = (width - sidebarWidth - actionWidth) + 'px';
 		contentElement.style.width = (width - sidebarWidth) + 'px';
-		locationElement.style.width = (width - sidebarWidth - 30) + 'px';
+		locationElement.style.width = (width - sidebarWidth + 25 ) + 'px';
 		contentElement.style.height = (height - menuHeight) + 'px';
 		sidebarElement.style.height = (height - menuHeight) + 'px';
 	});
-};
+}
+
+window.onresize = updateLayout;
 
 function getIconPath( iconName ) {
 
@@ -365,11 +386,15 @@ function openDir( path, resetHistory ) {
 
 	if (history.length <= 1) {
 		UI.hideButton('next-button');
+		UI.hideButton('button-separator');
 		UI.hideButton('prev-button');
 	} else {
 		UI.showButton('prev-button');
+		UI.showButton('button-separator');
 		UI.showButton('next-button');
-	} if ( historyPosition === 0 ) {
+	}
+
+	if ( historyPosition === 0 ) {
 		UI.disableButton('next-button');
 		UI.enableButton('prev-button');
 	} else if ( historyPosition === history.length -1 ) {
@@ -508,6 +533,21 @@ function init() {
 		openParentDir();
 	});
 
+	UI.onFileContextClick(function( element, x, y ) {
+		var fileObj = element.obj;
+
+		document.querySelector('.context-menu').style.top  = y + 'px';
+		document.querySelector('.context-menu').style.left = x + 'px';
+		document.querySelector('.context-menu').classList.toggle('hide');
+
+		// var command = 'rm -r "' + fileObj.absolutePath + '"';
+
+		// console.log('fileObj', fileObj);
+		// console.log('command', command);
+
+		// exec(command);
+	});
+
 	UI.onFileClick(function( element ) {
 		var fileObj = element.obj;
 
@@ -520,23 +560,10 @@ function init() {
 			console.log('command', command);
 
 			exec(command);
-
-			// xdgOpen.stdout.on('data', function (data) {
-			// 	console.log('stdout: ' + data);
-			// });
-
-			// xdgOpen.stderr.on('data', function (data) {
-			// 	console.log('stderr: ' + data);
-			// });
-
-			// xdgOpen.on('close', function (code) {
-			// 	console.log('child process exited with code ' + code);
-			// });
 		}
-
-		// console.log('Clicked', element);
-		// console.log('Clicked', path);
 	});
+
+	updateLayout();
 
 	addBookmarks();
 

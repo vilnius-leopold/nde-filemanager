@@ -8,7 +8,7 @@
 <body ondragstart="return false;" ondrop="return false;">
 	<div id="menu-bar">
 		<div id="nav-button-container" class="group">
-			<button id="prev-button" class="left-button hide"><img src="/usr/share/icons/Flattr/actions/22/draw-arrow-back.svg"></button><span class="button-separator float-left"></span><button id="next-button" class="right-button hide"><img src="/usr/share/icons/Flattr/actions/22/draw-arrow-forward.svg"></button>
+			<button id="prev-button" class="left-button hide"><img src="/usr/share/icons/Flattr/actions/22/draw-arrow-back.svg"></button><span id="button-separator" class="button-separator float-left"></span><button id="next-button" class="right-button hide"><img src="/usr/share/icons/Flattr/actions/22/draw-arrow-forward.svg"></button>
 			<button id="up-button" class="hide"><img src="/usr/share/icons/Flattr/actions/22/draw-arrow-up.svg"></button>
 		</div>
 		<input id="location" type="text" class="float-right" value="/home/leo/">
@@ -34,6 +34,13 @@
 			<button id="new-directory-button" class="action-button"><img src="/usr/share/icons/Flattr/actions/24/archive-insert-directory.svg"></button>
 			<button id="new-file-hide-button" class="action-button"><img src="/usr/share/icons/Flattr/actions/24/archive-insert.svg"></button>
 		</div>
+	</div>
+	<div class="context-menu hide">
+		<div class="menu-item">Open with</div>
+		<div class="menu-separator"></div>
+		<div class="menu-item">Open as root</div>
+		<div class="menu-separator"></div>
+		<div class="menu-item">Delete</div>
 	</div>
 	<script src="config.js"></script>
 	<script src="FileManager.js"></script>
