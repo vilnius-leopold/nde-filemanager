@@ -1,6 +1,6 @@
 var fs    = require('fs'),
     async = require('async'),
-    exec = require('child_process').exec;
+    exec  = require('child_process').exec;
 
 
 // WARNING:

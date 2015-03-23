@@ -1,57 +1,25 @@
-var now      = require("performance-now");
-var sort     = require('sort-stream');
-var fs       = require('fs');
-var async    = require('async');
-var Readable = require('stream').Readable;
-var File     = require(__dirname + '/file.js');
+var now        = require("performance-now");
+var sort       = require('sort-stream');
+var fs         = require('fs');
+var async      = require('async');
+var Readable   = require('stream').Readable;
+var File       = require(__dirname + '/file.js');
+var FileSorter = require(__dirname + '/FileSorter.js');
 
 // Settings
-var pwd            = '/home/leo/p',
+var pwd            = '/home/leo/',
     sortSettings   = ['directoryFirst', 'fileName'],
     filterSettings = ['hiddenFiles'];
 
-// map sort fields
-// with required file method calls
-var sortMap = {
-	'directoryFirst': {
-		dependencies: 'isDirectory',
-		sorter:        sortByDirectoryFirst
-	},
-	'fileName': {
-		dependencies: 'getFileName',
-		sorter:        sortByFileName
-	},
-	'mimeType': {
-		dependencies: 'getMimeType',
-		sorter:        sortByMimeType
-	}
-};
 
 var filterMap = {
 	'hiddenFiles': filterHiddenFiles
 };
 
 // File vars
-var files           = [],
-    readyCount      = 0,
-    fileCount       = 0,
-    postFilterCount = 0;
 
-// Sort vars
-var sortDependencies = [],
-    sorterCount      = 0,
-    sorters          = [];
-
-function updateSorterSettings() {
-	sortSettings.forEach(function(sortName){
-		var sortData = sortMap[sortName];
-
-		sorterCount++;
-
-		sortDependencies.push(sortData.dependencies);
-		sorters.push(sortData.sorter);
-	});
-}
+var fileCount         = 0,
+    filteredFileCount = 0;
 
 function getFilters() {
 	var filters = [];
@@ -64,9 +32,22 @@ function getFilters() {
 	return filters;
 }
 
-updateSorterSettings();
 
 var filters          = getFilters();
+
+var fileSorter = new FileSorter(sortSettings);
+
+fileSorter.onsorted = function( sortedFiles ) {
+
+	var sortedFileNames = sortedFiles.map(function( file ) {
+		return file.getCachedFileName();
+	});
+
+	console.log('Files:\n', sortedFileNames);
+	console.log('Total    files:', fileCount);
+	console.log('Filtered files:', filteredFileCount);
+	console.log('Benchmark:', now().toFixed(3));
+};
 
 // NOTE:
 // There is really not difference
@@ -79,116 +60,16 @@ var filters          = getFilters();
 function addToPipeWhenReady( file ) {
 	// filter files
 	file.isHidden(function(err, isHidden) {
-
-		// console.log( 'isHidden', isHidden );
-
-		if ( true || ! isHidden ) {
-
-			postFilterCount++;
-
-			// prepare sort
-			async.parallel(
-			// eval(sortArrayString),
-			sortDependencies.map(function(dep){ return file[dep]; }),
-			// [ file.isDirectory, file.getFileName, file.getMimeType ],
-			function( err, isDir ) {
-				files.push(file);
-				sortWhenReady();
-			});
+		if ( ! isHidden ) {
+			filteredFileCount++;
+			fileSorter.add(file);
 		}
 	});
 }
 
-function sortWhenReady() {
-	readyCount++;
-
-	// console.log(readyCount);
-
-	if ( readyCount === postFilterCount ) {
-		var sortedFiles = files
-		.sort(sortBySettings);
-
-		var sortedFileNames = sortedFiles.map(function( file ) {
-			return file.getCachedFileName();
-		});
-
-		console.log('Files:\n', sortedFileNames);
-		console.log('Total    files:', fileCount);
-		console.log('Filtered files:', postFilterCount);
-		console.log('Benchmark:', now().toFixed(3));
-	}
-}
 
 function filterHiddenFiles( file ) {
 	return ! file.cachedIsHidden();
-}
-
-function sortBySettings( fileA, fileB ) {
-	var sortResult = 0;
-
-	for ( var i = 0; i < sorterCount; i++ ) {
-		sortResult = sorters[i](fileA, fileB);
-
-		if ( sortResult !== 0)
-			break;
-	}
-
-	return sortResult;
-}
-
-function sortByDirectoryFirst( fileA, fileB ) {
-	var isDirA = fileA.cachedIsDirectory();
-	var isDirB = fileB.cachedIsDirectory();
-
-	if ( isDirA === isDirB )
-		return 0;
-	if ( isDirA === true ) {
-		return -1;
-	} else {
-		return 1;
-	}
-}
-
-function sortByFileName(fileA, fileB) {
-	var fileNameA = fileA.getCachedFileName().toLowerCase();
-	var fileNameB = fileB.getCachedFileName().toLowerCase();
-
-	return fileNameA > fileNameB ? 1 : -1;
-}
-
-function sortByMimeType(fileA, fileB) {
-	var mimeTypeA = fileA.getCachedMimeType();
-	var mimeTypeB = fileB.getCachedMimeType();
-
-	if ( mimeTypeA === mimeTypeB )
-		return 0;
-	if ( mimeTypeA === true ) {
-		return -1;
-	} else {
-		return 1;
-	}
-}
-
-function sortByDirAndName(fileA, fileB) {
-	var isDirA = fileA.cachedIsDirectory();
-	var isDirB = fileB.cachedIsDirectory();
-
-	var fileNameA = fileA.getCachedFileName().toLowerCase();
-	var fileNameB = fileB.getCachedFileName().toLowerCase();
-
-	// sort by mimetype
-	// var fileNameA = fileA.getCachedMimeType();
-	// var fileNameB = fileB.getCachedMimeType();
-
-	var fileNameGreater = fileNameA > fileNameB;
-
-	if ( isDirA === isDirB )
-		return fileNameGreater ? 1 : -1;
-	if ( isDirA === true ) {
-		return -1;
-	} else {
-		return 1;
-	}
 }
 
 fs.readdir(pwd, function( err, fileList ) {
@@ -209,11 +90,3 @@ fs.readdir(pwd, function( err, fileList ) {
 
 	}
 });
-
-
-// rs.pipe(sort(function (a, b) {
-// 	//comparator function, return 1, 0, or -1
-// 	//just like Array.sort
-// })).pipe(function(data){
-// 	console.log(data);
-// });
