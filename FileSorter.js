@@ -22,9 +22,10 @@ function FileSorter( sortSettings ) {
 	var fileCount        = 0, // number of files added to sorter
 	    sortDependencies = [],
 	    sorterCount      = 0,
+	    receivedAllFiles = false,
 	    sorters          = [],
-	    files           = [],
-	    readyCount      = 0;
+	    files            = [],
+	    readyCount       = 0;
 
 	// INIT
 	updateSorterSettings();
@@ -46,7 +47,7 @@ function FileSorter( sortSettings ) {
 
 		// console.log(readyCount);
 
-		if ( readyCount === fileCount ) {
+		if ( receivedAllFiles && readyCount === fileCount ) {
 			var sortedFiles = files
 			.sort(sortBySettings);
 
@@ -103,29 +104,6 @@ function FileSorter( sortSettings ) {
 		}
 	}
 
-	function sortByDirAndName(fileA, fileB) {
-		var isDirA = fileA.cachedIsDirectory();
-		var isDirB = fileB.cachedIsDirectory();
-
-		var fileNameA = fileA.getCachedFileName().toLowerCase();
-		var fileNameB = fileB.getCachedFileName().toLowerCase();
-
-		// sort by mimetype
-		// var fileNameA = fileA.getCachedMimeType();
-		// var fileNameB = fileB.getCachedMimeType();
-
-		var fileNameGreater = fileNameA > fileNameB;
-
-		if ( isDirA === isDirB )
-			return fileNameGreater ? 1 : -1;
-		if ( isDirA === true ) {
-			return -1;
-		} else {
-			return 1;
-		}
-	}
-
-
 	// PUBLIC
 
 	// NOTE:
@@ -136,6 +114,11 @@ function FileSorter( sortSettings ) {
 	// - crazy V8 ... seems like nothing
 	// makes a difference
 	this.add = function( file ) {
+		if ( file === null ) {
+			receivedAllFiles = true;
+			return;
+		}
+
 		fileCount++;
 
 		// prepare sort

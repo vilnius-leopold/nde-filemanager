@@ -50,4 +50,7 @@ fs.readdir(pwd, function( err, fileList ) {
 
 		fileFilter.onPass(file, fileSorter.add);
 	}
+
+	// close file sorter
+	fileSorter.add( null );
 });
