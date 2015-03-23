@@ -127,6 +127,14 @@ function FileSorter( sortSettings ) {
 
 
 	// PUBLIC
+
+	// NOTE:
+	// There is really not difference
+	// in performance if you
+	// map / eval / literal
+	// sort dependencies
+	// - crazy V8 ... seems like nothing
+	// makes a difference
 	this.add = function( file ) {
 		fileCount++;
 

@@ -5,6 +5,7 @@ var async      = require('async');
 var Readable   = require('stream').Readable;
 var File       = require(__dirname + '/file.js');
 var FileSorter = require(__dirname + '/FileSorter.js');
+var FileFilter = require(__dirname + '/FileFilter.js');
 
 // Settings
 var pwd            = '/home/leo/',
@@ -12,30 +13,11 @@ var pwd            = '/home/leo/',
     filterSettings = ['hiddenFiles'];
 
 
-var filterMap = {
-	'hiddenFiles': filterHiddenFiles
-};
-
-// File vars
-
 var fileCount         = 0,
     filteredFileCount = 0;
 
-function getFilters() {
-	var filters = [];
-
-	for ( var filterName in filterMap ) {
-
-		filters.push( filterMap[filterName] );
-	}
-
-	return filters;
-}
-
-
-var filters          = getFilters();
-
-var fileSorter = new FileSorter(sortSettings);
+var fileSorter = new FileSorter( sortSettings );
+var fileFilter = new FileFilter( filterSettings );
 
 fileSorter.onsorted = function( sortedFiles ) {
 
@@ -49,28 +31,10 @@ fileSorter.onsorted = function( sortedFiles ) {
 	console.log('Benchmark:', now().toFixed(3));
 };
 
-// NOTE:
-// There is really not difference
-// in performance if you
-// map / eval / literal
-// sort dependencies
-// - crazy V8 ... seems like nothing
-// makes a difference
-
-function addToPipeWhenReady( file ) {
-	// filter files
-	file.isHidden(function(err, isHidden) {
-		if ( ! isHidden ) {
-			filteredFileCount++;
-			fileSorter.add(file);
-		}
-	});
-}
-
-
-function filterHiddenFiles( file ) {
-	return ! file.cachedIsHidden();
-}
+// function filterCallback( file ) {
+// 	filteredFileCount++;
+// 	(file);
+// }
 
 fs.readdir(pwd, function( err, fileList ) {
 	var fileName,
@@ -78,15 +42,12 @@ fs.readdir(pwd, function( err, fileList ) {
 	    i;
 
 	fileCount = fileList.length;
-	// console.log( 'File count', fileCount );
 
 	for ( i = 0; i < fileCount; i++ ) {
 		fileName = fileList[i];
 
 		file = new File(fileName, pwd);
 
-
-			addToPipeWhenReady(file);
-
+		fileFilter.onPass(file, fileSorter.add);
 	}
 });
