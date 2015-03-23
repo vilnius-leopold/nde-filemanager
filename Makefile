@@ -28,3 +28,6 @@ run: build
 
 file-test:
 	node file.js
+
+pipe-test:
+	node pipeTest.js
