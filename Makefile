@@ -25,3 +25,6 @@ install: build
 
 run: build
 	$(PREFX)/bin/$(PACKAGE_NAME) --debug
+
+file-test:
+	node file.js

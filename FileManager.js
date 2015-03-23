@@ -218,7 +218,7 @@ function getMimeTypeIconName( filePath, callback ) {
 	// thourough lookup
 	// if returns default
 	} else if (mimeLookup == 'exact' || mimeLookup == 'combined') {
-		var command = 'xdg-mime query filetype "' + currentDirectory + filePath + '"';
+		var command = 'mimedb "' + currentDirectory + filePath + '"';
 
 		exec(command, function(error, stdout, stderr){
 			console.log('Expensive lookup:', error, stdout, stderr, command);
@@ -258,12 +258,19 @@ function getFileTypeIconPath( file, size, callback ) {
 
 function File( options ) {
 	var that = this;
+	this.stats        = null;
 
-	this.hidden         = false;
-	this.stats          = null;
-	this.type           = 'file';
-	this.absolutePath   = null;
-	this.fileName       = null;
+	var fileElement,
+	    iconElement,
+	    fileNameElement;
+
+	// File properties
+	this.mimeType     = null;
+	this.iconPath     = null;
+	this.hidden       = false;
+	this.fileName     = null;
+	this.type         = 'file';
+	this.absolutePath = null;
 
 	(function init( options ){
 		// console.log("Options:", options);
@@ -287,39 +294,47 @@ function File( options ) {
 		// console.log("Filename:", options.fileName);
 	}( options ));
 
-	this.render = function( callback, iconPath ) {
-		var fileElement = document.createElement('div');
+	this.renderShell = function() {
+		var hiddenClass = '';
 
-		var iconName = (that.absolutePath === '/home/leo') && iconPath ? 'Home' : that.fileName;
+		if (that.hidden)
+			hiddenClass = ' hidden-item';
 
-		function iconCallback( iconPath ) {
-			var hiddenClass = '';
+		fileElement     = document.createElement('div');
+		fileElement.className = 'item file' + hiddenClass;
 
-			if (that.hidden)
-				hiddenClass = ' hidden-item';
+		iconElement     = new Image();
+		fileNameElement = document.createElement('p');
+		fileElement.appendChild(iconElement);
+		fileElement.appendChild(fileNameElement);
 
+		fileElement.obj = that;
+	};
 
-			fileElement.className = 'item file' + hiddenClass;
-
-			var iconElement = new Image();
-			iconElement.src = iconPath;
-
-			var fileNameElement = document.createElement('p');
-			fileNameElement.textContent = that.fileName;
-
-			fileElement.appendChild(iconElement);
-			fileElement.appendChild(fileNameElement);
-			fileElement.obj = that;
-
-			callback( fileElement );
-		}
-
+	this.renderIcon = function(iconPath) {
 		if ( ! iconPath ){
 			getFileTypeIconPath(that, undefined, iconCallback);
 		} else {
 			iconCallback( iconPath );
 		}
 
+		function iconCallback( iconPath ) {
+			var iconName = (that.absolutePath === '/home/leo') && iconPath ? 'Home' : that.fileName;
+			iconElement.src = iconPath;
+			// callback( fileElement );
+		}
+
+	};
+
+	this.renderFileName = function() {
+		fileNameElement.textContent = that.fileName;
+	};
+
+	this.render = function( callback, iconPath ) {
+		that.renderShell();
+		callback(fileElement);
+		that.renderFileName();
+		that.renderIcon(iconPath);
 
 	};
 

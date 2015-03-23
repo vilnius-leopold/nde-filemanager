@@ -15,6 +15,7 @@
     "plugin": true
   },
   "dependencies": {
+    "async": "^0.9.0",
     "express": "^4.12.0",
     "optimist": "^0.6.1"
   },
