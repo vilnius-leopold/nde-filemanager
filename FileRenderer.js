@@ -1,57 +1,57 @@
 
 var folderIconMapping = {
-	'/home/leo':           'places/64/user-home',
-	'/home/leo/Downloads': 'places/64/folder-download',
-	'/home/leo/Videos':    'places/64/folder-videos',
-	'/home/leo/Documents': 'places/64/folder-documents',
-	'/home/leo/Projects':  'places/64/folder-templates',
-	'/home/leo/Desktop':   'places/64/user-desktop',
-	'/media/Share':        'devices/64/drive-harddisk'
+	'/home/leo':           ['places', 'user-home'],
+	'/home/leo/Downloads': ['places', 'folder-download'],
+	'/home/leo/Videos':    ['places', 'folder-videos'],
+	'/home/leo/Documents': ['places', 'folder-documents'],
+	'/home/leo/Projects':  ['places', 'folder-templates'],
+	'/home/leo/Desktop':   ['places', 'user-desktop'],
+	'/media/Share':        ['devices', 'drive-harddisk']
 };
-var iconTheme        = 'Flattr';
+var iconTheme     = 'Flattr';
+var iconDirectory = '/usr/share/icons/';
 
 
 function FileRenderer( document ) {
 	var folderIconMappingList = Object.keys(folderIconMapping);
 
-	function getIconPath( iconName ) {
-
-		var iconDirectory = '/usr/share/icons/';
-
-		return iconDirectory + iconTheme + '/' + iconName + '.svg';
+	function getIconPath( category, size, iconName ) {
+		return iconDirectory + iconTheme + '/' + category + '/' + size + '/' + (iconName.replace(/\//g, '-')) + '.svg';
 	}
 
-	function mimeTypeToPath( mimeType ) {
-		return 'mimetypes/48/' + mimeType.replace(/\//g, '-');
-	}
+	// function mimeTypeToPath( mimeType ) {
+	// 	return ;
+	// }
 
-	function getFileTypeIconPath( file, size, callback ) {
-		var iconName = '';
+	// function getFileTypeIconPath( file, size, callback ) {
+	// 	var iconName = '';
 
-		function mimeCallback( iconName ) {
-			if ( size )
-				iconName = iconName.replace(/\/\d+\//, '/' + size + '/');
+	// 	function mimeCallback( iconName ) {
+	// 		if ( size )
+	// 			iconName = iconName.replace(/\/\d+\//, '/' + size + '/');
 
-			callback( getIconPath( iconName ) );
-		}
+	// 		callback( getIconPath( iconName ) );
+	// 	}
 
-		file.isDirectory(function( err, isDir ) {
-			 if ( isDir ) {
-				var mappedPathIndex = folderIconMappingList.indexOf(file.absolutePath);
+	// 	file.isDirectory(function( err, isDir ) {
+	// 		 if ( isDir ) {
+	// 			var mappedPathIndex = folderIconMappingList.indexOf(file.absolutePath);
 
-				if ( mappedPathIndex === -1 ) {
-					iconName = 'places/64/folder';
-				} else {
-					var mappedPath = folderIconMappingList[mappedPathIndex];
-					iconName = folderIconMapping[mappedPath];
-				}
+	// 			if ( mappedPathIndex === -1 ) {
+	// 				iconName = 'places/64/folder';
+	// 			} else {
+	// 				var mappedPath = folderIconMappingList[mappedPathIndex];
+	// 				var mapData = folderIconMapping[mappedPath]
+	// 				category = mapData[0];
+	// 				iconName = mapData[1];
+	// 			}
 
-				mimeCallback(iconName);
-			} else {
-				getMimeTypeIconName( file.fileName, mimeCallback );
-			}
-		});
-	}
+	// 			mimeCallback(iconName);
+	// 		} else {
+	// 			getMimeTypeIconName( file.fileName, mimeCallback );
+	// 		}
+	// 	});
+	// }
 
 
 	this.renderShell = function( file ) {
@@ -75,19 +75,37 @@ function FileRenderer( document ) {
 		return fileElement;
 	};
 
-	this.renderIcon = function(file, iconPath) {
-		if ( ! iconPath ){
-			getFileTypeIconPath(that, undefined, iconCallback);
-		} else {
-			iconCallback( iconPath );
-		}
+	this.renderIcon = function(file, size) {
+		size = size || 64;
 
-		function iconCallback( iconPath ) {
-			var iconName = (that.absolutePath === '/home/leo') && iconPath ? 'Home' : that.fileName;
-			file.iconElement.src = iconPath;
-			// callback( fileElement );
-		}
+		file.isDirectory(function(err, isDir) {
+			if ( ! isDir ) {
+				file.getMimeType(function( err, mimeType ){
+					if ( mimeType )
+						file.iconElement.src = getIconPath( 'mimetypes', 48, mimeType );
+				});
+			} else {
+				file.getAbsolutePath(function( err, absolutePath ) {
+					console.log('Abs', absolutePath);
 
+					var mappedPathIndex = folderIconMappingList.indexOf(absolutePath),
+					    iconName,
+					    iconCategory;
+
+					if ( mappedPathIndex === -1 ) {
+						iconName = 'folder';
+						iconCategory = 'places';
+					} else {
+						var mappedPath = folderIconMappingList[mappedPathIndex];
+						var mapData = folderIconMapping[mappedPath]
+						iconCategory = mapData[0];
+						iconName     = mapData[1];
+					}
+
+					file.iconElement.src = getIconPath( iconCategory, size, iconName );
+				});
+			}
+		});
 	};
 
 	this.renderFileName = function(file) {
@@ -105,7 +123,7 @@ function FileRenderer( document ) {
 		});
 	};
 
-	this.render = function( file, callback, iconPath ) {
+	this.render = function( file, callback, iconSize ) {
 		// console.log('Rendering file:', file);
 		var fileElement = this.renderShell(file);
 		// console.log('After shell render file:', file);
@@ -113,20 +131,16 @@ function FileRenderer( document ) {
 		callback(fileElement);
 		// console.log('After callback file:', file);
 		this.renderFileName(file);
-		// this.renderIcon(file, iconPath);
+		this.renderIcon(file, iconSize);
 	}.bind(this);
 
 	this.renderInline = function( file, callback ) {
-		getFileTypeIconPath(file, 16, function( iconPath ){
 
-			// console.log('Inline icon:', iconPath);
+		this.render( file, function( element ){
+			element.classList.add('inline-item');
 
-			this.render( file, function( element ){
-				element.classList.add('inline-item');
-
-				callback(element);
-			}, iconPath);
-		}.bind(this));
+			callback(element);
+		}, 16);
 	}.bind(this);
 }
 
