@@ -19,27 +19,38 @@ function FileSorter( sortSettings ) {
 		}
 	};
 
-	var fileCount        = 0, // number of files added to sorter
-	    sortDependencies = [],
+	this.fileCount        = 0;
+
+	var sortDependencies = [],
 	    sorterCount      = 0,
 	    receivedAllFiles = false,
 	    sorters          = [],
 	    files            = [],
 	    readyCount       = 0;
+	    noSorters        = false;
 
 	// INIT
 	updateSorterSettings();
 
 	// PRIVATE
 	function updateSorterSettings() {
-		sortSettings.forEach(function(sortName){
-			var sortData = sortMap[sortName];
+		var sortName = '',
+		    sortData,
+		    i;
 
-			sorterCount++;
+		sorterCount = sortSettings.length;
+		noSorters   = sorterCount === 0;
+
+		if ( noSorters )
+			return;
+
+		for ( i = 0; i < sorterCount; i++ ) {
+			sortName = sortSettings[i];
+			sortData = sortMap[sortName];
 
 			sortDependencies.push(sortData.dependencies);
 			sorters.push(sortData.sorter);
-		});
+		}
 	}
 
 	var sortWhenReady = function () {
@@ -47,7 +58,7 @@ function FileSorter( sortSettings ) {
 
 		// console.log(readyCount);
 
-		if ( receivedAllFiles && readyCount === fileCount ) {
+		if ( receivedAllFiles && readyCount === this.fileCount ) {
 			var sortedFiles = files
 			.sort(sortBySettings);
 
@@ -116,10 +127,22 @@ function FileSorter( sortSettings ) {
 	this.add = function( file ) {
 		if ( file === null ) {
 			receivedAllFiles = true;
+
+			if ( noSorters ) {
+				this.onsorted(files);
+			}
+
 			return;
 		}
 
-		fileCount++;
+		this.fileCount++;
+
+
+		if ( noSorters ) {
+			files.push(file);
+
+			return;
+		}
 
 		// prepare sort
 		async.parallel(
@@ -128,7 +151,7 @@ function FileSorter( sortSettings ) {
 			files.push(file);
 			sortWhenReady();
 		});
-	};
+	}.bind(this);
 
 
 }

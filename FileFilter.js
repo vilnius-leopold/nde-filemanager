@@ -4,52 +4,67 @@ function FileFilter( filterSettings ) {
 	};
 
 	var filters     = [],
-	    filterCount = 0;
+	    filterCount = 0,
+	    noFilters   = false;
 
 
 	function setFilters() {
-		var filterName = '';
+		var filterName = '',
+		    i;
 
-		filterSettings.forEach(function( filterName ) {
+		filterCount = filterSettings.length;
+
+		noFilters = filterCount === 0;
+
+		if ( noFilters )
+			return;
+
+		for ( i = 0; i < filterCount; i++ ) {
+			filterName = filterSettings[i];
+
 			filters.push( filterMap[filterName] );
-			filterCount++;
-		});
+		}
 	}
 
 	setFilters();
 
+	function filterCallback( pass, file, isLast, callback ){
+		if ( ! pass ) {
+			// stop other filters
+			interrupt = true;
+		} else if ( isLast ) {
+			callback( file );
+		}
+	}
+
 	this.onPass = function(file, callback) {
 		var interrupt = false,
-		    doneFilters = 0;
+		    filter,
+		    i;
 
-		if ( filterCount === 0 )
+		if ( noFilters ) {
 			callback( file );
+			return;
+		}
 
-		filters.forEach(function( filter ) {
-			if ( interrupt ) {
-				return false;
-			}
-
-			filter(file, function( pass ){
-				doneFilters++;
-
-				if ( ! pass ) {
-					// stop other filters
-					interrupt = true;
-				} else if ( doneFilters === filterCount ) {
-					callback( file );
-				}
-			});
+		for ( i = 0; i < filterCount; i++ ) {
+			filter = filters[i];
 
 			if ( interrupt ) {
 				return false;
 			}
-		});
+
+			filter(file, filterCallback, i === filterCount - 1, callback );
+
+			if ( interrupt ) {
+				return false;
+			}
+		}
 	};
 
-	function filterHiddenFiles( file, callback ) {
+	function filterHiddenFiles( file, callback, isLast, finalCallback ) {
 		file.isHidden(function(err, isHidden){
-			callback( ! isHidden );
+			callback( ! isHidden, file, isLast, finalCallback );
 		});
 	}
 }
