@@ -1,11 +1,12 @@
-var now        = require("performance-now");
-var fs         = require('fs');
-var async      = require('async');
-var File       = require(__dirname + '/file.js');
-var FileSorter = require(__dirname + '/FileSorter.js');
-var FileFilter = require(__dirname + '/FileFilter.js');
+var now        = require("performance-now"),
+    fs         = require('fs'),
+    async      = require('async'),
+    File       = require(__dirname + '/file.js'),
+    FileSorter = require(__dirname + '/FileSorter.js'),
+    FileFilter = require(__dirname + '/FileFilter.js');
 
 console.log('Modules loaded:', now().toFixed(3));
+
 // Settings
 var pwd            = '/home/leo/',
     sortSettings   = ['directoryFirst', 'fileName'],
@@ -20,31 +21,23 @@ var pwd            = '/home/leo/',
 // sortSettings   = [];
 // filterSettings = [];
 
-var fileCount         = 0;
-
-var fileSorter = new FileSorter( sortSettings );
-var fileFilter = new FileFilter( filterSettings );
+var fileCount  = 0,
+    fileSorter = new FileSorter( sortSettings ),
+    fileFilter = new FileFilter( filterSettings );
 
 fileSorter.onsorted = function( sortedFiles ) {
-
 	var sortedFileNames = sortedFiles.map(function( file ) {
 		return file.getCachedFileName();
 	});
 
-	// console.log('Files:\n', sortedFileNames);
-	// console.log('Total    files:', fileCount);
-	// console.log('Filtered files:', fileSorter.fileCount);
+	console.log('Files:\n', sortedFileNames);
+	console.log('Total    files:', fileCount);
+	console.log('Filtered files:', fileSorter.fileCount);
 	console.log('Benchmark:', now().toFixed(3));
 };
 
-// function filterCallback( file ) {
-// 	filteredFileCount++;
-// 	(file);
-// }
-
 fs.readdir(pwd, function( err, fileList ) {
 	console.log('Files retrieved:', now().toFixed(3));
-
 
 	var fileName,
 	    file,

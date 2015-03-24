@@ -7,7 +7,6 @@ function FileFilter( filterSettings ) {
 	    filterCount = 0,
 	    noFilters   = false;
 
-
 	function setFilters() {
 		var filterName = '',
 		    i;

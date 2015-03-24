@@ -1,4 +1,4 @@
-var async      = require('async');
+var async = require('async');
 
 function FileSorter( sortSettings ) {
 	// map sort fields
@@ -152,8 +152,6 @@ function FileSorter( sortSettings ) {
 			sortWhenReady();
 		});
 	}.bind(this);
-
-
 }
 
 module.exports = FileSorter;
