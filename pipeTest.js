@@ -1,7 +1,7 @@
 var now        = require("performance-now"),
     fs         = require('fs'),
     async      = require('async'),
-    File       = require(__dirname + '/file.js'),
+    File       = require(__dirname + '/File.js'),
     FileSorter = require(__dirname + '/FileSorter.js'),
     FileFilter = require(__dirname + '/FileFilter.js');
 

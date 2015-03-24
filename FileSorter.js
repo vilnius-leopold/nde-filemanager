@@ -152,6 +152,13 @@ function FileSorter( sortSettings ) {
 			sortWhenReady();
 		});
 	}.bind(this);
+
+	this.reset = function() {
+		receivedAllFiles = false;
+		this.fileCount = 0;
+		readyCount = 0;
+		files = [];
+	}.bind(this);
 }
 
 module.exports = FileSorter;
