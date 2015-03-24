@@ -10,3 +10,5 @@
 	- inside current directory
 - hide next/prev if not available
 - hide up if in /home/leo or /root
+- try async.sortBy for FileSorter.js
+- try async.some for filtering
