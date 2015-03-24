@@ -244,7 +244,7 @@ function getFileTypeIconPath( file, size, callback ) {
 		var mappedPathIndex = folderIconMappingList.indexOf(file.absolutePath);
 
 		if ( mappedPathIndex === -1 ) {
-			iconName = 'places/64/folder'
+			iconName = 'places/64/folder';
 		} else {
 			var mappedPath = folderIconMappingList[mappedPathIndex];
 			iconName = folderIconMapping[mappedPath];

@@ -1,0 +1,26 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "."
+		},
+		{
+			"follow_symlinks": true,
+			"path": "/media/Share/Projects/nde"
+		}
+	],
+	"build_systems":
+	[
+		{
+			"name":        "Pipe test",
+			"working_dir": "${project_path}",
+			"cmd":        ["make", "pipe-test"]
+		},
+		{
+			"name":        "File test",
+			"working_dir": "${project_path}",
+			"cmd":        ["make", "file-test"]
+		}
+	]
+}
