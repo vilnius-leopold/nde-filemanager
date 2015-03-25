@@ -209,7 +209,6 @@ function UI( document ) {
 		nextButtonElement  = document.querySelector('#next-button');
 		prevButtonElement  = document.querySelector('#prev-button');
 
-		console.log("WINDOW", window);
 
 		window.onresize = this.updateLayout;
 

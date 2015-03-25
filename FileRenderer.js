@@ -86,8 +86,6 @@ function FileRenderer( document ) {
 				});
 			} else {
 				file.getAbsolutePath(function( err, absolutePath ) {
-					console.log('Abs', absolutePath);
-
 					var mappedPathIndex = folderIconMappingList.indexOf(absolutePath),
 					    iconName,
 					    iconCategory;

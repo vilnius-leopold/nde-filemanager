@@ -258,24 +258,16 @@ function FileManager() {
 		});
 
 		function openFile( file ) {
-
-			// window.console.log('Element', element);
-			// console.log('element.obj', file);
-
 			file.isDirectory(function( err, isDir ) {
-				if ( isDir ) {
-					file.getAbsolutePath(function(err, absPath) {
+				file.getAbsolutePath(function(err, absPath) {
+					if ( isDir ) {
 						openDir( absPath );
-					});
-				} else {
-					var command = '/usr/bin/xdg-open "' + fileObj.absolutePath + '"';
+					} else {
+						var command = '/usr/bin/xdg-open "' + absPath + '"';
 
-					console.log('fileObj', fileObj);
-					console.log('command', command);
-
-					exec(command);
-				}
-
+						exec(command);
+					}
+				});
 			});
 		}
 
