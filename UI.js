@@ -71,27 +71,12 @@ function UI( document ) {
 	this.setScrollPosition = function(value) {
 		document.querySelector('#content').scrollTop = value;
 	};
+	var locationChangeHandler = function() {};
+
 	this.onLocationChange = function( callback ) {
-		document.querySelector('#location')
-		.addEventListener('keypress', function( ev ){
-			if (ev.keyCode == 13) {
-				var location = this.getLocation();
-
-				if ( location.substr(location.length - 1) != '/' )
-					location += '/';
+		locationChangeHandler = callback;
 
 
-				// fs.stat(location, function(err, stats){
-					// if ( ! err && stats.isDirectory() ) {
-						currentDirectory = location;
-						callback(currentDirectory);
-					// } else {
-						// alert('Directory does not exist');
-					// }
-				// });
-
-			}
-		}.bind(this));
 	}.bind(this);
 	this.addBookmarkFileToSection = function( file, sectionId ) {
 		fileRenderer.renderInline(file, function( fileElement ) {
@@ -273,33 +258,40 @@ function UI( document ) {
 			} else {
 				if ( keyCode === 27 ) {
 					locationElement.blur();
+				} if (keyCode == 13) {
+					var location = this.getLocation();
+
+					// if ( location.substr(location.length - 1) != '/' )
+						// location += '/';
+
+
+					locationChangeHandler(location);
 				} else {
 					var hint = locationElement.value;
 					hintHandler();
 				}
 			}
-/*
-			// entire filelist with hidden files
-			fileList.each file
-				if file.getCachedAbsoluteName().startsWith(hint)
-					add to suggestion
+			/*
+				// entire filelist with hidden files
+				fileList.each file
+					if file.getCachedAbsoluteName().startsWith(hint)
+						add to suggestion
+					end
 				end
-			end
 
-			if no suggestions
-				check recently used locations
+				if no suggestions
+					check recently used locations
 
-			if no recent
-				search entire filesystem
+				if no recent
+					search entire filesystem
 
-			ontabHit.use highest suggestion
-			--> set location
+				ontabHit.use highest suggestion
+				--> set location
 
-			onUp/Down hit --> cycle through suggestions
-*/
-			// use e.keyCode
-			// var letter = String.fromCharCode(e.keyCode);
-		};
+				onUp/Down hit --> cycle through suggestions
+			*/
+		}.bind(this);
+
 		this.updateLayout();
 	}.bind(this)());
 }
