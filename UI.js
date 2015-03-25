@@ -21,8 +21,15 @@ function UI( document ) {
 	this.getLocation = function() {
 		return document.querySelector('#location').value;
 	};
+
+	// must likely run on directory change
 	this.setLocation = function( path ) {
 		document.querySelector('#location').value = path;
+
+		// blur so we can use
+		// enter/backspace buttons
+		// for navigation
+		locationElement.blur();
 	};
 	this.addFile = function( file ) {
 		// console.log('Adding file to UI:', file);
@@ -153,10 +160,21 @@ function UI( document ) {
 	this.enableButton = function( id ) {
 		document.querySelector('#' + id).classList.remove('disabled');
 	};
+
+	var upClickHandler       = function(){},
+	    selectedClickHandler = function(){},
+	    hintHandler          = function(){};
+
+	this.onSelectedClick = function( callback ) {
+		selectedClickHandler = callback;
+	};
+
 	this.onUpClick = function( callback ) {
+		upClickHandler = callback;
+
 		document.querySelector('#up-button')
 		.addEventListener('click', function( ev ) {
-			callback();
+			upClickHandler();
 		});
 	};
 	this.onHideClick = function( callback ) {
@@ -205,6 +223,83 @@ function UI( document ) {
 
 		window.onresize = this.updateLayout;
 
+		document.onkeydown = function (e) {
+			var keyCode = e.keyCode;
+			var letter = String.fromCharCode(keyCode);
+			console.log('Keydown', keyCode, keyCode);
+			// key code table
+			// http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
+			var exclude = [
+				9,  // tab
+				8,  // backspace
+				13, // enter
+				27  // ESC
+			];
+
+
+			if ( exclude.indexOf( keyCode ) === -1 ) {
+				locationElement.focus();
+			}
+		};
+
+		document.onkeyup = function (e) {
+			var keyCode = e.keyCode;
+			var letter = String.fromCharCode(keyCode);
+			console.log('Keyup', keyCode, keyCode);
+
+			if ( keyCode === 27 && document.activeElement === locationElement ) {
+				locationElement.blur();
+			} else if ( keyCode === 8 && document.activeElement !== locationElement ) {
+				upClickHandler();
+			}
+
+		};
+
+		document.onkeypress = function (e) {
+			var keyCode = e.keyCode;
+			var letter = String.fromCharCode(keyCode);
+
+			console.log('Keypress', keyCode, keyCode);
+
+			if ( document.activeElement !== locationElement ) {
+				switch (keyCode) {
+					case 8:
+						upClickHandler();
+						break;
+					case 13:
+						selectedClickHandler();
+						break;
+				}
+			} else {
+				if ( keyCode === 27 ) {
+					locationElement.blur();
+				} else {
+					var hint = locationElement.value;
+					hintHandler();
+				}
+			}
+/*
+			// entire filelist with hidden files
+			fileList.each file
+				if file.getCachedAbsoluteName().startsWith(hint)
+					add to suggestion
+				end
+			end
+
+			if no suggestions
+				check recently used locations
+
+			if no recent
+				search entire filesystem
+
+			ontabHit.use highest suggestion
+			--> set location
+
+			onUp/Down hit --> cycle through suggestions
+*/
+			// use e.keyCode
+			// var letter = String.fromCharCode(e.keyCode);
+		};
 		this.updateLayout();
 	}.bind(this)());
 }

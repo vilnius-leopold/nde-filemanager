@@ -10,11 +10,13 @@ var fs         = require('fs'),
 
 function FileManager() {
 	var ui,
-	    historyPosition  = 0,
-	    debug            = false,
-	    bookmarkFiles    = [],
-	    historyData      = {},
-	    history          = [];
+	    historyPosition   = 0,
+	    files             = [],
+	    selectedFileIndex = 0,
+	    debug             = false,
+	    bookmarkFiles     = [],
+	    historyData       = {},
+	    history           = [];
 
 	var sortSettings   = ['directoryFirst', 'fileName'],
 	    filterSettings = ['hiddenFiles'];
@@ -115,10 +117,11 @@ function FileManager() {
 				window.requestAnimationFrame(function(){
 
 					ui.clear('files');
+					files = [];
 
 					for ( var i = 0; i < filteredFileCount; i++ ) {
 						var file = sortedFiles[i];
-
+						files.push(file);
 						ui.addFile(file);
 					}
 				});
@@ -227,6 +230,10 @@ function FileManager() {
 			openPrevDir();
 		});
 
+		ui.onSelectedClick(function(){
+			openFile(files[selectedFileIndex]);
+		});
+
 		ui.onUpClick(function(){
 			openParentDir();
 		});
@@ -246,8 +253,7 @@ function FileManager() {
 			// exec(command);
 		});
 
-		ui.onFileClick(function( element ) {
-			var file = element.obj;
+		function openFile( file ) {
 
 			// window.console.log('Element', element);
 			// console.log('element.obj', file);
@@ -267,6 +273,10 @@ function FileManager() {
 				}
 
 			});
+		}
+
+		ui.onFileClick(function(element) {
+			openFile( element.obj );
 		});
 
 		ui.setView(view);
