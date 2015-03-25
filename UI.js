@@ -146,12 +146,17 @@ function UI( document ) {
 		document.querySelector('#' + id).classList.remove('disabled');
 	};
 
-	var upClickHandler       = function(){},
-	    selectedClickHandler = function(){},
-	    hintHandler          = function(){};
+	var upClickHandler        = function(){},
+	    selectedClickHandler  = function(){},
+	    hintHandler           = function(){},
+	    locationEscapeHandler = function(){};
 
 	this.onSelectedClick = function( callback ) {
 		selectedClickHandler = callback;
+	};
+
+	this.onLocationEscape = function( callback ) {
+		locationEscapeHandler = callback;
 	};
 
 	this.onUpClick = function( callback ) {
@@ -234,6 +239,7 @@ function UI( document ) {
 
 			if ( keyCode === 27 && document.activeElement === locationElement ) {
 				locationElement.blur();
+				locationEscapeHandler();
 			} else if ( keyCode === 8 && document.activeElement !== locationElement ) {
 				upClickHandler();
 			}

@@ -234,6 +234,10 @@ function FileManager() {
 			openFile(files[selectedFileIndex]);
 		});
 
+		ui.onLocationEscape(function(){
+			ui.setLocation(currentDirectory);
+		});
+
 		ui.onUpClick(function(){
 			openParentDir();
 		});
