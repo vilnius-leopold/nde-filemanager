@@ -11,6 +11,8 @@ var fs         = require('fs'),
 function FileManager() {
 	var ui,
 	    historyPosition   = 0,
+	    currentDirectory  = null,
+	    defaultStartDir   = '/home/leo',
 	    files             = [],
 	    selectedFileIndex = 0,
 	    debug             = false,
@@ -24,11 +26,7 @@ function FileManager() {
 	var fileSorter = new FileSorter( sortSettings ),
 	    fileFilter = new FileFilter( filterSettings );
 
-	function openDir( path, resetHistory ) {
-		if ( path.substr(path.length - 1) != '/' )
-			path += '/';
-
-		// clear history up to this point
+	function updateHistory(path) {
 		resetHistory = typeof resetHistory === 'undefined' ? true : false;
 
 		if ( resetHistory ){
@@ -87,27 +85,27 @@ function FileManager() {
 			ui.enableButton('prev-button');
 		}
 
-		fs.readdir( path, function(err, fileList) {
-			"use strict";
+	}
 
-			var fileCount = fileList.length;
-			var fileName,
+	function openDir( path, resetHistory ) {
+		if ( path.substr(path.length - 1) != '/' )
+			path += '/';
+
+
+		fs.readdir( path, function(err, fileList) {
+			var fileCount,
+			    fileName,
 			    file,
 			    i;
 
+			if ( err )
+				throw err;
+
+			updateHistory(path);
+
+			fileCount = fileList.length;
+
 			fileSorter.reset();
-
-			for ( i = 0; i < fileCount; i++ ) {
-				fileName = fileList[i];
-
-				file = new File(fileName, currentDirectory);
-
-				fileFilter.onPass(file, fileSorter.add);
-			}
-
-			// close file sorter
-			fileSorter.add( null );
-
 
 			fileSorter.onsorted = function( sortedFiles ) {
 				console.log('Files sorted!');
@@ -126,6 +124,17 @@ function FileManager() {
 					}
 				});
 			};
+
+			for ( i = 0; i < fileCount; i++ ) {
+				fileName = fileList[i];
+
+				file = new File(fileName, currentDirectory);
+
+				fileFilter.onPass(file, fileSorter.add);
+			}
+
+			// close file sorter
+			fileSorter.add( null );
 		});
 	}
 
@@ -145,6 +154,11 @@ function FileManager() {
 		openHistoryDir(historyPosition);
 	}
 
+	function openNextDir(){
+		historyPosition = Math.max(historyPosition-1, 0);
+		openHistoryDir(historyPosition);
+	}
+
 	function openParentDir(){
 		console.log('currentDirectory:', currentDirectory);
 		var segments = currentDirectory.split('/');
@@ -157,11 +171,6 @@ function FileManager() {
 		console.log('Parent dir:', parentDir);
 
 		openDir(parentDir, false);
-	}
-
-	function openNextDir(){
-		historyPosition = Math.max(historyPosition-1, 0);
-		openHistoryDir(historyPosition);
 	}
 
 	function addBookmarks( bookmarks ) {
@@ -207,7 +216,7 @@ function FileManager() {
 
 		// set settings
 		debug            = args.debug;
-		currentDirectory = args._[0] || currentDirectory;
+		currentDirectory = args._[0] || defaultStartDir;
 
 		if ( debug ) {
 			nwGui.Window.get().showDevTools();

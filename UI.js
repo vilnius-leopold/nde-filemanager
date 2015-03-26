@@ -174,24 +174,23 @@ function UI( document ) {
 	};
 	this.updateLayout = function () {
 		window.requestAnimationFrame(function(){
-			console.log('Resizing');
+		// 	console.log('Resizing');
 
-			var width  = window.innerWidth,
-			    height = window.innerHeight;
+			var height = window.innerHeight;
 
 			var menuHeight   = menuElement.offsetHeight;
-			var sidebarWidth = sidebarElement.offsetWidth;
-			var actionWidth  = actionElement.offsetWidth;
-			var navButtonContainerWidth = navButtonContainer.offsetWidth;
-			var locationMarginRight = 5;
+		// 	var sidebarWidth = sidebarElement.offsetWidth;
+		// 	var actionWidth  = actionElement.offsetWidth;
+		// 	var navButtonContainerWidth = navButtonContainer.offsetWidth;
+		// 	var locationMarginRight = 5;
 
-			console.log(width,height,menuHeight,sidebarWidth);
+		// 	console.log(width,height,menuHeight,sidebarWidth);
 
-			filesElement.style.width = (width - sidebarWidth - actionWidth) + 'px';
-			contentElement.style.width = (width - sidebarWidth) + 'px';
-			locationElement.style.width = (width - navButtonContainerWidth - locationMarginRight ) + 'px';
+		// 	filesElement.style.width = (width - sidebarWidth - actionWidth) + 'px';
+		// 	contentElement.style.width = (width - sidebarWidth) + 'px';
+		// 	locationElement.style.width = (width - navButtonContainerWidth - locationMarginRight ) + 'px';
 			contentElement.style.height = (height - menuHeight) + 'px';
-			sidebarElement.style.height = (height - menuHeight) + 'px';
+		// 	sidebarElement.style.height = (height - menuHeight) + 'px';
 		});
 	};
 
