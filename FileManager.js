@@ -19,6 +19,7 @@ function FileManager() {
 	    selectedFileIndex = 0,
 	    debug             = false,
 	    bookmarkFiles     = [],
+	    bookmarkCount     = 0,
 	    historyData       = {},
 	    history           = [];
 
@@ -89,6 +90,23 @@ function FileManager() {
 
 	}
 
+	function markBookmark( path ) {
+		var bookmarkFile,
+		    i;
+
+		for ( i = 0; i < bookmarkCount; i++ ) {
+			bookmarkFile = bookmarkFiles[i];
+
+			bookmarkFile.getAbsolutePath(function(err, absPath) {
+				if ( absPath + '/' === path ) {
+					bookmarkFile.element.classList.add('selected');
+				} else {
+					bookmarkFile.element.classList.remove('selected');
+				}
+			});
+		}
+	}
+
 	function openDir( path, resetHistory ) {
 		path = path.trim();
 
@@ -135,6 +153,7 @@ function FileManager() {
 			}
 
 			updateHistory(path);
+			markBookmark(path);
 
 			fileCount = fileList.length;
 
@@ -233,6 +252,7 @@ function FileManager() {
 						var bookmarkFile = new BookmarkFile(fileName, parentDirectory);
 
 						bookmarkFiles.push( bookmarkFile );
+						bookmarkCount++;
 
 						ui.addBookmarkFileToSection( bookmarkFile, sectionId );
 					}.bind(this));

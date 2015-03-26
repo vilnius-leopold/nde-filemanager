@@ -134,6 +134,9 @@ html,body{
 	background: transparent;
 	/*transition: background-color .1s, border-color .1s;*/
 }
+.inline-item.selected{
+	background: #DDBCBC;
+}
 .item:hover{
 	background: #eee;
 	border-color: #ddd;
@@ -168,6 +171,7 @@ html,body{
 	padding: 0 15px;
 }
 
+
 .inline-item>img{
 	height: 20px;
 	max-width: 40px;
@@ -186,7 +190,6 @@ html,body{
 	text-overflow: ellipsis;
 	margin-left: 5px;
 }
-
 
 #nav-button-container{
 	font-size: 0;
