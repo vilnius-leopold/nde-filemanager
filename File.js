@@ -209,3 +209,5 @@ function optimize( resultFunction ) {
 
 	return cacheFunction;
 }
+
+module.exports = File;

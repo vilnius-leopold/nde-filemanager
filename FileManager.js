@@ -1,18 +1,20 @@
-var fs         = require('fs'),
-    mime       = require('mime'),
-    exec       = require('child_process').exec,
-    UI         = require('./UI.js'),
-    File       = require('./File.js'),
-    FileSorter = require('./FileSorter.js'),
-    FileFilter = require('./FileFilter.js'),
-    argParser  = require('optimist'),
-    nwGui      = require('nw.gui');
+var fs           = require('fs'),
+    mime         = require('mime'),
+    exec         = require('child_process').exec,
+    UI           = require('./UI.js'),
+    File         = require('./File.js'),
+    BookmarkFile = require('./BookmarkFile.js'),
+    FileSorter   = require('./FileSorter.js'),
+    FileFilter   = require('./FileFilter.js'),
+    argParser    = require('optimist'),
+    nwGui        = require('nw.gui');
 
 function FileManager() {
 	var ui,
 	    historyPosition   = 0,
 	    currentDirectory  = null,
-	    defaultStartDir   = '/home/leo',
+	    userHome          = process.env.HOME,
+	    defaultStartDir   = userHome,
 	    files             = [],
 	    selectedFileIndex = 0,
 	    debug             = false,
@@ -88,8 +90,37 @@ function FileManager() {
 	}
 
 	function openDir( path, resetHistory ) {
+		path = path.trim();
+
 		if ( path.substr(path.length - 1) != '/' )
 			path += '/';
+
+		// preform bash expansion
+		// var matches = path.replace(/(\$HOME)/g, function(envVar){
+		// 	var envVarValue = process.env[envVar.replace(/^\$/,'')];
+		// 	console.log('Found var:', envVar, envVarValue);
+
+		// 	return '~';
+		// });
+
+		var expansionFailed = false;
+
+		path = path.replace(/(\$[A-Z_]+)/g, function(envVar){
+			console.log('Found var:', envVar);
+			var envVarValue = process.env[envVar.replace(/^\$/,'')];
+
+			if ( ! envVarValue ) {
+				alert('Unkown environment variable\n' + envVar);
+				expansionFailed = true;
+			}
+
+			return envVarValue;
+		});
+
+		if ( expansionFailed )
+			return;
+
+		path = path.replace(/^~/, userHome);
 
 
 		fs.readdir( path, function(err, fileList) {
@@ -98,8 +129,10 @@ function FileManager() {
 			    file,
 			    i;
 
-			if ( err )
-				throw err;
+			if ( err ){
+				alert('Can not open directory\n' + path + '\n' + err);
+				return;
+			}
 
 			updateHistory(path);
 
@@ -197,11 +230,11 @@ function FileManager() {
 							fileName        = '/';
 						}
 
-						var file = new File(fileName, parentDirectory);
+						var bookmarkFile = new BookmarkFile(fileName, parentDirectory);
 
-						bookmarkFiles.push( file );
+						bookmarkFiles.push( bookmarkFile );
 
-						ui.addBookmarkFileToSection( file, sectionId );
+						ui.addBookmarkFileToSection( bookmarkFile, sectionId );
 					}.bind(this));
 				}.bind(this)());
 			}

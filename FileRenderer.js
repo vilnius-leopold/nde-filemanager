@@ -1,3 +1,5 @@
+var BookmarkFile = require('./BookmarkFile.js');
+
 
 var folderIconMapping = {
 	'/home/leo':           ['places', 'user-home'],
@@ -116,8 +118,20 @@ function FileRenderer( document ) {
 
 		file.getFileName(function( err, fileName ){
 			// console.log( 'Render name:', fileName);
-			if ( ! err )
-				file.fileNameElement.textContent = fileName;
+			if ( file instanceof BookmarkFile ) {
+				console.log('Found BookmarkFile');
+				file.getAbsolutePath(function(err, absPath){
+					console.log('Found BookmarkFile', absPath);
+					if (absPath === '/home/leo')
+						fileName = 'Home';
+
+					file.fileNameElement.textContent = fileName;
+				});
+			} else {
+				if ( ! err )
+					file.fileNameElement.textContent = fileName;
+			}
+
 		});
 	};
 
