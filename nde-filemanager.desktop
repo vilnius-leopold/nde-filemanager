@@ -1,12 +1,12 @@
 [Desktop Entry]
 Name=NDE Files
 Comment=NDE File Manager
-Exec=nw /home/leo/.local/share/nde-filemanager/nde-filemanager.nw
+Exec=nw /home/leo/.local/share/nde-filemanager/nde-filemanager.nw %U
 Icon=folder
 Terminal=false
 Type=Application
 Categories=System;
-
+MimeType=inode/directory;application/x-gnome-saved-search;
 Actions=Videos;
 
 [Desktop Action Videos]
