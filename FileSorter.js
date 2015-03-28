@@ -13,6 +13,10 @@ function FileSorter( sortSettings ) {
 			dependencies: 'getFileName',
 			sorter:        sortByFileName
 		},
+		'lastModified': {
+			dependencies: 'getLastModified',
+			sorter:        sortByLastModified
+		},
 		'mimeType': {
 			dependencies: 'getMimeType',
 			sorter:        sortByMimeType
@@ -113,6 +117,13 @@ function FileSorter( sortSettings ) {
 		} else {
 			return 1;
 		}
+	}
+
+	function sortByLastModified(fileA, fileB) {
+		var lastModA = fileA.getCachedLastModified();
+		var lastModB = fileB.getCachedLastModified();
+
+		return lastModB - lastModA;
 	}
 
 	// PUBLIC

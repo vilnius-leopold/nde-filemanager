@@ -15,6 +15,7 @@ function File( fN, pD) {
 	    absolutePath,
 	    isDir,
 	    mimeType,
+	    lastModified,
 	    parentDirectory,
 	    isHidden,
 	    fileName;
@@ -63,6 +64,10 @@ function File( fN, pD) {
 
 	this.getCachedFileName = function() {
 		return fileName;
+	};
+
+	this.getCachedLastModified = function() {
+		return lastModified;
 	};
 
 	this.cachedIsDirectory = function() {
@@ -125,6 +130,23 @@ function File( fN, pD) {
 
 			isDir = stats.isDirectory();
 			callback( null, isDir );
+		});
+	}.bind(this);
+
+	this.getLastModified = function( callback ) {
+		if ( lastModified ) {
+			callback( null, lastModified );
+			return;
+		}
+
+		getStats(function(err, stats){
+			if ( err ) {
+				callback( err, null );
+				return;
+			}
+
+			lastModified = stats.mtime;
+			callback( null, lastModified );
 		});
 	}.bind(this);
 }
