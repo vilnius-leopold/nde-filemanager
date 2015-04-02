@@ -55,7 +55,7 @@ html,body{
 	font-size: 0;
 	display: block;
 	padding: 0;
-	padding-left: 5px;
+	padding-left: 109px;
 	padding-right: 5px;
 }
 #sidebar{
@@ -193,7 +193,9 @@ html,body{
 
 #nav-button-container{
 	font-size: 0;
-	position: relative;
+	position: absolute;
+	top: 0;
+	left: 0;
 	width: 109px;
 	display: inline-block;
 }
