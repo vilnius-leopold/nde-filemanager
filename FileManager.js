@@ -30,36 +30,65 @@ function FileManager() {
 	    fileFilter = new FileFilter( filterSettings );
 
 	function updateHistory(path) {
-		resetHistory = typeof resetHistory === 'undefined' ? true : false;
 
-		if ( resetHistory ){
-			// console.log('Resetting', history, 0, historyPosition+1);
-			history = history.slice(0, historyPosition+1);
+		if ( path === currentDirectory ) {
+			// do nothing
+			console.log('Same dir. Do nothing.');
+		} else if ( path === history[historyPosition-1] ) {
+			// set history to previous point
+			historyPosition = historyPosition - 1;
+			console.log('Is prev dir. go back in histry.');
+		} else if ( path === history[historyPosition+1] ) {
+			// set history to next point
+			console.log('Is next dir. go forward in histry.');
+			historyPosition = historyPosition + 1;
+		} else {
+			console.log('New dir. Set new head.');
+			// add item to history
+			// set history to head
+			// remove all old history between ( 0 and currentPos )
+			if ( historyPosition !== 0 )
+				history = history.slice(historyPosition, history.length);
+
+			history.unshift(path);
 			historyPosition = 0;
-			// console.log('Reset History', history);
 		}
 
+		console.log('History:        ', history);
+		console.log('historyPosition:', historyPosition);
 
-		if ( history.indexOf(path) === -1){
 
-			history.unshift( path );
-		}
+		// resetHistory = typeof resetHistory === 'undefined' ? true : false;
 
-		var scrollTop = ui.getScrollPosition();
+		// if ( resetHistory ){
+		// 	// console.log('Resetting', history, 0, historyPosition+1);
+		// 	history = history.slice(0, historyPosition+1);
+		// 	historyPosition = 0;
+		// 	// console.log('Reset History', history);
+		// }
 
-		// console.log('scrollTop', scrollTop);
 
-		historyData[path] = {
-			scrollPosition: scrollTop
-		};
+		// if ( history.indexOf(path) === -1){
+
+		// 	history.unshift( path );
+		// }
+
+		// var scrollTop = ui.getScrollPosition();
+
+		// // console.log('scrollTop', scrollTop);
+
+		// historyData[path] = {
+		// 	scrollPosition: scrollTop
+		// };
 
 		// console.log('History', history);
 		// console.log('historyData', historyData);
 		// console.log('historyPosition', historyPosition);
 
-		ui.setLocation( path );
-		currentDirectory = path;
 
+	}
+
+	function renderHistoryButtons() {
 		if (currentDirectory === '/home/leo/' || currentDirectory === '/' ) {
 			ui.hideButton('up-button');
 		} else {
@@ -87,7 +116,6 @@ function FileManager() {
 			ui.enableButton('next-button');
 			ui.enableButton('prev-button');
 		}
-
 	}
 
 	function markBookmark( path ) {
@@ -153,6 +181,9 @@ function FileManager() {
 			}
 
 			updateHistory(path);
+			ui.setLocation( path );
+			currentDirectory = path;
+			renderHistoryButtons();
 			markBookmark(path);
 
 			fileCount = fileList.length;
@@ -195,32 +226,33 @@ function FileManager() {
 
 		openDir( historyPath, false);
 
-		console.log('History', historyPath);
-		console.log('HistoryData', historyData[historyPath]);
+		// console.log('History', historyPath);
+		// console.log('HistoryData', historyData[historyPath]);
 
-		ui.setScrollPosition(historyData[historyPath].scrollPosition);
+		// ui.setScrollPosition(historyData[historyPath].scrollPosition);
 	}
 
 	function openPrevDir(){
-		historyPosition = Math.min(historyPosition+1, history.length -1);
-		openHistoryDir(historyPosition);
+		var pos = Math.min(historyPosition+1, history.length -1);
+		openHistoryDir(pos);
 	}
 
 	function openNextDir(){
-		historyPosition = Math.max(historyPosition-1, 0);
-		openHistoryDir(historyPosition);
+		var pos = Math.max(historyPosition-1, 0);
+		console.log('Open NEXT', pos);
+		openHistoryDir(pos);
 	}
 
 	function openParentDir(){
-		console.log('currentDirectory:', currentDirectory);
+		// console.log('currentDirectory:', currentDirectory);
 		var segments = currentDirectory.split('/');
-		console.log('segments:', segments);
+		// console.log('segments:', segments);
 		segments.pop();
 		segments.pop();
 
 		var parentDir = (segments.join("/")) + '/';
 
-		console.log('Parent dir:', parentDir);
+		// console.log('Parent dir:', parentDir);
 
 		openDir(parentDir, false);
 	}
