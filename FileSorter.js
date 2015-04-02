@@ -13,6 +13,10 @@ function FileSorter( sortSettings ) {
 			dependencies: 'getFileName',
 			sorter:        sortByFileName
 		},
+		'lastModified': {
+			dependencies: 'getLastModified',
+			sorter:        sortByLastModified
+		},
 		'mimeType': {
 			dependencies: 'getMimeType',
 			sorter:        sortByMimeType
@@ -115,6 +119,13 @@ function FileSorter( sortSettings ) {
 		}
 	}
 
+	function sortByLastModified(fileA, fileB) {
+		var lastModA = fileA.getCachedLastModified();
+		var lastModB = fileB.getCachedLastModified();
+
+		return lastModB - lastModA;
+	}
+
 	// PUBLIC
 
 	// NOTE:
@@ -151,6 +162,13 @@ function FileSorter( sortSettings ) {
 			files.push(file);
 			sortWhenReady();
 		});
+	}.bind(this);
+
+	this.reset = function() {
+		receivedAllFiles = false;
+		this.fileCount = 0;
+		readyCount = 0;
+		files = [];
 	}.bind(this);
 }
 

@@ -1,627 +1,348 @@
-var fs    = require('fs'),
-    mime  = require('mime'),
-    exec = require('child_process').exec,
-    nwGui = require('nw.gui');
+var fs           = require('fs'),
+    mime         = require('mime'),
+    exec         = require('child_process').exec,
+    UI           = require('./UI.js'),
+    File         = require('./File.js'),
+    BookmarkFile = require('./BookmarkFile.js'),
+    FileSorter   = require('./FileSorter.js'),
+    FileFilter   = require('./FileFilter.js'),
+    argParser    = require('optimist'),
+    nwGui        = require('nw.gui');
 
-var historyPosition  = 0,
-    debug            = false,
-    historyData      = {},
-    history          = [];
+function FileManager() {
+	var ui,
+	    historyPosition   = 0,
+	    currentDirectory  = null,
+	    userHome          = process.env.HOME,
+	    defaultStartDir   = userHome,
+	    files             = [],
+	    selectedFileIndex = 0,
+	    debug             = false,
+	    bookmarkFiles     = [],
+	    bookmarkCount     = 0,
+	    historyData       = {},
+	    history           = [];
 
-var folderIconMappingList = Object.keys(folderIconMapping);
+	var sortSettings   = ['directoryFirst', 'fileName'],
+	    filterSettings = ['hiddenFiles'];
 
-var contentElement     = document.querySelector('#content');
-var menuElement        = document.querySelector('#menu-bar');
-var sidebarElement     = document.querySelector('#sidebar');
-var filesElement       = document.querySelector('#files');
-var locationElement    = document.querySelector('#location');
-var actionElement      = document.querySelector('#actions');
-var contextmenuElement = document.querySelector('.context-menu');
-var navButtonContainer = document.querySelector('#nav-button-container');
-var nextButtonElement  = document.querySelector('#next-button');
-var prevButtonElement  = document.querySelector('#prev-button');
+	var fileSorter = new FileSorter( sortSettings ),
+	    fileFilter = new FileFilter( filterSettings );
 
-var UI = {
-	getLocation: function() {
-		return document.querySelector('#location').value;
-	},
-	setLocation: function( path ) {
-		document.querySelector('#location').value = path;
-	},
-	addFile: function( fileElement, container ) {
-		container = container || 'files';
+	function updateHistory(path) {
+		resetHistory = typeof resetHistory === 'undefined' ? true : false;
 
-		document.querySelector('#' + container)
-		        .appendChild( fileElement );
-	},
-	setView: function( view ) {
-		filesElement.classList.add('view-' + view);
-	},
-	addSidebarSection: function( sectionName ) {
-
-
-		var sectionId = sectionName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-
-		if (sectionName === '')
-			sectionId = 'hidden-section';
-
-		var section = document.createElement('div');
-		section.id = sectionId;
-		section.className = 'sidebar-section';
-
-		if (sectionId !== 'hidden-section')
-			section.innerHTML = '<h3>'+ sectionName + '</h3>';
-
-		document.querySelector('#sidebar')
-		        .appendChild( section );
-
-		return sectionId;
-	},
-	clear: function( container ){
-		container = container || 'files';
-		document.querySelector('#' + container).innerHTML = '';
-	},
-	getScrollPosition: function() {
-		return document.querySelector('#content').scrollTop;
-	},
-	setScrollPosition: function(value) {
-		document.querySelector('#content').scrollTop = value;
-	},
-	onLocationChange: function( callback ) {
-		document.querySelector('#location')
-		.addEventListener('keypress', function( ev ){
-			if (ev.keyCode == 13) {
-				var location = UI.getLocation();
-
-				if ( location.substr(location.length - 1) != '/' )
-					location += '/';
+		if ( resetHistory ){
+			// console.log('Resetting', history, 0, historyPosition+1);
+			history = history.slice(0, historyPosition+1);
+			historyPosition = 0;
+			// console.log('Reset History', history);
+		}
 
 
-				fs.stat(location, function(err, stats){
-					if ( ! err && stats.isDirectory() ) {
-						currentDirectory = location;
-						callback(currentDirectory);
-					} else {
-						alert('Directory does not exist');
+		if ( history.indexOf(path) === -1){
+
+			history.unshift( path );
+		}
+
+		var scrollTop = ui.getScrollPosition();
+
+		// console.log('scrollTop', scrollTop);
+
+		historyData[path] = {
+			scrollPosition: scrollTop
+		};
+
+		// console.log('History', history);
+		// console.log('historyData', historyData);
+		// console.log('historyPosition', historyPosition);
+
+		ui.setLocation( path );
+		currentDirectory = path;
+
+		if (currentDirectory === '/home/leo/' || currentDirectory === '/' ) {
+			ui.hideButton('up-button');
+		} else {
+			ui.showButton('up-button');
+		}
+
+
+		if (history.length <= 1) {
+			ui.hideButton('next-button');
+			ui.hideButton('button-separator');
+			ui.hideButton('prev-button');
+		} else {
+			ui.showButton('prev-button');
+			ui.showButton('button-separator');
+			ui.showButton('next-button');
+		}
+
+		if ( historyPosition === 0 ) {
+			ui.disableButton('next-button');
+			ui.enableButton('prev-button');
+		} else if ( historyPosition === history.length -1 ) {
+			ui.enableButton('next-button');
+			ui.disableButton('prev-button');
+		} else {
+			ui.enableButton('next-button');
+			ui.enableButton('prev-button');
+		}
+
+	}
+
+	function markBookmark( path ) {
+		var bookmarkFile,
+		    i;
+
+		for ( i = 0; i < bookmarkCount; i++ ) {
+			bookmarkFile = bookmarkFiles[i];
+
+			bookmarkFile.getAbsolutePath(function(err, absPath) {
+				if ( absPath + '/' === path ) {
+					bookmarkFile.element.classList.add('selected');
+				} else {
+					bookmarkFile.element.classList.remove('selected');
+				}
+			});
+		}
+	}
+
+	function openDir( path, resetHistory ) {
+		path = path.trim();
+
+		if ( path.substr(path.length - 1) != '/' )
+			path += '/';
+
+		// preform bash expansion
+		// var matches = path.replace(/(\$HOME)/g, function(envVar){
+		// 	var envVarValue = process.env[envVar.replace(/^\$/,'')];
+		// 	console.log('Found var:', envVar, envVarValue);
+
+		// 	return '~';
+		// });
+
+		var expansionFailed = false;
+
+		path = path.replace(/(\$[A-Z_]+)/g, function(envVar){
+			console.log('Found var:', envVar);
+			var envVarValue = process.env[envVar.replace(/^\$/,'')];
+
+			if ( ! envVarValue ) {
+				alert('Unkown environment variable\n' + envVar);
+				expansionFailed = true;
+			}
+
+			return envVarValue;
+		});
+
+		if ( expansionFailed )
+			return;
+
+		path = path.replace(/^~/, userHome);
+
+
+		fs.readdir( path, function(err, fileList) {
+			var fileCount,
+			    fileName,
+			    file,
+			    i;
+
+			if ( err ){
+				alert('Can not open directory\n' + path + '\n' + err);
+				return;
+			}
+
+			updateHistory(path);
+			markBookmark(path);
+
+			fileCount = fileList.length;
+
+			fileSorter.reset();
+
+			fileSorter.onsorted = function( sortedFiles ) {
+				console.log('Files sorted!');
+
+				var filteredFileCount = fileSorter.fileCount;
+
+				window.requestAnimationFrame(function(){
+
+					ui.clear('files');
+					files = [];
+
+					for ( var i = 0; i < filteredFileCount; i++ ) {
+						var file = sortedFiles[i];
+						files.push(file);
+						ui.addFile(file);
 					}
 				});
+			};
 
-			}
-		});
-	},
-	onFileClick: function( callback ) {
-		document.querySelector('body')
-		.addEventListener('click', function( ev ) {
-			var target = ev.target,
-			    parent = target.parentNode;
+			for ( i = 0; i < fileCount; i++ ) {
+				fileName = fileList[i];
 
-			console.log('click');
+				file = new File(fileName, currentDirectory);
 
-			if (target.classList.contains('item') )  {
-				console.log('click item');
-				callback( target );
+				fileFilter.onPass(file, fileSorter.add);
 			}
 
-			if (parent.classList.contains('item') )  {
-				console.log('click item');
-				callback( parent );
-			}
-		});
-	},
-	onFileContextClick: function( callback ) {
-		document.querySelector('body')
-		.addEventListener('contextmenu', function( ev ) {
-			var target = ev.target,
-			    parent = target.parentNode;
-
-			console.log('click');
-
-			if (target.classList.contains('item') )  {
-				console.log('click item');
-				callback( target, ev.clientX, ev.clientY );
-			}
-
-			if (parent.classList.contains('item') )  {
-				console.log('click item');
-				callback( parent, ev.clientX, ev.clientY );
-			}
-		});
-	},
-	onPrevClick: function( callback ) {
-		prevButtonElement.addEventListener('click', function( ev ) {
-			if ( ! prevButtonElement.classList.contains('disabled') )
-				callback();
-		});
-	},
-	onNextClick: function( callback ) {
-		nextButtonElement.addEventListener('click', function( ev ) {
-			if ( ! nextButtonElement.classList.contains('disabled') )
-				callback();
-		});
-	},
-	showButton:  function( id ) {
-		document.querySelector('#' + id).classList.remove('hide');
-	},
-	hideButton:  function( id ) {
-		document.querySelector('#' + id).classList.add('hide');
-	},
-	disableButton:  function( id ) {
-		document.querySelector('#' + id).classList.add('disabled');
-	},
-	enableButton:  function( id ) {
-		document.querySelector('#' + id).classList.remove('disabled');
-	},
-	onUpClick: function( callback ) {
-		document.querySelector('#up-button')
-		.addEventListener('click', function( ev ) {
-			callback();
-		});
-	},
-	onHideClick: function( callback ) {
-		document.querySelector('#hide-button').addEventListener('click', function( ev ) {
-			document.querySelector('#files').classList.toggle('hide-hidden');
+			// close file sorter
+			fileSorter.add( null );
 		});
 	}
-};
 
-function updateLayout() {
-	window.requestAnimationFrame(function(){
-		console.log('Resizing');
+	function openHistoryDir(position) {
+		var historyPath = history[position];
 
-		var width  = window.innerWidth,
-		    height = window.innerHeight;
+		openDir( historyPath, false);
 
+		console.log('History', historyPath);
+		console.log('HistoryData', historyData[historyPath]);
 
+		ui.setScrollPosition(historyData[historyPath].scrollPosition);
+	}
 
-		var menuHeight   = menuElement.offsetHeight;
-		var sidebarWidth = sidebarElement.offsetWidth;
-		var actionWidth  = actionElement.offsetWidth;
-		var navButtonContainerWidth = navButtonContainer.offsetWidth;
-		var locationMarginRight = 5;
+	function openPrevDir(){
+		historyPosition = Math.min(historyPosition+1, history.length -1);
+		openHistoryDir(historyPosition);
+	}
 
-		console.log(width,height,menuHeight,sidebarWidth);
+	function openNextDir(){
+		historyPosition = Math.max(historyPosition-1, 0);
+		openHistoryDir(historyPosition);
+	}
 
-		filesElement.style.width = (width - sidebarWidth - actionWidth) + 'px';
-		contentElement.style.width = (width - sidebarWidth) + 'px';
-		locationElement.style.width = (width - navButtonContainerWidth - locationMarginRight ) + 'px';
-		contentElement.style.height = (height - menuHeight) + 'px';
-		sidebarElement.style.height = (height - menuHeight) + 'px';
-	});
-}
+	function openParentDir(){
+		console.log('currentDirectory:', currentDirectory);
+		var segments = currentDirectory.split('/');
+		console.log('segments:', segments);
+		segments.pop();
+		segments.pop();
 
-window.onresize = updateLayout;
+		var parentDir = (segments.join("/")) + '/';
 
-function getIconPath( iconName ) {
+		console.log('Parent dir:', parentDir);
 
-	var iconDirectory = '/usr/share/icons/';
+		openDir(parentDir, false);
+	}
 
-	return iconDirectory + iconTheme + '/' + iconName + '.svg';
-}
+	function addBookmarks( bookmarks ) {
+		window.requestAnimationFrame(function(){
+			var sectionName;
 
-function mimeTypeToPath( mimeType ) {
-	return 'mimetypes/48/' + mimeType.replace(/\//g, '-');
-}
+			ui.clear('sidebar');
 
-function getMimeTypeIconName( filePath, callback ) {
-	var mimeType = mime.lookup(currentDirectory + filePath);
+			for ( sectionName in bookmarks ) {
+				(function() {
+					var sectionId = ui.addSidebarSection(sectionName);
 
-	// quick and dirty lookup
-	// based on file extensions
-	if (
-		(mimeLookup == 'quick' || mimeLookup == 'combined') &&
-		mimeType != 'application/octet-stream' && mimeType != 'text/x-shellscript')
-	{
-		console.log('Quick n dirty lookup:', mimeType);
+					var sectionItems = bookmarks[sectionName];
 
-		callback( mimeTypeToPath( mimeType ) );
+					sectionItems.forEach(function( absoluteFilePath ) {
+						// console.log('Bookmark', filePath);
 
-	// thourough lookup
-	// if returns default
-	} else if (mimeLookup == 'exact' || mimeLookup == 'combined') {
-		var command = 'mimedb "' + currentDirectory + filePath + '"';
+						var splitIndex = absoluteFilePath.lastIndexOf("/");
+						var parentDirectory = absoluteFilePath.substring(0, splitIndex+1);
+						var fileName = absoluteFilePath.substring(splitIndex+1);
 
-		exec(command, function(error, stdout, stderr){
-			console.log('Expensive lookup:', error, stdout, stderr, command);
+						if (absoluteFilePath === '/') {
+							parentDirectory = '/';
+							fileName        = '/';
+						}
 
-			callback( mimeTypeToPath( stdout ) );
+						var bookmarkFile = new BookmarkFile(fileName, parentDirectory);
+
+						bookmarkFiles.push( bookmarkFile );
+						bookmarkCount++;
+
+						ui.addBookmarkFileToSection( bookmarkFile, sectionId );
+					}.bind(this));
+				}.bind(this)());
+			}
 		});
 	}
-}
 
-function getFileTypeIconPath( file, size, callback ) {
-	var iconName = '';
+	(function init() {
+		// parse CLI flags
+		var args = argParser.default({ debug : false })
+		.boolean(['debug'])
+		.parse(nwGui.App.argv);
 
-	function mimeCallback( iconName ) {
-		if ( size )
-			iconName = iconName.replace(/\/\d+\//, '/' + size + '/');
+		// set settings
+		debug            = args.debug;
+		currentDirectory = args._[0] || defaultStartDir;
 
-		callback( getIconPath( iconName ) );
-	}
-
-	if ( file.stats.isFile() ) {
-		getMimeTypeIconName( file.fileName, mimeCallback );
-	} else if ( file.stats.isDirectory() ) {
-		var mappedPathIndex = folderIconMappingList.indexOf(file.absolutePath);
-
-		if ( mappedPathIndex === -1 ) {
-			iconName = 'places/64/folder';
-		} else {
-			var mappedPath = folderIconMappingList[mappedPathIndex];
-			iconName = folderIconMapping[mappedPath];
+		if ( debug ) {
+			nwGui.Window.get().showDevTools();
 		}
 
-		mimeCallback(iconName);
-	} else {
-		mimeCallback(iconName);
-	}
-}
+		// init UI
+		ui = new UI(document);
 
-function File( options ) {
-	var that = this;
-	this.stats        = null;
-
-	var fileElement,
-	    iconElement,
-	    fileNameElement;
-
-	// File properties
-	this.mimeType     = null;
-	this.iconPath     = null;
-	this.hidden       = false;
-	this.fileName     = null;
-	this.type         = 'file';
-	this.absolutePath = null;
-
-	(function init( options ){
-		// console.log("Options:", options);
-
-		if ( ! options || ! options.stats )
-			return null;
-
-		that.stats  = options.stats;
-
-
-		if ( that.stats.isDirectory() )
-			that.type = 'directory';
-
-
-		that.fileName     = options.fileName;
-		that.absolutePath = options.absolutePath;
-
-		if (that.fileName[0] === '.')
-			that.hidden = true;
-
-		// console.log("Filename:", options.fileName);
-	}( options ));
-
-	this.renderShell = function() {
-		var hiddenClass = '';
-
-		if (that.hidden)
-			hiddenClass = ' hidden-item';
-
-		fileElement     = document.createElement('div');
-		fileElement.className = 'item file' + hiddenClass;
-
-		iconElement     = new Image();
-		fileNameElement = document.createElement('p');
-		fileElement.appendChild(iconElement);
-		fileElement.appendChild(fileNameElement);
-
-		fileElement.obj = that;
-	};
-
-	this.renderIcon = function(iconPath) {
-		if ( ! iconPath ){
-			getFileTypeIconPath(that, undefined, iconCallback);
-		} else {
-			iconCallback( iconPath );
-		}
-
-		function iconCallback( iconPath ) {
-			var iconName = (that.absolutePath === '/home/leo') && iconPath ? 'Home' : that.fileName;
-			iconElement.src = iconPath;
-			// callback( fileElement );
-		}
-
-	};
-
-	this.renderFileName = function() {
-		fileNameElement.textContent = that.fileName;
-	};
-
-	this.render = function( callback, iconPath ) {
-		that.renderShell();
-		callback(fileElement);
-		that.renderFileName();
-		that.renderIcon(iconPath);
-
-	};
-
-	this.renderInline = function( callback ) {
-		getFileTypeIconPath(this, 16, function( iconPath ){
-
-			// console.log('Inline icon:', iconPath);
-
-			that.render( function( element ){
-				element.classList.add('inline-item');
-
-				callback(element);
-			}, iconPath);
+		ui.onLocationChange(function( path ){
+			openDir( path );
 		});
-	};
-}
 
-function getFileName( filePath ) {
-	if ( filePath == '/' )
-		return '/';
+		ui.onHideClick();
 
+		ui.onNextClick(function(){
+			openNextDir();
+		});
 
-	var segments = filePath.split('/');
-	// console.log('segments', segments);
+		ui.onPrevClick(function(){
+			openPrevDir();
+		});
 
-	if ( filePath.substr(filePath.length - 1) === '/')
-		return segments[segments.length - 2];
+		ui.onSelectedClick(function(){
+			openFile(files[selectedFileIndex]);
+		});
 
-	return segments[segments.length - 1];
-}
+		ui.onLocationEscape(function(){
+			ui.setLocation(currentDirectory);
+		});
 
-function getFile(fileName, callback) {
-	// console.log("filePath",filePath);
-	var absolutePath = currentDirectory + fileName;
+		ui.onUpClick(function(){
+			openParentDir();
+		});
 
-	if ( fileName.substr(0,1) == '/') {
-		absolutePath = fileName;
-		fileName = getFileName( fileName );
-	}
-	// console.log("absolutePath",absolutePath);
+		ui.onFileContextClick(function( element, x, y ) {
+			var fileObj = element.obj;
 
+			contextmenuElement.style.top  = y + 'px';
+			contextmenuElement.style.left = x + 'px';
+			contextmenuElement.classList.toggle('hide');
 
-	fs.stat(absolutePath, function(err,stats) {
-		// console.log(err,stats);
+			// var command = 'rm -r "' + fileObj.absolutePath + '"';
 
-		callback(
-			err,
-			new File({
-				stats: stats,
-				fileName: fileName,
-				absolutePath: absolutePath
-			})
-		);
-	});
-}
+			// console.log('fileObj', fileObj);
+			// console.log('command', command);
 
-function openDir( path, resetHistory ) {
-	if ( path.substr(path.length - 1) != '/' )
-		path += '/';
+			// exec(command);
+		});
 
-	// clear history up to this point
-	resetHistory = typeof resetHistory === 'undefined' ? true : false;
+		function openFile( file ) {
+			file.isDirectory(function( err, isDir ) {
+				file.getAbsolutePath(function(err, absPath) {
+					if ( isDir ) {
+						openDir( absPath );
+					} else {
+						var command = '/usr/bin/xdg-open "' + absPath + '"';
 
-	if ( resetHistory ){
-		// console.log('Resetting', history, 0, historyPosition+1);
-		history = history.slice(0, historyPosition+1);
-		historyPosition = 0;
-		// console.log('Reset History', history);
-	}
-
-
-	if ( history.indexOf(path) === -1){
-
-		history.unshift( path );
-	}
-
-	var scrollTop = UI.getScrollPosition();
-
-	// console.log('scrollTop', scrollTop);
-
-	historyData[path] = {
-		scrollPosition: scrollTop
-	};
-
-	// console.log('History', history);
-	// console.log('historyData', historyData);
-	// console.log('historyPosition', historyPosition);
-
-	UI.clear('files');
-	UI.setLocation( path );
-	currentDirectory = path;
-
-	if (currentDirectory === '/home/leo/' || currentDirectory === '/' ) {
-		UI.hideButton('up-button');
-	} else {
-		UI.showButton('up-button');
-	}
-
-
-	if (history.length <= 1) {
-		UI.hideButton('next-button');
-		UI.hideButton('button-separator');
-		UI.hideButton('prev-button');
-	} else {
-		UI.showButton('prev-button');
-		UI.showButton('button-separator');
-		UI.showButton('next-button');
-	}
-
-	if ( historyPosition === 0 ) {
-		UI.disableButton('next-button');
-		UI.enableButton('prev-button');
-	} else if ( historyPosition === history.length -1 ) {
-		UI.enableButton('next-button');
-		UI.disableButton('prev-button');
-	} else {
-		UI.enableButton('next-button');
-		UI.enableButton('prev-button');
-	}
-
-	fs.readdir( path, function(err,files) {
-		"use strict";
-
-		var fileCount = files.length;
-
-		// console.log("err",err);
-		// console.log("files",files);
-		// console.log("fileCount",fileCount);
-
-
-
-		for ( var i = 0; i < fileCount; i++ ) {
-			var filePath = files[i];
-
-			getFile(filePath, function( err, file ) {
-				if ( err || ! file )
-					return;
-
-				file.render(function( fileElement ){
-					UI.addFile( fileElement );
+						exec(command);
+					}
 				});
 			});
 		}
-	});
+
+		ui.onFileClick(function(element) {
+			openFile( element.obj );
+		});
+
+		ui.setView(view);
+
+		addBookmarks( bookmarks );
+
+		openDir( currentDirectory );
+		/*
+		*/
+	}());
 }
-
-function addBookmarks() {
-	UI.clear('sidebar');
-
-	var sectionName;
-
-	for ( sectionName in bookmarks ) {
-		(function() {
-			var sectionId = UI.addSidebarSection(sectionName);
-
-			var sectionItems = bookmarks[sectionName];
-
-			sectionItems.forEach(function( filePath ) {
-				// console.log('Bookmark', filePath);
-
-				getFile(filePath, function( err, file ) {
-					// console.log('Bookmark File', err, file);
-					if ( err || ! file )
-						return;
-
-					file.renderInline(function( fileElement ) {
-						UI.addFile( fileElement, sectionId );
-					});
-				});
-			});
-		}());
-	}
-}
-
-function openHistoryDir(position) {
-	var historyPath = history[position];
-
-	openDir( historyPath, false);
-
-	console.log('History', historyPath);
-	console.log('HistoryData', historyData[historyPath]);
-
-	UI.setScrollPosition(historyData[historyPath].scrollPosition);
-}
-
-function openPrevDir(){
-	historyPosition = Math.min(historyPosition+1, history.length -1);
-	openHistoryDir(historyPosition);
-}
-
-String.prototype.reverse = function() {
-	return this.split("").reverse().join("");
-};
-
-function openParentDir(){
-	console.log('currentDirectory:', currentDirectory);
-	var segments = currentDirectory.split('/');
-	console.log('segments:', segments);
-	segments.pop();
-	segments.pop();
-
-	var parentDir = (segments.join("/")) + '/';
-
-	console.log('Parent dir:', parentDir);
-
-	openDir(parentDir, false);
-}
-
-function openNextDir(){
-	historyPosition = Math.max(historyPosition-1, 0);
-	openHistoryDir(historyPosition);
-}
-
-
-function init() {
-
-	// parse args
-	var args = require('optimist')
-	.default({ debug : false })
-	.boolean(['debug'])
-	.parse(nwGui.App.argv);
-
-	// set settings
-	debug = args.debug;
-	currentDirectory = args._[0] || currentDirectory;
-
-	if ( debug ) {
-		require('nw.gui').Window.get().showDevTools();
-	}
-
-	UI.onLocationChange(function( path ){
-		openDir( path );
-	});
-
-	UI.onHideClick();
-
-	UI.onNextClick(function(){
-		openNextDir();
-	});
-
-	UI.onPrevClick(function(){
-		openPrevDir();
-	});
-
-	UI.onUpClick(function(){
-		openParentDir();
-	});
-
-	UI.onFileContextClick(function( element, x, y ) {
-		var fileObj = element.obj;
-
-		contextmenuElement.style.top  = y + 'px';
-		contextmenuElement.style.left = x + 'px';
-		contextmenuElement.classList.toggle('hide');
-
-		// var command = 'rm -r "' + fileObj.absolutePath + '"';
-
-		// console.log('fileObj', fileObj);
-		// console.log('command', command);
-
-		// exec(command);
-	});
-
-	UI.onFileClick(function( element ) {
-		var fileObj = element.obj;
-
-		if ( fileObj.type === 'directory' ) {
-			openDir( fileObj.absolutePath );
-		} else {
-			var command = '/usr/bin/xdg-open "' + fileObj.absolutePath + '"';
-
-			console.log('fileObj', fileObj);
-			console.log('command', command);
-
-			exec(command);
-		}
-	});
-
-	UI.setView(view);
-
-	updateLayout();
-
-	addBookmarks();
-
-	openDir( currentDirectory );
-}
-
-window.requestAnimationFrame(function(){
-	init();
-});

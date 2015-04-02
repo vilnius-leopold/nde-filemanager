@@ -13,7 +13,7 @@ clean:
 	rm -rf dist/
 
 build: clean
-	zip -r ../$(PACKAGE_NAME).nw *
+	zip -rq ../$(PACKAGE_NAME).nw *
 	mkdir -p dist
 	mv ../$(PACKAGE_NAME).nw dist/$(PACKAGE_NAME).nw
 

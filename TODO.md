@@ -12,3 +12,10 @@
 - hide up if in /home/leo or /root
 - try async.sortBy for FileSorter.js
 - try async.some for filtering
+- second section for hidden files under non-hidden files
+- fix reflow issues when resizing
+	- location bar --> abs pos + overflow
+	- files flickering --> abs pos + overflow
+	- make content (scroll pane) span entire width --> avoid js resizing
+		and put sidebar as overlay on top with content padding left
+	- location bar / button container --> table cell display for dynamic resizing
