@@ -107,7 +107,7 @@ function FileManager() {
 		}
 	}
 
-	function openDir( path, resetHistory ) {
+	function cleanPath( path ) {
 		path = path.trim();
 
 		if ( path.substr(path.length - 1) != '/' )
@@ -136,18 +136,38 @@ function FileManager() {
 		});
 
 		if ( expansionFailed )
-			return;
+			return null;
 
 		path = path.replace(/^~/, userHome);
+		path = path.replace(/^\/{2,}/, '/');
 
+		return path;
+	}
+
+	function watchDirectory( path, handler ) {
 		// unwatch last directory
 		if ( directoryWatcher ) directoryWatcher.close();
 
 		// refresh directory
 		// on file changes
-		directoryWatcher = fs.watch(path, function( ev, fileName ) {
-			// console.log('File event:', ev, fileName);
+		try {
+			directoryWatcher = fs.watch(path, handler);
+		} catch(e) {
+			alert('Can not watch directory\n' + path + '\n' + e);
+			return;
+		}
+	}
 
+	function openDir( path ) {
+		path = cleanPath( path );
+
+		if ( path === null ) {
+			alert('Invalid path\n' + path);
+			return;
+		}
+
+		// refresh dir on file changes
+		watchDirectory(path, function( ev, fileName ) {
 			//  e.g. torrent downloads
 			// the 'change' event is triggered
 			// very frequently
@@ -158,13 +178,13 @@ function FileManager() {
 			}
 		});
 
-		fs.readdir( path, function(err, fileList) {
+		fs.readdir( path, function( err, fileList ) {
 			var fileCount,
 			    fileName,
 			    file,
 			    i;
 
-			if ( err ){
+			if ( err ) {
 				alert('Can not open directory\n' + path + '\n' + err);
 				return;
 			}
