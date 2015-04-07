@@ -230,38 +230,22 @@ function FileManager() {
 		});
 	}
 
-	function openHistoryDir(position) {
-		var historyPath = history[position];
-
-		openDir( historyPath, false);
-
-		// console.log('History', historyPath);
-		// console.log('HistoryData', historyData[historyPath]);
-
-		// ui.setScrollPosition(historyData[historyPath].scrollPosition);
-	}
-
 	function openPrevDir(){
 		var pos = Math.min(historyPosition+1, history.length -1);
-		openHistoryDir(pos);
+		openDir(history[pos]);
 	}
 
 	function openNextDir(){
 		var pos = Math.max(historyPosition-1, 0);
-		console.log('Open NEXT', pos);
-		openHistoryDir(pos);
+		openDir(history[pos]);
 	}
 
 	function openParentDir(){
-		// console.log('currentDirectory:', currentDirectory);
 		var segments = currentDirectory.split('/');
-		// console.log('segments:', segments);
 		segments.pop();
 		segments.pop();
 
 		var parentDir = (segments.join("/")) + '/';
-
-		// console.log('Parent dir:', parentDir);
 
 		openDir(parentDir, false);
 	}
