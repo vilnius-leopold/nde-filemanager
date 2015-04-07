@@ -31,3 +31,6 @@ file-test:
 
 pipe-test:
 	node pipeTest.js
+
+shadow-test:
+	make reload

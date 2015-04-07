@@ -121,6 +121,18 @@ function UI( document ) {
 			}
 		});
 	};
+	/*
+		add contextmenu event listener to window
+		on contextclick if file item
+		open contextmenu
+		on contextmenu option click
+		run callback for
+		- delete
+		- rename
+		- copy
+		- cut
+	*/
+
 	this.onPrevClick = function( callback ) {
 		prevButtonElement.addEventListener('click', function( ev ) {
 			if ( ! prevButtonElement.classList.contains('disabled') )

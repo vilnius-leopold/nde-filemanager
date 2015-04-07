@@ -15,6 +15,7 @@ function FileManager() {
 	    currentDirectory  = null,
 	    userHome          = process.env.HOME,
 	    defaultStartDir   = userHome,
+	    directoryWatcher,
 	    files             = [],
 	    selectedFileIndex = 0,
 	    debug             = false,
@@ -23,7 +24,7 @@ function FileManager() {
 	    historyData       = {},
 	    history           = [];
 
-	var sortSettings   = ['directoryFirst', 'fileName'],
+	var sortSettings   = ['directoryFirst', 'lastModified'],
 	    filterSettings = ['hiddenFiles'];
 
 	var fileSorter = new FileSorter( sortSettings ),
@@ -54,37 +55,8 @@ function FileManager() {
 			historyPosition = 0;
 		}
 
-		console.log('History:        ', history);
-		console.log('historyPosition:', historyPosition);
-
-
-		// resetHistory = typeof resetHistory === 'undefined' ? true : false;
-
-		// if ( resetHistory ){
-		// 	// console.log('Resetting', history, 0, historyPosition+1);
-		// 	history = history.slice(0, historyPosition+1);
-		// 	historyPosition = 0;
-		// 	// console.log('Reset History', history);
-		// }
-
-
-		// if ( history.indexOf(path) === -1){
-
-		// 	history.unshift( path );
-		// }
-
-		// var scrollTop = ui.getScrollPosition();
-
-		// // console.log('scrollTop', scrollTop);
-
-		// historyData[path] = {
-		// 	scrollPosition: scrollTop
-		// };
-
-		// console.log('History', history);
-		// console.log('historyData', historyData);
-		// console.log('historyPosition', historyPosition);
-
+		// console.log('History:        ', history);
+		// console.log('historyPosition:', historyPosition);
 
 	}
 
@@ -168,6 +140,23 @@ function FileManager() {
 
 		path = path.replace(/^~/, userHome);
 
+		// unwatch last directory
+		if ( directoryWatcher ) directoryWatcher.close();
+
+		// refresh directory
+		// on file changes
+		directoryWatcher = fs.watch(path, function( ev, fileName ) {
+			// console.log('File event:', ev, fileName);
+
+			//  e.g. torrent downloads
+			// the 'change' event is triggered
+			// very frequently
+			// to avoid constant refreshes
+			// ignore change event
+			if ( ev !== 'change' ) {
+				openDir(path);
+			}
+		});
 
 		fs.readdir( path, function(err, fileList) {
 			var fileCount,

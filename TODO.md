@@ -19,3 +19,5 @@
 	- make content (scroll pane) span entire width --> avoid js resizing
 		and put sidebar as overlay on top with content padding left
 	- location bar / button container --> table cell display for dynamic resizing
+- tabs
+- watch file system changes
