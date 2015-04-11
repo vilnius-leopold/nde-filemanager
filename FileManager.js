@@ -1,13 +1,13 @@
-var fs           = require('fs'),
-    mime         = require('mime'),
-    exec         = require('child_process').exec,
-    UI           = require('./UI.js'),
-    File         = require('./File.js'),
-    BookmarkFile = require('./BookmarkFile.js'),
-    FileSorter   = require('./FileSorter.js'),
-    FileFilter   = require('./FileFilter.js'),
-    argParser    = require('optimist'),
-    nwGui        = require('nw.gui');
+var fs              = require('fs'),
+    mime            = require('mime'),
+    exec            = require('child_process').exec,
+    UI              = require('./UI.js'),
+    File            = require('./File.js'),
+    BookmarkFile    = require('./BookmarkFile.js'),
+    FileSorter      = require('./FileSorter.js'),
+    FileFilter      = require('./FileFilter.js'),
+    argParser       = require('optimist'),
+    nwGui           = require('nw.gui');
 
 function FileManager() {
 	var ui,
@@ -24,11 +24,11 @@ function FileManager() {
 	    historyData       = {},
 	    history           = [];
 
-	var sortSettings   = ['directoryFirst', 'lastModified'],
+	var sortSettings   = ['directoryFirst', 'fileName'],
 	    filterSettings = ['hiddenFiles'];
 
-	var fileSorter = new FileSorter( sortSettings ),
-	    fileFilter = new FileFilter( filterSettings );
+	var fileSorter      = new FileSorter( sortSettings ),
+	    fileFilter      = new FileFilter( filterSettings );
 
 	function updateHistory(path) {
 
