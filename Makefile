@@ -11,8 +11,12 @@ dev: kill install run
 
 clean:
 	rm -rf dist/
+	rm -f lookup_icon
 
-build: clean
+lookup_icon: lookup_icon.c
+	gcc `pkg-config --cflags gtk+-3.0` -o lookup_icon lookup_icon.c `pkg-config --libs gtk+-3.0`
+
+build: clean lookup_icon
 	zip -rq ../$(PACKAGE_NAME).nw *
 	mkdir -p dist
 	mv ../$(PACKAGE_NAME).nw dist/$(PACKAGE_NAME).nw

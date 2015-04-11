@@ -1,4 +1,5 @@
-var BookmarkFile = require('./BookmarkFile.js');
+var BookmarkFile    = require('./BookmarkFile.js'),
+    IconPathFetcher = require('./IconPathFetcher.js');
 
 
 var folderIconMapping = {
@@ -15,7 +16,8 @@ var iconDirectory = '/usr/share/icons/';
 
 
 function FileRenderer( document ) {
-	var folderIconMappingList = Object.keys(folderIconMapping);
+	var folderIconMappingList = Object.keys(folderIconMapping),
+	    iconPathFetcher       = new IconPathFetcher();
 
 	function getIconPath( category, size, iconName ) {
 		return iconDirectory + iconTheme + '/' + category + '/' + size + '/' + (iconName.replace(/\//g, '-')) + '.svg';
@@ -84,7 +86,14 @@ function FileRenderer( document ) {
 			if ( ! isDir ) {
 				file.getMimeType(function( err, mimeType ){
 					if ( mimeType )
-						file.iconElement.src = getIconPath( 'mimetypes', 48, mimeType );
+						iconPathFetcher.getIconPath( mimeType.replace(/\//g, '-'), 48, function( err, iconPath ) {
+							console.log('Icon:', err, iconPath);
+
+							if ( err )
+								iconPath = '/usr/share/icons/Flattr/mimetypes/48/text-plain.svg';
+
+							file.iconElement.src = iconPath;
+						});
 				});
 			} else {
 				file.getAbsolutePath(function( err, absolutePath ) {
@@ -102,7 +111,14 @@ function FileRenderer( document ) {
 						iconName     = mapData[1];
 					}
 
-					file.iconElement.src = getIconPath( iconCategory, size, iconName );
+					iconPathFetcher.getIconPath( iconName.replace(/\//g, '-'), size, function( err, iconPath ) {
+						console.log('Icon:', err, iconPath);
+
+						if ( err )
+							iconPath = '/usr/share/icons/Flattr/mimetypes/48/text-plain.svg';
+
+						file.iconElement.src = iconPath;
+					});
 				});
 			}
 		});

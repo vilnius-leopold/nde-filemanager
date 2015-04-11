@@ -19,7 +19,8 @@ var bookmarks = {
 		'/home/leo/Downloads',
 		'/home/leo/Videos',
 		'/home/leo/Documents',
-		'/home/leo/Projects'
+		'/home/leo/Projects',
+		'/home/leo/Games'
 		// 'Applications.desktop',
 		// 'Settings.desktop',
 	],

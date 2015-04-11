@@ -4,3 +4,6 @@ build/
 *~
 *.sublime-workspace
 *.sublime-project
+
+# compiled binaries
+lookup_icon
