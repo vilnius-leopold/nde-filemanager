@@ -1,26 +1,15 @@
 var spawn = require("child_process").spawn;
 
 function IconPathFetcher() {
-	console.log('Created Icon fetcher.');
-	var command = "/home/leo/Projects/nde-filemanager/lookup_icon";
-	// var command = "ls";
-	console.log('command', command);
-
-	var iconServer = spawn(command);
-	console.log('Spawned server.');
-
-	var messages  = [];
-	var callbacks = [];
+	var command    = "/home/leo/Projects/nde-filemanager/lookup_icon",
+	    iconServer = spawn(command),
+	    callbacks = [];
 
 	iconServer.stdin.setEncoding = 'ascii';
 
 	iconServer.stdout.on('data', function (data) {
 		data = data + ' ';
 		data = data.trim();
-
-		// console.log( typeof data );
-		console.log( data.split("\n") );
-		// console.log( data.constructor );
 
 		if ( ! data ) return;
 
@@ -49,7 +38,6 @@ function IconPathFetcher() {
 		}
 
 		var message = iconName + " " + iconSize + "\n";
-		console.log('Fetching icon:', message);
 		callbacks.push(callback);
 		iconServer.stdin.write(message);
 	};

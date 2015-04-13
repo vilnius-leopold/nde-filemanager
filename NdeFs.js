@@ -1,0 +1,133 @@
+var fs         = require('fs'),
+    File       = require('./File.js'),
+    FileSorter = require('./FileSorter.js'),
+    FileFilter = require('./FileFilter.js');
+
+function NdeFs() {
+	var directoryWatcher;
+
+	var sortSettings   = ['directoryFirst', 'fileName'],
+	    filterSettings = ['hiddenFiles'];
+
+	var fileSorter      = new FileSorter( sortSettings ),
+	    fileFilter      = new FileFilter( filterSettings );
+
+	this.userHome         = process.env.HOME;
+	this.currentDirectory = null;
+
+	function watchDirectory( path, handler ) {
+		// unwatch last directory
+		if ( directoryWatcher ) directoryWatcher.close();
+
+		// refresh directory
+		// on file changes
+		try {
+			directoryWatcher = fs.watch(path, handler);
+		} catch(e) {
+			console.error('Can not watch directory\n' + path + '\n' + e);
+			return;
+		}
+	}
+
+
+
+	var cleanPath = function( path ) {
+		path = path.trim();
+
+		if ( path.substr(path.length - 1) != '/' )
+			path += '/';
+
+		// preform bash expansion
+		// var matches = path.replace(/(\$HOME)/g, function(envVar){
+		// 	var envVarValue = process.env[envVar.replace(/^\$/,'')];
+		// 	console.log('Found var:', envVar, envVarValue);
+
+		// 	return '~';
+		// });
+
+		var expansionFailed = false;
+
+		path = path.replace(/(\$[A-Z_]+)/g, function(envVar){
+			console.log('Found var:', envVar);
+			var envVarValue = process.env[envVar.replace(/^\$/,'')];
+
+			if ( ! envVarValue ) {
+				console.error('Unkown environment variable\n' + envVar);
+				expansionFailed = true;
+			}
+
+			return envVarValue;
+		});
+
+		if ( expansionFailed )
+			return null;
+
+		path = path.replace(/^~/, this.userHome);
+		path = path.replace(/^\/{2,}/, '/');
+
+		return path;
+	}.bind(this);
+
+	this.getFilesInDirectory = function( path ) {
+		path = cleanPath( path );
+
+		if ( path === null ) {
+			console.error('Invalid path\n' + path);
+			return;
+		}
+
+		// refresh dir on file changes
+		watchDirectory(path, function( ev, fileName ) {
+			//  e.g. torrent downloads
+			// the 'change' event is triggered
+			// very frequently
+			// to avoid constant refreshes
+			// ignore change event
+			if ( ev !== 'change' ) {
+				openDir(path);
+			}
+		});
+
+		fs.readdir( path, function( err, fileList ) {
+			var fileCount,
+			    fileName,
+			    file,
+			    i;
+
+			if ( err ) {
+				console.error('Can not open directory\n' + path + '\n' + err);
+				return;
+			}
+
+			this.currentDirectory = path;
+			this.validPathCallback( path );
+			// updateHistory(path);
+			// ui.setLocation( path );
+			// renderHistoryButtons();
+			// markBookmark(path);
+
+			fileCount = fileList.length;
+
+			fileSorter.reset();
+
+			fileSorter.onsorted = this.onFiles;
+
+			for ( i = 0; i < fileCount; i++ ) {
+				fileName = fileList[i];
+
+				file = new File(fileName, this.currentDirectory);
+
+				fileFilter.onPass(file, fileSorter.add);
+			}
+
+			// close file sorter
+			fileSorter.add( null );
+		}.bind(this));
+	}.bind(this);
+
+	(function init() {
+
+	}());
+}
+
+module.exports = NdeFs;

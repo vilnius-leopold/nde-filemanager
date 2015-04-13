@@ -87,8 +87,6 @@ function FileRenderer( document ) {
 				file.getMimeType(function( err, mimeType ){
 					if ( mimeType )
 						iconPathFetcher.getIconPath( mimeType.replace(/\//g, '-'), 48, function( err, iconPath ) {
-							console.log('Icon:', err, iconPath);
-
 							if ( err )
 								iconPath = '/usr/share/icons/Flattr/mimetypes/48/text-plain.svg';
 
@@ -112,8 +110,6 @@ function FileRenderer( document ) {
 					}
 
 					iconPathFetcher.getIconPath( iconName.replace(/\//g, '-'), size, function( err, iconPath ) {
-						console.log('Icon:', err, iconPath);
-
 						if ( err )
 							iconPath = '/usr/share/icons/Flattr/mimetypes/48/text-plain.svg';
 
@@ -133,11 +129,8 @@ function FileRenderer( document ) {
 		}
 
 		file.getFileName(function( err, fileName ){
-			// console.log( 'Render name:', fileName);
 			if ( file instanceof BookmarkFile ) {
-				console.log('Found BookmarkFile');
 				file.getAbsolutePath(function(err, absPath){
-					console.log('Found BookmarkFile', absPath);
 					if (absPath === '/home/leo')
 						fileName = 'Home';
 
@@ -147,7 +140,6 @@ function FileRenderer( document ) {
 				if ( ! err )
 					file.fileNameElement.textContent = fileName;
 			}
-
 		});
 	};
 

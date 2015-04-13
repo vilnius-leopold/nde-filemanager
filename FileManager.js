@@ -2,20 +2,22 @@ var fs              = require('fs'),
     mime            = require('mime'),
     exec            = require('child_process').exec,
     UI              = require('./UI.js'),
-    File            = require('./File.js'),
     BookmarkFile    = require('./BookmarkFile.js'),
-    FileSorter      = require('./FileSorter.js'),
-    FileFilter      = require('./FileFilter.js'),
+    NdeFs           = require('./NdeFs.js'),
     argParser       = require('optimist'),
     nwGui           = require('nw.gui');
 
+/*
+Transition to History object
+and NdeFs object
+*/
+
 function FileManager() {
 	var ui,
+	    ndeFs,
 	    historyPosition   = 0,
-	    currentDirectory  = null,
-	    userHome          = process.env.HOME,
-	    defaultStartDir   = userHome,
-	    directoryWatcher,
+	    // ndeFs.currentDirectory  = null,
+	    // defaultStartDir   = userHome,
 	    files             = [],
 	    selectedFileIndex = 0,
 	    debug             = false,
@@ -24,15 +26,8 @@ function FileManager() {
 	    historyData       = {},
 	    history           = [];
 
-	var sortSettings   = ['directoryFirst', 'fileName'],
-	    filterSettings = ['hiddenFiles'];
-
-	var fileSorter      = new FileSorter( sortSettings ),
-	    fileFilter      = new FileFilter( filterSettings );
-
 	function updateHistory(path) {
-
-		if ( path === currentDirectory ) {
+		if ( path === history[historyPosition] ) {
 			// do nothing
 			console.log('Same dir. Do nothing.');
 		} else if ( path === history[historyPosition-1] ) {
@@ -61,7 +56,7 @@ function FileManager() {
 	}
 
 	function renderHistoryButtons() {
-		if (currentDirectory === '/home/leo/' || currentDirectory === '/' ) {
+		if (ndeFs.currentDirectory === ndeFs.userHome + '/' || ndeFs.currentDirectory === '/' ) {
 			ui.hideButton('up-button');
 		} else {
 			ui.showButton('up-button');
@@ -107,147 +102,25 @@ function FileManager() {
 		}
 	}
 
-	function cleanPath( path ) {
-		path = path.trim();
-
-		if ( path.substr(path.length - 1) != '/' )
-			path += '/';
-
-		// preform bash expansion
-		// var matches = path.replace(/(\$HOME)/g, function(envVar){
-		// 	var envVarValue = process.env[envVar.replace(/^\$/,'')];
-		// 	console.log('Found var:', envVar, envVarValue);
-
-		// 	return '~';
-		// });
-
-		var expansionFailed = false;
-
-		path = path.replace(/(\$[A-Z_]+)/g, function(envVar){
-			console.log('Found var:', envVar);
-			var envVarValue = process.env[envVar.replace(/^\$/,'')];
-
-			if ( ! envVarValue ) {
-				alert('Unkown environment variable\n' + envVar);
-				expansionFailed = true;
-			}
-
-			return envVarValue;
-		});
-
-		if ( expansionFailed )
-			return null;
-
-		path = path.replace(/^~/, userHome);
-		path = path.replace(/^\/{2,}/, '/');
-
-		return path;
-	}
-
-	function watchDirectory( path, handler ) {
-		// unwatch last directory
-		if ( directoryWatcher ) directoryWatcher.close();
-
-		// refresh directory
-		// on file changes
-		try {
-			directoryWatcher = fs.watch(path, handler);
-		} catch(e) {
-			alert('Can not watch directory\n' + path + '\n' + e);
-			return;
-		}
-	}
-
-	function openDir( path ) {
-		path = cleanPath( path );
-
-		if ( path === null ) {
-			alert('Invalid path\n' + path);
-			return;
-		}
-
-		// refresh dir on file changes
-		watchDirectory(path, function( ev, fileName ) {
-			//  e.g. torrent downloads
-			// the 'change' event is triggered
-			// very frequently
-			// to avoid constant refreshes
-			// ignore change event
-			if ( ev !== 'change' ) {
-				openDir(path);
-			}
-		});
-
-		fs.readdir( path, function( err, fileList ) {
-			var fileCount,
-			    fileName,
-			    file,
-			    i;
-
-			if ( err ) {
-				alert('Can not open directory\n' + path + '\n' + err);
-				return;
-			}
-
-			updateHistory(path);
-			ui.setLocation( path );
-			currentDirectory = path;
-			renderHistoryButtons();
-			markBookmark(path);
-
-			fileCount = fileList.length;
-
-			fileSorter.reset();
-
-			fileSorter.onsorted = function( sortedFiles ) {
-				console.log('Files sorted!');
-
-				var filteredFileCount = fileSorter.fileCount;
-
-				window.requestAnimationFrame(function(){
-
-					ui.clear('files');
-					files = [];
-
-					for ( var i = 0; i < filteredFileCount; i++ ) {
-						var file = sortedFiles[i];
-						files.push(file);
-						ui.addFile(file);
-					}
-				});
-			};
-
-			for ( i = 0; i < fileCount; i++ ) {
-				fileName = fileList[i];
-
-				file = new File(fileName, currentDirectory);
-
-				fileFilter.onPass(file, fileSorter.add);
-			}
-
-			// close file sorter
-			fileSorter.add( null );
-		});
-	}
 
 	function openPrevDir(){
 		var pos = Math.min(historyPosition+1, history.length -1);
-		openDir(history[pos]);
+		ndeFs.getFilesInDirectory(history[pos]);
 	}
 
 	function openNextDir(){
 		var pos = Math.max(historyPosition-1, 0);
-		openDir(history[pos]);
+		ndeFs.getFilesInDirectory(history[pos]);
 	}
 
-	function openParentDir(){
-		var segments = currentDirectory.split('/');
+	function openParentDir() {
+		var segments = ndeFs.currentDirectory.split('/');
 		segments.pop();
 		segments.pop();
 
 		var parentDir = (segments.join("/")) + '/';
 
-		openDir(parentDir, false);
+		ndeFs.getFilesInDirectory(parentDir, false);
 	}
 
 	function addBookmarks( bookmarks ) {
@@ -287,6 +160,32 @@ function FileManager() {
 	}
 
 	(function init() {
+		// init fileSystem
+		ndeFs = new NdeFs();
+
+		ndeFs.validPathCallback = function( path ) {
+			updateHistory(path);
+			ui.setLocation( path );
+			renderHistoryButtons();
+			markBookmark(path);
+		};
+
+		ndeFs.onFiles = function( sortedFiles ) {
+			var filteredFileCount = sortedFiles.length;
+
+			window.requestAnimationFrame(function(){
+
+				ui.clear('files');
+				files = [];
+
+				for ( var i = 0; i < filteredFileCount; i++ ) {
+					var file = sortedFiles[i];
+					files.push(file);
+					ui.addFile(file);
+				}
+			});
+		};
+
 		// parse CLI flags
 		var args = argParser.default({ debug : false })
 		.boolean(['debug'])
@@ -294,17 +193,19 @@ function FileManager() {
 
 		// set settings
 		debug            = args.debug;
-		currentDirectory = args._[0] || defaultStartDir;
+
+		var startDir = args._[0] || ndeFs.userHome;
 
 		if ( debug ) {
 			nwGui.Window.get().showDevTools();
 		}
 
+
 		// init UI
 		ui = new UI(document);
 
 		ui.onLocationChange(function( path ){
-			openDir( path );
+			ndeFs.getFilesInDirectory( path );
 		});
 
 		ui.onHideClick();
@@ -322,7 +223,7 @@ function FileManager() {
 		});
 
 		ui.onLocationEscape(function(){
-			ui.setLocation(currentDirectory);
+			ui.setLocation(ndeFs.currentDirectory);
 		});
 
 		ui.onUpClick(function(){
@@ -348,7 +249,7 @@ function FileManager() {
 			file.isDirectory(function( err, isDir ) {
 				file.getAbsolutePath(function(err, absPath) {
 					if ( isDir ) {
-						openDir( absPath );
+						ndeFs.getFilesInDirectory( absPath );
 					} else {
 						var command = '/usr/bin/xdg-open "' + absPath + '"';
 
@@ -366,7 +267,7 @@ function FileManager() {
 
 		addBookmarks( bookmarks );
 
-		openDir( currentDirectory );
+		ndeFs.getFilesInDirectory( startDir );
 		/*
 		*/
 	}());
