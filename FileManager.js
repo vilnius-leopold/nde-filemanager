@@ -16,8 +16,6 @@ function FileManager() {
 	var ui,
 	    ndeFs,
 	    historyPosition   = 0,
-	    // ndeFs.currentDirectory  = null,
-	    // defaultStartDir   = userHome,
 	    files             = [],
 	    selectedFileIndex = 0,
 	    debug             = false,
@@ -49,10 +47,6 @@ function FileManager() {
 			history.unshift(path);
 			historyPosition = 0;
 		}
-
-		// console.log('History:        ', history);
-		// console.log('historyPosition:', historyPosition);
-
 	}
 
 	function renderHistoryButtons() {

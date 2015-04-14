@@ -84,9 +84,9 @@ function NdeFs() {
 			// to avoid constant refreshes
 			// ignore change event
 			if ( ev !== 'change' ) {
-				openDir(path);
+				this.getFilesInDirectory(path);
 			}
-		});
+		}.bind(this));
 
 		fs.readdir( path, function( err, fileList ) {
 			var fileCount,
@@ -107,6 +107,12 @@ function NdeFs() {
 			// markBookmark(path);
 
 			fileCount = fileList.length;
+
+			if ( fileCount === 0 ) {
+				this.onFiles( [] );
+				return;
+			}
+
 
 			fileSorter.reset();
 
