@@ -1,5 +1,4 @@
 var fs              = require('fs'),
-    mime            = require('mime'),
     UI              = require('./UI.js'),
     BookmarkFile    = require('./BookmarkFile.js'),
     NdeFs           = require('./NdeFs.js'),
@@ -7,20 +6,13 @@ var fs              = require('fs'),
     argParser       = require('optimist'),
     nwGui           = require('nw.gui');
 
-/*
-Transition to History object
-and NdeFs object
-*/
-
 function FileManager() {
 	var ui,
 	    ndeFs,
 	    ndeHistory,
-	    selectedFileIndex = 0,
 	    debug             = false,
 	    bookmarkFiles     = [],
-	    bookmarkCount     = 0,
-	    historyData       = {};
+	    bookmarkCount     = 0;
 
 	function renderUpButton() {
 		if (ndeFs.currentDirectory === ndeFs.userHome + '/' || ndeFs.currentDirectory === '/' ) {
