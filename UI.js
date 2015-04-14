@@ -17,6 +17,24 @@ function UI( document ) {
 
 	var selectedFile;
 
+	var upClickHandler        = function(){},
+	    selectedClickHandler  = function(){},
+	    hintHandler           = function(){},
+	    locationEscapeHandler = function(){},
+	    locationChangeHandler = function(){},
+	    onFileClickHandler    = function(){};
+
+	/*
+		add contextmenu event listener to window
+		on contextclick if file item
+		open contextmenu
+		on contextmenu option click
+		run callback for
+		- delete
+		- rename
+		- copy
+		- cut
+	*/
 
 	this.getLocation = function() {
 		return document.querySelector('#location').value;
@@ -31,6 +49,7 @@ function UI( document ) {
 		// for navigation
 		locationElement.blur();
 	};
+
 	this.addFile = function( file ) {
 		// console.log('Adding file to UI:', file);
 
@@ -63,6 +82,7 @@ function UI( document ) {
 	this.setView = function( view ) {
 		filesElement.classList.add('view-' + view);
 	};
+
 	this.addSidebarSection = function( sectionName ) {
 
 
@@ -83,30 +103,29 @@ function UI( document ) {
 
 		return sectionId;
 	};
+
 	this.clear = function( container ){
 		container = container || 'files';
 		document.querySelector('#' + container).innerHTML = '';
 	};
+
 	this.getScrollPosition = function() {
 		return document.querySelector('#content').scrollTop;
 	};
+
 	this.setScrollPosition = function(value) {
 		document.querySelector('#content').scrollTop = value;
 	};
-	var locationChangeHandler = function() {};
 
 	this.onLocationChange = function( callback ) {
 		locationChangeHandler = callback;
-
-
 	}.bind(this);
+
 	this.addBookmarkFileToSection = function( file, sectionId ) {
 		fileRenderer.renderInline(file, function( fileElement ) {
 			document.querySelector('#' + sectionId).appendChild( fileElement );
 		}.bind(this));
 	}.bind(this);
-
-	var onFileClickHandler =  function() {};
 
 	this.onFileClick = function( callback ) {
 		onFileClickHandler = callback;
@@ -129,6 +148,7 @@ function UI( document ) {
 			onFileClickHandler( parent.obj );
 		}
 	});
+
 	this.onFileContextClick = function( callback ) {
 		document.querySelector('body')
 		.addEventListener('contextmenu', function( ev ) {
@@ -148,17 +168,6 @@ function UI( document ) {
 			}
 		});
 	};
-	/*
-		add contextmenu event listener to window
-		on contextclick if file item
-		open contextmenu
-		on contextmenu option click
-		run callback for
-		- delete
-		- rename
-		- copy
-		- cut
-	*/
 
 	this.onPrevClick = function( callback ) {
 		prevButtonElement.addEventListener('click', function( ev ) {
@@ -166,29 +175,29 @@ function UI( document ) {
 				callback();
 		});
 	};
+
 	this.onNextClick = function( callback ) {
 		nextButtonElement.addEventListener('click', function( ev ) {
 			if ( ! nextButtonElement.classList.contains('disabled') )
 				callback();
 		});
 	};
+
 	this.showButton = function( id ) {
 		document.querySelector('#' + id).classList.remove('hide');
 	};
+
 	this.hideButton = function( id ) {
 		document.querySelector('#' + id).classList.add('hide');
 	};
+
 	this.disableButton = function( id ) {
 		document.querySelector('#' + id).classList.add('disabled');
 	};
+
 	this.enableButton = function( id ) {
 		document.querySelector('#' + id).classList.remove('disabled');
 	};
-
-	var upClickHandler        = function(){},
-	    selectedClickHandler  = function(){},
-	    hintHandler           = function(){},
-	    locationEscapeHandler = function(){};
 
 	this.onSelectedClick = function( callback ) {
 		selectedClickHandler = callback;
@@ -206,11 +215,13 @@ function UI( document ) {
 			upClickHandler();
 		});
 	};
+
 	this.onHideClick = function( callback ) {
 		document.querySelector('#hide-button').addEventListener('click', function( ev ) {
 			document.querySelector('#files').classList.toggle('hide-hidden');
 		});
 	};
+
 	this.updateLayout = function () {
 		window.requestAnimationFrame(function(){
 		// 	console.log('Resizing');
@@ -246,7 +257,6 @@ function UI( document ) {
 		navButtonContainer = document.querySelector('#nav-button-container');
 		nextButtonElement  = document.querySelector('#next-button');
 		prevButtonElement  = document.querySelector('#prev-button');
-
 
 		window.onresize = this.updateLayout;
 
