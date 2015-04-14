@@ -1,6 +1,5 @@
 var fs              = require('fs'),
     mime            = require('mime'),
-    exec            = require('child_process').exec,
     UI              = require('./UI.js'),
     BookmarkFile    = require('./BookmarkFile.js'),
     NdeFs           = require('./NdeFs.js'),
@@ -109,29 +108,29 @@ function FileManager() {
 	}
 
 	(function init() {
-		// init fileSystem
+		//////////////////
+		// init modules //
 		ndeFs      = new NdeFs();
 		ndeHistory = new NdeHistory();
+		ui         = new UI( document );
 
 
-
-		// parse CLI flags
+		/////////////////////
+		// parse CLI flags //
 		var args = argParser.default({ debug : false })
 		.boolean(['debug'])
 		.parse(nwGui.App.argv);
 
-		// set settings
-		debug            = args.debug;
+
+		///////////////
+		// configure //
+		debug = args.debug;
 
 		var startDir = args._[0] || ndeFs.userHome;
 
 		if ( debug ) {
 			nwGui.Window.get().showDevTools();
 		}
-
-
-		// init UI
-		ui = new UI(document);
 
 		ndeFs.validPathCallback = function( path ) {
 			ndeHistory.push( path );
@@ -143,6 +142,9 @@ function FileManager() {
 
 		ndeFs.onFiles = ui.setFiles;
 
+
+		/////////////////
+		// UI Handlers //
 		ui.onLocationChange(function( path ){
 			ndeFs.getFilesInDirectory( path );
 		});
@@ -157,10 +159,6 @@ function FileManager() {
 			ndeFs.getFilesInDirectory( ndeHistory.getPrevious() );
 		});
 
-		ui.onSelectedClick(function(){
-			openFile(files[selectedFileIndex]);
-		});
-
 		ui.onLocationEscape(function(){
 			ui.setLocation(ndeFs.currentDirectory);
 		});
@@ -169,45 +167,15 @@ function FileManager() {
 			ndeFs.getFilesInDirectory( ndeFs.getParentDirectory() );
 		});
 
-		ui.onFileContextClick(function( element, x, y ) {
-			var fileObj = element.obj;
+		ui.onFileClick( ndeFs.openFile );
 
-			contextmenuElement.style.top  = y + 'px';
-			contextmenuElement.style.left = x + 'px';
-			contextmenuElement.classList.toggle('hide');
 
-			// var command = 'rm -r "' + fileObj.absolutePath + '"';
-
-			// console.log('fileObj', fileObj);
-			// console.log('command', command);
-
-			// exec(command);
-		});
-
-		function openFile( file ) {
-			file.isDirectory(function( err, isDir ) {
-				file.getAbsolutePath(function(err, absPath) {
-					if ( isDir ) {
-						ndeFs.getFilesInDirectory( absPath );
-					} else {
-						var command = '/usr/bin/xdg-open "' + absPath + '"';
-
-						exec(command);
-					}
-				});
-			});
-		}
-
-		ui.onFileClick(function( file ) {
-			openFile( file );
-		});
-
+		/////////////
+		// Execute //
 		ui.setView(view);
 
 		addBookmarks( bookmarks );
 
 		ndeFs.getFilesInDirectory( startDir );
-		/*
-		*/
 	}());
 }

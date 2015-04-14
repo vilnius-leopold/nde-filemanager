@@ -1,4 +1,5 @@
 var fs         = require('fs'),
+    exec       = require('child_process').exec,
     File       = require('./File.js'),
     FileSorter = require('./FileSorter.js'),
     FileFilter = require('./FileFilter.js');
@@ -134,6 +135,20 @@ function NdeFs() {
 
 			// close file sorter
 			fileSorter.add( null );
+		}.bind(this));
+	}.bind(this);
+
+	this.openFile = function( file ) {
+		file.isDirectory(function( err, isDir ) {
+			file.getAbsolutePath(function(err, absPath) {
+				if ( isDir ) {
+					this.getFilesInDirectory( absPath );
+				} else {
+					var command = '/usr/bin/xdg-open "' + absPath + '"';
+
+					exec(command);
+				}
+			}.bind(this));
 		}.bind(this));
 	}.bind(this);
 
