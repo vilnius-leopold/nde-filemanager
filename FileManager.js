@@ -4,6 +4,7 @@ var fs              = require('fs'),
     UI              = require('./UI.js'),
     BookmarkFile    = require('./BookmarkFile.js'),
     NdeFs           = require('./NdeFs.js'),
+    NdeHistory      = require('./NdeHistory.js'),
     argParser       = require('optimist'),
     nwGui           = require('nw.gui');
 
@@ -15,67 +16,43 @@ and NdeFs object
 function FileManager() {
 	var ui,
 	    ndeFs,
-	    historyPosition   = 0,
+	    ndeHistory,
 	    files             = [],
 	    selectedFileIndex = 0,
 	    debug             = false,
 	    bookmarkFiles     = [],
 	    bookmarkCount     = 0,
-	    historyData       = {},
-	    history           = [];
+	    historyData       = {};
 
-	function updateHistory(path) {
-		if ( path === history[historyPosition] ) {
-			// do nothing
-			console.log('Same dir. Do nothing.');
-		} else if ( path === history[historyPosition-1] ) {
-			// set history to previous point
-			historyPosition = historyPosition - 1;
-			console.log('Is prev dir. go back in histry.');
-		} else if ( path === history[historyPosition+1] ) {
-			// set history to next point
-			console.log('Is next dir. go forward in histry.');
-			historyPosition = historyPosition + 1;
-		} else {
-			console.log('New dir. Set new head.');
-			// add item to history
-			// set history to head
-			// remove all old history between ( 0 and currentPos )
-			if ( historyPosition !== 0 )
-				history = history.slice(historyPosition, history.length);
-
-			history.unshift(path);
-			historyPosition = 0;
-		}
-	}
-
-	function renderHistoryButtons() {
+	function renderUpButton() {
 		if (ndeFs.currentDirectory === ndeFs.userHome + '/' || ndeFs.currentDirectory === '/' ) {
 			ui.hideButton('up-button');
 		} else {
 			ui.showButton('up-button');
 		}
+	}
 
-
-		if (history.length <= 1) {
-			ui.hideButton('next-button');
-			ui.hideButton('button-separator');
-			ui.hideButton('prev-button');
-		} else {
+	function renderHistoryButtons() {
+		if ( ndeHistory.hasHistory() ) {
 			ui.showButton('prev-button');
 			ui.showButton('button-separator');
 			ui.showButton('next-button');
-		}
 
-		if ( historyPosition === 0 ) {
-			ui.disableButton('next-button');
-			ui.enableButton('prev-button');
-		} else if ( historyPosition === history.length -1 ) {
-			ui.enableButton('next-button');
-			ui.disableButton('prev-button');
+			if ( ndeHistory.hasNext() ) {
+				ui.enableButton('next-button');
+			} else {
+				ui.disableButton('next-button');
+			}
+
+			if ( ndeHistory.hasPrevious() ) {
+				ui.enableButton('prev-button');
+			} else {
+				ui.disableButton('prev-button');
+			}
 		} else {
-			ui.enableButton('next-button');
-			ui.enableButton('prev-button');
+			ui.hideButton('next-button');
+			ui.hideButton('button-separator');
+			ui.hideButton('prev-button');
 		}
 	}
 
@@ -98,13 +75,11 @@ function FileManager() {
 
 
 	function openPrevDir(){
-		var pos = Math.min(historyPosition+1, history.length -1);
-		ndeFs.getFilesInDirectory(history[pos]);
+		ndeFs.getFilesInDirectory( ndeHistory.getPrevious() );
 	}
 
 	function openNextDir(){
-		var pos = Math.max(historyPosition-1, 0);
-		ndeFs.getFilesInDirectory(history[pos]);
+		ndeFs.getFilesInDirectory( ndeHistory.getNext() );
 	}
 
 	function openParentDir() {
@@ -155,13 +130,15 @@ function FileManager() {
 
 	(function init() {
 		// init fileSystem
-		ndeFs = new NdeFs();
+		ndeFs      = new NdeFs();
+		ndeHistory = new NdeHistory();
 
 		ndeFs.validPathCallback = function( path ) {
-			updateHistory(path);
+			ndeHistory.push( path );
 			ui.setLocation( path );
+			renderUpButton();
 			renderHistoryButtons();
-			markBookmark(path);
+			markBookmark( path );
 		};
 
 		ndeFs.onFiles = function( sortedFiles ) {
