@@ -17,7 +17,6 @@ function FileManager() {
 	var ui,
 	    ndeFs,
 	    ndeHistory,
-	    files             = [],
 	    selectedFileIndex = 0,
 	    debug             = false,
 	    bookmarkFiles     = [],
@@ -73,25 +72,6 @@ function FileManager() {
 		}
 	}
 
-
-	function openPrevDir(){
-		ndeFs.getFilesInDirectory( ndeHistory.getPrevious() );
-	}
-
-	function openNextDir(){
-		ndeFs.getFilesInDirectory( ndeHistory.getNext() );
-	}
-
-	function openParentDir() {
-		var segments = ndeFs.currentDirectory.split('/');
-		segments.pop();
-		segments.pop();
-
-		var parentDir = (segments.join("/")) + '/';
-
-		ndeFs.getFilesInDirectory(parentDir, false);
-	}
-
 	function addBookmarks( bookmarks ) {
 		window.requestAnimationFrame(function(){
 			var sectionName;
@@ -133,29 +113,7 @@ function FileManager() {
 		ndeFs      = new NdeFs();
 		ndeHistory = new NdeHistory();
 
-		ndeFs.validPathCallback = function( path ) {
-			ndeHistory.push( path );
-			ui.setLocation( path );
-			renderUpButton();
-			renderHistoryButtons();
-			markBookmark( path );
-		};
 
-		ndeFs.onFiles = function( sortedFiles ) {
-			var filteredFileCount = sortedFiles.length;
-
-			window.requestAnimationFrame(function(){
-
-				ui.clear('files');
-				files = [];
-
-				for ( var i = 0; i < filteredFileCount; i++ ) {
-					var file = sortedFiles[i];
-					files.push(file);
-					ui.addFile(file);
-				}
-			});
-		};
 
 		// parse CLI flags
 		var args = argParser.default({ debug : false })
@@ -175,6 +133,16 @@ function FileManager() {
 		// init UI
 		ui = new UI(document);
 
+		ndeFs.validPathCallback = function( path ) {
+			ndeHistory.push( path );
+			ui.setLocation( path );
+			renderUpButton();
+			renderHistoryButtons();
+			markBookmark( path );
+		};
+
+		ndeFs.onFiles = ui.setFiles;
+
 		ui.onLocationChange(function( path ){
 			ndeFs.getFilesInDirectory( path );
 		});
@@ -182,11 +150,11 @@ function FileManager() {
 		ui.onHideClick();
 
 		ui.onNextClick(function(){
-			openNextDir();
+			ndeFs.getFilesInDirectory( ndeHistory.getNext() );
 		});
 
 		ui.onPrevClick(function(){
-			openPrevDir();
+			ndeFs.getFilesInDirectory( ndeHistory.getPrevious() );
 		});
 
 		ui.onSelectedClick(function(){
@@ -198,7 +166,7 @@ function FileManager() {
 		});
 
 		ui.onUpClick(function(){
-			openParentDir();
+			ndeFs.getFilesInDirectory( ndeFs.getParentDirectory() );
 		});
 
 		ui.onFileContextClick(function( element, x, y ) {
@@ -230,8 +198,8 @@ function FileManager() {
 			});
 		}
 
-		ui.onFileClick(function(element) {
-			openFile( element.obj );
+		ui.onFileClick(function( file ) {
+			openFile( file );
 		});
 
 		ui.setView(view);

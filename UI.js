@@ -1,7 +1,5 @@
 var FileRenderer  = require('./FileRenderer.js');
 
-
-
 function UI( document ) {
 	var fileRenderer;
 
@@ -16,6 +14,8 @@ function UI( document ) {
 	    navButtonContainer,
 	    nextButtonElement,
 	    prevButtonElement;
+
+	var selectedFile;
 
 
 	this.getLocation = function() {
@@ -38,6 +38,28 @@ function UI( document ) {
 			filesElement.appendChild( fileElement );
 		});
 	}.bind(this);
+
+	this.setFiles = function( files ) {
+		var filteredFileCount = files.length,
+		    file,
+		    i;
+
+		this.clear('files');
+		selectedFile = null;
+
+		if ( filteredFileCount > 0 ) {
+			selectedFile = files[0];
+
+			window.requestAnimationFrame(function() {
+				for ( i = 0; i < filteredFileCount; i++ ) {
+					file = files[i];
+					this.addFile(file);
+				}
+			}.bind(this));
+		}
+
+	}.bind(this);
+
 	this.setView = function( view ) {
 		filesElement.classList.add('view-' + view);
 	};
@@ -83,25 +105,30 @@ function UI( document ) {
 			document.querySelector('#' + sectionId).appendChild( fileElement );
 		}.bind(this));
 	}.bind(this);
+
+	var onFileClickHandler =  function() {};
+
 	this.onFileClick = function( callback ) {
-		document.querySelector('body')
-		.addEventListener('click', function( ev ) {
-			var target = ev.target,
-			    parent = target.parentNode;
-
-			// console.log('click');
-
-			if (target.classList.contains('item') )  {
-				// console.log('click item');
-				callback( target );
-			}
-
-			if (parent.classList.contains('item') )  {
-				// console.log('click item');
-				callback( parent );
-			}
-		});
+		onFileClickHandler = callback;
 	};
+
+	document.querySelector('body')
+	.addEventListener('click', function( ev ) {
+		var target = ev.target,
+		    parent = target.parentNode;
+
+		// console.log('click');
+
+		if (target.classList.contains('item') )  {
+			// console.log('click item');
+			onFileClickHandler( target.obj );
+		}
+
+		if (parent.classList.contains('item') )  {
+			// console.log('click item');
+			onFileClickHandler( parent.obj );
+		}
+	});
 	this.onFileContextClick = function( callback ) {
 		document.querySelector('body')
 		.addEventListener('contextmenu', function( ev ) {
@@ -268,7 +295,7 @@ function UI( document ) {
 						upClickHandler();
 						break;
 					case 13:
-						selectedClickHandler();
+						if ( selectedFile ) onFileClickHandler( selectedFile );
 						break;
 				}
 			} else {

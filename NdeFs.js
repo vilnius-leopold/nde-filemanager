@@ -29,7 +29,13 @@ function NdeFs() {
 		}
 	}
 
+	this.getParentDirectory = function() {
+		var segments = this.currentDirectory.split('/');
+		segments.pop();
+		segments.pop();
 
+		return (segments.join("/")) + '/';
+	}.bind(this);
 
 	var cleanPath = function( path ) {
 		path = path.trim();
