@@ -13,7 +13,7 @@
 	}
 	</style>
 	<script src="/assets/lib/webcomponents/webcomponents.js"></script>
-	<link rel="import" href="elements/nde-file.html">
+	<link rel="import" href="/elements/nde-file.html">
 </head>
 <body>
 <script type="text/javascript">
@@ -268,7 +268,7 @@ fileNames.forEach(function( fileName ) {
 
 	console.log(fileName);
 
-	ndeFile.setAttribute('icon', 'icons/folder.svg');
+	ndeFile.setAttribute('icon', '/testing/folder.svg');
 	if ( i <= count ) {
 		ndeFile.onload = loadHandler;
 	}
