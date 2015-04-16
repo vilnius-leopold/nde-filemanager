@@ -26,7 +26,9 @@
   },
   "description": "NDE file manager",
   "version": "1.0.0",
-  "devDependencies": {},
+  "devDependencies": {
+    "make-livereload": "^0.1.1"
+  },
   "repository": {
     "type": "git",
     "url": "https://vilnius-leopold@bitbucket.org/vilnius-leopold/touch-table.git"
