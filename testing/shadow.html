@@ -266,17 +266,24 @@ fileNames.forEach(function( fileName ) {
 
 	var ndeFile = document.createElement('nde-file');
 
-	console.log(fileName);
-
 	ndeFile.setAttribute('icon', '/testing/folder.svg');
-	if ( i <= count ) {
-		ndeFile.onload = loadHandler;
-	}
+	ndeFile.setAttribute('name', fileName);
+	ndeFile.hide();
 
-	ndeFile.textContent = fileName;
+	ndeFile.onload = loadHandler;
 
 	document.body.appendChild( ndeFile );
 });
+
+setTimeout(function(){
+	var nodes = document.querySelectorAll('nde-file');
+	nodes[0].setAttribute('name', 'XXX');
+	nodes[1].setAttribute('name', 'XXX');
+	nodes[2].setAttribute('name', 'XXX');
+	// nodes[0].setAttribute('icon', 'XXX');
+	// nodes[1].setAttribute('icon', 'XXX');
+	// nodes[2].setAttribute('icon', 'XXX');
+}, 1000);
 
 </script>
 </body>
