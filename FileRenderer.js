@@ -61,22 +61,33 @@ function FileRenderer( document ) {
 	this.renderShell = function( file ) {
 		// console.log('Rendering shell:', file);
 
-		var fileElement     = document.createElement('div');
-		fileElement.className = 'item file';
+		if ( file instanceof BookmarkFile ) {
+			var fileElement     = document.createElement('div');
+			fileElement.className = 'item file';
 
-		var iconElement     = new window.Image();
-		var fileNameElement = document.createElement('p');
-		fileElement.appendChild(iconElement);
-		fileElement.appendChild(fileNameElement);
+			var iconElement     = new window.Image();
+			var fileNameElement = document.createElement('p');
+			fileElement.appendChild(iconElement);
+			fileElement.appendChild(fileNameElement);
 
-		fileElement.obj      = file;
+			fileElement.obj      = file;
 
-		file.element         = fileElement;
-		file.iconElement     = iconElement;
-		file.fileNameElement = fileNameElement;
+			file.element         = fileElement;
+			file.iconElement     = iconElement;
+			file.fileNameElement = fileNameElement;
 
-		// console.log('Rendered shell:', file.getFileName);
-		return fileElement;
+			// console.log('Rendered shell:', file.getFileName);
+			return fileElement;
+		} else {
+			var fileElement = document.createElement('nde-file');
+
+			fileElement.className = 'item file';
+			fileElement.obj       = file;
+			file.element          = fileElement;
+
+			return fileElement;
+		}
+
 	};
 
 	this.renderIcon = function(file, size) {
@@ -90,7 +101,11 @@ function FileRenderer( document ) {
 							if ( err )
 								iconPath = '/usr/share/icons/Flattr/mimetypes/48/text-plain.svg';
 
-							file.iconElement.src = iconPath;
+							if ( file instanceof BookmarkFile ) {
+								file.iconElement.src = iconPath;
+							} else {
+								file.element.setAttribute('icon', iconPath);
+							}
 						});
 				});
 			} else {
@@ -113,7 +128,11 @@ function FileRenderer( document ) {
 						if ( err )
 							iconPath = '/usr/share/icons/Flattr/mimetypes/48/text-plain.svg';
 
-						file.iconElement.src = iconPath;
+						if ( file instanceof BookmarkFile ) {
+							file.iconElement.src = iconPath;
+						} else {
+							file.element.setAttribute('icon', iconPath);
+						}
 					});
 				});
 			}
@@ -138,7 +157,7 @@ function FileRenderer( document ) {
 				});
 			} else {
 				if ( ! err )
-					file.fileNameElement.textContent = fileName;
+					file.element.setAttribute( 'name', fileName );
 			}
 		});
 	};
