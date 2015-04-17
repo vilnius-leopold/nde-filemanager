@@ -1,4 +1,5 @@
 var fs         = require('fs'),
+    rmdir      = require('rimraf'),
     exec       = require('child_process').exec,
     File       = require('./File.js'),
     FileSorter = require('./FileSorter.js'),
@@ -150,6 +151,19 @@ function NdeFs() {
 				}
 			}.bind(this));
 		}.bind(this));
+	}.bind(this);
+
+	this.removeFile = function( file, callback ) {
+		file.getAbsolutePath(function( err, path ) {
+			if ( err ) {
+				if ( callback ) callback( err );
+				return;
+			}
+
+			rmdir(path, function( err ) {
+				if ( callback ) callback( err );
+			});
+		});
 	}.bind(this);
 
 	(function init() {

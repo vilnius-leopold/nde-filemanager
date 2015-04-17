@@ -1,6 +1,10 @@
 PACKAGE_NAME=nde-filemanager
 PREFX=/home/leo/.local
 
+LIVERELOAD_DIR = ./testing/ ./elements/
+LIVERELOAD_SRC = $(shell find $(LIVERELOAD_DIR) -name "*.js" -o -name "*.html" )
+include node_modules/make-livereload/index.mk
+
 all: dev
 
 
@@ -36,5 +40,15 @@ file-test:
 pipe-test:
 	node pipeTest.js
 
-shadow-test:
+dev-reload:
+	# start server if not running
+	test "$$(ps -A | grep node)" || node testing/server.js ./ &
+
+	# start chromium on localhost if not running
+	test "$$(ps -A | grep chromium)" || chromium http://localhost:8080/testing/shadow.html &
+
+	# start tiny-lr if not running
+	test "$$(ps -A --format pid | grep $$(cat tiny-lr.pid))" || make livereload-start &
+
+	# reload
 	make reload

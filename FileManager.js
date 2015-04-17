@@ -118,7 +118,7 @@ function FileManager() {
 		// configure //
 		debug = args.debug;
 
-		var startDir = args._[0] || ndeFs.userHome;
+		var startDir = args._[0] || ndeFs.userHome + '/';
 
 		if ( debug ) {
 			nwGui.Window.get().showDevTools();
@@ -161,6 +161,11 @@ function FileManager() {
 
 		ui.onFileClick( ndeFs.openFile );
 
+		ui.fileDeleteHandler = function( file ) {
+			ndeFs.removeFile( file, function( err ) {
+				if ( err ) alert('Failed to remove File!\n' + err);
+			});
+		};
 
 		/////////////
 		// Execute //

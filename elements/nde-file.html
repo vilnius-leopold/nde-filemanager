@@ -1,0 +1,173 @@
+<template>
+	<style type="text/css">
+		*{
+			padding: 0;
+			margin: 0;
+			border: none;
+			outline: none;
+			box-sizing: border-box;
+			font-size: 0;
+			line-height: 0;
+		}
+		#file{
+			/*float: left;*/
+			display: block;
+			width: 150px;
+			height: 150px;
+			position: relative;
+			cursor: pointer;
+		}
+		#container{
+			width: 150px;
+			height: 150px;
+			min-height: 150px;
+			border: 1px solid transparent;
+			padding: 10px;
+			position: absolute;
+			border-radius: 2px;
+		}
+		#image-wrapper{
+			height: 64px;
+			overflow: hidden;
+			margin-bottom: 4px;
+			text-align: center;
+			vertical-align: middle;
+		}
+		img{
+			height: 100%;
+		}
+		#text-wrapper{
+			overflow: hidden;
+			height: 60px;
+			color: #ddd;
+		}
+		p{
+/*			text-align: center;
+			line-height: 20px;
+			font-size: 15px;
+			word-wrap: break-word;
+			font-family: sans-serif;
+			color: #333;*/
+			/*background: #ffeeee;*/
+			display: block; /* Fallback for non-webkit */
+			display: -webkit-box;
+			max-width: 128px;
+			/*height: 60px;  Fallback for non-webkit */
+			font-family: sans-serif;
+			margin: 0 auto;
+			text-align: center;
+			font-size: 15px;
+			line-height: 20px;
+			word-wrap: break-word;
+			-webkit-line-clamp: 3;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			color: #333;
+		}
+		#file:hover #container,#file:hover #text-wrapper{
+			height: auto;
+		}
+		#file:hover #container{
+			background: white;
+			border-color: #ddd;
+			box-shadow: 0 2px 6px -3px rgba(0,0,0,0.3);
+			z-index: 500;
+		}
+		#file:hover p{
+			/*color: black;*/
+			-webkit-line-clamp: initial;
+		}
+	</style>
+	<div id="file">
+		<div id="container">
+			<div id="image-wrapper">
+			</div>
+			<div id="text-wrapper">
+				<p></p>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	(function(window, document, undefined) {
+		var thatDoc        = document,
+		    thisDoc        =  (thatDoc._currentScript || thatDoc.currentScript).ownerDocument,
+		    template       = thisDoc.querySelector('template').content,
+		    NdeFileProto = Object.create(HTMLElement.prototype);
+
+		// Fires when an instance of the element is created
+		NdeFileProto.createdCallback = function() {
+			// Creates the shadow root
+			var shadowRoot = this.createShadowRoot();
+			    clone      = thatDoc.importNode(template, true);
+
+			shadowRoot.appendChild(clone);
+
+			this._imageAttached = false;
+			this._img           = null;
+			this._container     = shadowRoot.querySelector('#container');
+			this._imageWrapper  = shadowRoot.querySelector('#image-wrapper');
+			this._p             = shadowRoot.querySelector('p');
+
+			if ( this.hasAttribute('icon') ) {
+				this.setIcon( this.getAttribute('icon') );
+			}
+
+			if ( this.hasAttribute('name') ) {
+				this.setName( this.getAttribute('name') );
+			}
+		};
+
+		NdeFileProto.attachedCallback = function() {};
+
+		NdeFileProto.attributeChangedCallback = function(attr, oldVal, newVal) {
+			if (attr === 'icon') {
+				this.setIcon(newVal);
+			}
+
+			if (attr === 'name') {
+				this.setName(newVal);
+			}
+		};
+
+		NdeFileProto.show = function() {
+			this._container.style.display = 'block';
+		};
+
+		NdeFileProto.hide = function() {
+			this._container.style.display = 'none';
+		};
+
+		NdeFileProto.setIcon = function(val) {
+			if ( ! this._img ) {
+				this._img = new Image();
+			}
+
+			this.icon = val;
+
+			this._img.onload = function(){
+				if ( ! this._imageAttached ) {
+					this._imageWrapper.appendChild( this._img );
+					this._imageAttached = true;
+				}
+
+				if ( this.onload ) {
+					this.onload(this);
+				}
+			}.bind(this);
+
+			this._img.src = this.icon;
+		};
+
+		NdeFileProto.setName = function(val) {
+			this.name = val;
+			this._p.textContent = val;
+		};
+
+		window.NdeFile = thatDoc.registerElement('nde-file', {
+			prototype: NdeFileProto
+		});
+	})(window, document);
+</script>

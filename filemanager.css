@@ -121,17 +121,17 @@ html,body{
 
 .item{
 	float: left;
+	margin: 0 20px;
+/*
 	padding: 10px;
 	width: 130px;
 	height: 130px;
-	margin: 0 20px;
 	text-align: center;
 	overflow: hidden;
 	color: #333;
 	border: 1px solid transparent;
 	border-radius: 2px;
-	cursor: pointer;
-	background: transparent;
+	background: transparent;*/
 	/*transition: background-color .1s, border-color .1s;*/
 }
 .inline-item.selected{
@@ -160,6 +160,7 @@ html,body{
 }
 
 .inline-item{
+	cursor: pointer;
 	display: block;
 	float: none;
 	height: 30px;
@@ -315,7 +316,7 @@ input:hover, input:focus{
 	font-size: 13px;
 }
 
-.context-menu {
+#context-menu {
 	background: #333;
 	color: #ddd;
 	min-width: 150px;
@@ -329,18 +330,12 @@ input:hover, input:focus{
 	cursor: default;
 	box-shadow: 0 1px 4px 0px rgba(0,0,0,0.3);
 }
-.context-menu.hide{
-	display: none;
-}
 
-.context-menu>.menu-separator{
-	border-top: 1px solid #777;
-
-}
-.context-menu>.menu-item{
+.context-menu-item{
 	padding: 0 15px;
 }
-.context-menu>.menu-item:hover{
+
+.context-menu-item:hover{
 	color: white;
 	background: #cc3333;
 }

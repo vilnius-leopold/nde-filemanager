@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=NDE Files
 Comment=NDE File Manager
-Exec=nw /home/leo/.local/share/nde-filemanager/nde-filemanager.nw %U
+Exec=/home/leo/.local/bin/nde-filemanager %U
 Icon=folder
 Terminal=false
 Type=Application
@@ -11,4 +11,4 @@ Actions=Videos;
 
 [Desktop Action Videos]
 Name=Videos
-Exec=nw /home/leo/.local/share/nde-filemanager/nde-filemanager.nw /home/leo/Videos
+Exec=/home/leo/.local/bin/nde-filemanager /home/leo/Videos
