@@ -131,10 +131,21 @@ function UI( document ) {
 		onFileClickHandler = callback;
 	};
 
-	document.querySelector('body')
-	.addEventListener('click', function( ev ) {
+	var isContextMeuOpen = false,
+	    contextMenu;
+
+	window.addEventListener('click', function( ev ) {
 		var target = ev.target,
 		    parent = target.parentNode;
+
+
+		if ( isContextMeuOpen &&
+			target.id !== 'context-menu' &&
+			parent.id !== 'context-menu'
+		) {
+			closeContextMenu();
+			return;
+		}
 
 		// console.log('click');
 
@@ -149,24 +160,74 @@ function UI( document ) {
 		}
 	});
 
-	this.onFileContextClick = function( callback ) {
-		document.querySelector('body')
-		.addEventListener('contextmenu', function( ev ) {
-			var target = ev.target,
-			    parent = target.parentNode;
+	function closeContextMenu() {
+		contextMenu.remove();
+		isContextMeuOpen = false;
+	}
 
-			console.log('click');
+	this.fileDeleteHandler = function( file ) {
+		console.log('File delete handler trigger', file);
+	};
 
-			if (target.classList.contains('item') )  {
-				console.log('click item');
-				callback( target, ev.clientX, ev.clientY );
-			}
+	var openFileContextMenu = function ( ev ) {
+		if ( isContextMeuOpen ) closeContextMenu();
 
-			if (parent.classList.contains('item') )  {
-				console.log('click item');
-				callback( parent, ev.clientX, ev.clientY );
+		console.log('Context menu click!');
+
+		isContextMeuOpen = true;
+
+		// create context menu
+		contextMenu = document.createElement('div');
+		contextMenu.id  = 'context-menu';
+
+		// with context menu items
+		var contextMenuItem       = document.createElement('div');
+		contextMenuItem.className = 'context-menu-item';
+
+		var deleteItem            = contextMenuItem.cloneNode();
+		deleteItem.textContent    = 'Delete File';
+		deleteItem.actionCallback = this.fileDeleteHandler;
+		deleteItem.fileObj        = ev.target.obj;
+		contextMenu.appendChild( deleteItem );
+
+		console.log('handler', this.fileDeleteHandler);
+		console.log('delte Item', deleteItem);
+		console.log('delte Item actionCallback', deleteItem.actionCallback);
+
+		// add event handler for items
+		contextMenu.addEventListener('click', function( ev ) {
+			var menuItem = ev.target;
+
+			if ( menuItem.classList.contains('context-menu-item') ) {
+				console.log('Item click ev', ev);
+				console.log('Item click', menuItem);
+
+				menuItem.actionCallback( menuItem.fileObj );
+				closeContextMenu();
 			}
 		});
+
+		// add window handler for closing
+
+		// add context-menu to ui
+		contextMenu.style.top  = ev.clientY + 'px';
+		contextMenu.style.left = ev.clientX + 'px';
+		document.body.appendChild( contextMenu );
+	}.bind(this);
+
+	window.addEventListener('contextmenu', function( ev ) {
+		var target = ev.target;
+
+		console.log('click');
+
+		if (target.tagName === 'NDE-FILE' )  {
+			openFileContextMenu( ev );
+		} else if ( isContextMeuOpen ) {
+			closeContextMenu();
+		}
+	});
+
+	this.onFileContextClick = function( callback ) {
 	};
 
 	this.onPrevClick = function( callback ) {
