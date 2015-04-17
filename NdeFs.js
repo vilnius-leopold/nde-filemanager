@@ -153,11 +153,15 @@ function NdeFs() {
 		}.bind(this));
 	}.bind(this);
 
-	this.removeFile = function( file ) {
+	this.removeFile = function( file, callback ) {
 		file.getAbsolutePath(function( err, path ) {
-			console.log('Deleting file', err, path);
-			rmdir(path, function( error ) {
-				console.log('Rm error', error);
+			if ( err ) {
+				if ( callback ) callback( err );
+				return;
+			}
+
+			rmdir(path, function( err ) {
+				if ( callback ) callback( err );
 			});
 		});
 	}.bind(this);

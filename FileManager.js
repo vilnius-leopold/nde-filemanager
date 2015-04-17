@@ -162,7 +162,9 @@ function FileManager() {
 		ui.onFileClick( ndeFs.openFile );
 
 		ui.fileDeleteHandler = function( file ) {
-			ndeFs.removeFile( file );
+			ndeFs.removeFile( file, function( err ) {
+				if ( err ) alert('Failed to remove File!\n' + err);
+			});
 		};
 
 		/////////////
