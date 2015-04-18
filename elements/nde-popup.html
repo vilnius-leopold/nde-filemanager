@@ -1,0 +1,163 @@
+<template>
+	<style>
+		@charset "utf-8";
+		* {
+			padding: 0;
+			margin: 0;
+			border: none;
+			outline: none;
+			box-sizing: border-box;
+		}
+		#overlay {
+			width: 100%;
+			height: 100%;
+			background: rgba(255,255,255,0.3);
+			z-index: 5000;
+			position: fixed;
+			top: 0;
+			left: 0;
+		}
+		#popup {
+			border: 1px solid #ddd;
+			background: #f9f9f9;
+			border-radius: 2px;
+			box-shadow: 0 0.2em 0.6em -0.3em rgba(0,0,0,0.3);
+			position: relative;
+			color: #333;
+			padding: 1.5em;
+			z-index: 5000;
+			width: 300px;
+			height: 200px;
+			margin: 0 auto;
+			margin-top: -100px;
+			position: relative;
+		}
+		#close-button {
+			color: #777;
+			display: inline-block;
+			line-height: 1em;
+			height: 1em;
+			width: 1em;
+			font-family: DroidSans, sans-serif;
+			font-size: 1.3em;
+			background: transparent;
+			text-align: center;
+			vertical-align: middle;
+			position: absolute;
+			top: 0.2em;
+			right: 0.2em;
+			transition: color 0.15s;
+		}
+		#close-button:after {
+			content: '×';
+		}
+		#close-button:hover {
+			color: #333;
+		}
+	</style>
+	<div id="overlay">
+		<div id="popup">
+			<button id="close-button"></button>
+			<content></content>
+		</div>
+	</div>
+</template>
+
+<script>
+	(function(window, document, undefined) {
+		var thatDoc        = document,
+		    thisDoc        =  (thatDoc._currentScript || thatDoc.currentScript).ownerDocument,
+		    template       = thisDoc.querySelector('template').content,
+		    NdePopupProto = Object.create(HTMLElement.prototype);
+
+		// Fires when an instance of the element is created
+		NdePopupProto.createdCallback = function() {
+			// Creates the shadow root
+			var shadowRoot = this.createShadowRoot();
+			    clone      = thatDoc.importNode(template, true);
+
+			var oldWindowResize = window.onresize;
+
+
+			shadowRoot.appendChild(clone);
+
+			this._popup       = shadowRoot.querySelector('#popup');
+			this._overlay     = shadowRoot.querySelector('#overlay');
+			this._closeButton = shadowRoot.querySelector('#close-button');
+
+
+			this.close();
+
+
+			if ( this.hasAttribute('width') ) {
+				this.setWidth( this.getAttribute('width') );
+			}
+
+			if ( this.hasAttribute('height') ) {
+				this.setHeight( this.getAttribute('height') );
+			}
+		};
+
+		NdePopupProto._updateVerticalPosition = function() {
+			this._popup.style.top = (window.innerHeight / 2) + 'px';
+		};
+
+		NdePopupProto.setWidth = function( width ) {
+			this.width = width;
+			this._popup.style.width = width + 'px';
+		};
+
+		NdePopupProto.setHeight = function( height ) {
+			this.height = height;
+			this._popup.style.height = height + 'px';
+			this._popup.style.marginTop = '-' + (height / 2) + 'px';
+			this._updateVerticalPosition();
+		};
+
+		NdePopupProto.close = function( ev ) {
+			this._overlay.style.display = 'none';
+
+			this._overlay.removeEventListener("click", this.close.bind(this));
+			this._overlay.removeEventListener("contextmenu", this.close.bind(this));
+			window.removeEventListener("resize", this._updateVerticalPosition.bind(this));
+
+			if ( this.onclose ) this.onclose();
+		};
+
+		NdePopupProto._closeHandler = function( ev ) {
+			if ( ev.target === this._overlay ||
+			     ev.target === this._closeButton
+			) {
+				this.close();
+			}
+		};
+
+		NdePopupProto.open = function() {
+			this._overlay.addEventListener("click", this._closeHandler.bind(this));
+			this._overlay.addEventListener("contextmenu", this._closeHandler.bind(this));
+			window.addEventListener("resize", this._updateVerticalPosition.bind(this));
+
+			this._updateVerticalPosition();
+
+			this._overlay.style.display = 'block';
+
+			if ( this.onopen ) this.onopen();
+		};
+
+		NdePopupProto.attachedCallback = function() {};
+
+		NdePopupProto.attributeChangedCallback = function(attr, oldVal, newVal) {
+			if (attr === 'width') {
+				this.setWidth(newVal);
+			}
+
+			if (attr === 'height') {
+				this.setHeight(newVal);
+			}
+		};
+
+		window.NdePopup = thatDoc.registerElement('nde-popup', {
+			prototype: NdePopupProto
+		});
+	})(window, document);
+</script>

@@ -169,12 +169,29 @@ function FileManager() {
 			}
 		};
 
+		ui.onnewfile = function( fileName ) {
+			var absPath = ndeFs.currentDirectory + '/' + fileName;
+
+			ndeFs.newFile(absPath, function( err ) {
+				if ( err ) {
+					if ( err.errno === -17 ) {
+						alert('Can\'t create file. File already exists!');
+					} else {
+						alert('Failed to create file!\n' + err);
+					}
+				}
+				console.log('New file err', err);
+			});
+		};
+
 		/////////////
 		// Execute //
 		ui.setView(view);
 
 		addBookmarks( bookmarks );
 
-		ndeFs.getFilesInDirectory( startDir );
+
+			ndeFs.getFilesInDirectory( startDir );
+
 	}());
 }

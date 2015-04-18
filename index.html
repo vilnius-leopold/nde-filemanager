@@ -6,6 +6,8 @@
 	<link rel="stylesheet" type="text/css" href="filemanager.css">
 	<!-- <script src="assets/lib/webcomponents/webcomponents.js"></script> -->
 	<link rel="import" href="elements/nde-file.html">
+	<!-- <link rel="import" href="elements/nde-popup.html"> -->
+	<link rel="import" href="elements/nde-newfile-dialog.html">
 </head>
 <body ondragstart="return false;" ondrop="return false;">
 	<div id="menu-bar">
@@ -19,11 +21,12 @@
 		<div id="files"></div>
 		<div id="actions">
 			<button id="hide-button" class="action-button">.</button>
+			<button id="new-file-button" class="action-button"><img src="/usr/share/icons/Flattr/actions/24/archive-insert.svg"></button>
 			<button id="new-directory-button" class="action-button"><img src="/usr/share/icons/Flattr/actions/24/archive-insert-directory.svg"></button>
-			<button id="new-file-hide-button" class="action-button"><img src="/usr/share/icons/Flattr/actions/24/archive-insert.svg"></button>
 		</div>
 	</div>
 	<div id="sidebar"></div>
+	<nde-newfile-dialog></nde-newfile-dialog>
 	<script src="config.js"></script>
 	<script src="FileManager.js"></script>
 	<script>

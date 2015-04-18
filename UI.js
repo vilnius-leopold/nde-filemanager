@@ -15,7 +15,8 @@ function UI( document ) {
 	    nextButtonElement,
 	    prevButtonElement;
 
-	var selectedFile;
+	var selectedFile,
+	    locationBarKeyControlsActive = true;
 
 	var upClickHandler        = function(){},
 	    selectedClickHandler  = function(){},
@@ -195,6 +196,7 @@ function UI( document ) {
 		console.log('delte Item actionCallback', deleteItem.actionCallback);
 
 		// add event handler for items
+		// add window handler for closing
 		contextMenu.addEventListener('click', function( ev ) {
 			var menuItem = ev.target;
 
@@ -207,7 +209,6 @@ function UI( document ) {
 			}
 		});
 
-		// add window handler for closing
 
 		// add context-menu to ui
 		contextMenu.style.top  = ev.clientY + 'px';
@@ -283,6 +284,23 @@ function UI( document ) {
 		});
 	};
 
+	document.querySelector('#new-file-button').addEventListener('click', function( ev ) {
+		var dialog = document.querySelector('nde-newfile-dialog');
+
+		dialog.oncreate = this.onnewfile;
+
+		// location bar steals focus
+		// when starting to type
+		// --> toggle on/off for dialog
+		dialog.onopen = function() {
+			locationBarKeyControlsActive = false;
+		};
+		dialog.onclose = function() {
+			locationBarKeyControlsActive = true;
+		};
+		dialog.open();
+	}.bind(this));
+
 	this.updateLayout = function () {
 		window.requestAnimationFrame(function(){
 		// 	console.log('Resizing');
@@ -322,6 +340,8 @@ function UI( document ) {
 		window.onresize = this.updateLayout;
 
 		document.onkeydown = function (e) {
+			if ( ! locationBarKeyControlsActive ) return;
+
 			var keyCode = e.keyCode;
 			var letter = String.fromCharCode(keyCode);
 			console.log('Keydown', keyCode, keyCode);
@@ -334,13 +354,14 @@ function UI( document ) {
 				27  // ESC
 			];
 
-
 			if ( exclude.indexOf( keyCode ) === -1 ) {
 				locationElement.focus();
 			}
 		};
 
 		document.onkeyup = function (e) {
+			if ( ! locationBarKeyControlsActive ) return;
+
 			var keyCode = e.keyCode;
 			var letter = String.fromCharCode(keyCode);
 			console.log('Keyup', keyCode, keyCode);
@@ -355,6 +376,8 @@ function UI( document ) {
 		};
 
 		document.onkeypress = function (e) {
+			if ( ! locationBarKeyControlsActive ) return;
+
 			var keyCode = e.keyCode;
 			var letter = String.fromCharCode(keyCode);
 

@@ -171,4 +171,17 @@ function NdeFs() {
 	}());
 }
 
+NdeFs.prototype.newFile = function( path, callback ) {
+	// w - creates and opens file for writing
+	// x - but throughs error if exists
+	fs.open( path, 'wx', function( err, fd ){
+		if ( err ) {
+			callback( err );
+			return;
+		}
+
+		fs.close( fd, callback );
+	});
+};
+
 module.exports = NdeFs;
