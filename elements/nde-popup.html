@@ -78,16 +78,28 @@
 
 			var oldWindowResize = window.onresize;
 
-
 			shadowRoot.appendChild(clone);
 
 			this._popup       = shadowRoot.querySelector('#popup');
 			this._overlay     = shadowRoot.querySelector('#overlay');
 			this._closeButton = shadowRoot.querySelector('#close-button');
 
+			this._overlay.onkeydown = function ( ev ) {
+				var keyCode = ev.keyCode;
+				// key code table
+				// http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
+				// 9,  tab
+				// 8,  backspace
+				// 13, enter
+				// 27  ESC
+
+				if ( keyCode === 27 ) {
+					this.close();
+					ev.stopPropagation();
+				}
+			}.bind(this);
 
 			this.close();
-
 
 			if ( this.hasAttribute('width') ) {
 				this.setWidth( this.getAttribute('width') );

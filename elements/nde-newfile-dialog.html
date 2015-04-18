@@ -69,6 +69,7 @@
 
 			this._popup.onopen = function() {
 				this._isCancelled = true;
+				this._filenameInput.value = '';
 				this._filenameInput.focus();
 
 				if ( this.onopen ) this.onopen();
@@ -83,6 +84,17 @@
 				this._isCancelled = true;
 				this._popup.close();
 			}.bind(this));
+
+			this._filenameInput.onkeypress = function (ev) {
+				var keyCode = ev.keyCode;
+
+				// on enter
+				if ( keyCode === 13 ) {
+					this._isCancelled = false;
+					this._popup.close();
+					ev.stopPropagation();
+				}
+			}.bind(this);
 
 			this._popup.onclose = function() {
 				if ( this._isCancelled ) {
