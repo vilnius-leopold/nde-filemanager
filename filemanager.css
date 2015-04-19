@@ -382,3 +382,11 @@ input:hover, input:focus{
 	line-height: 33px;
 	white-space: pre;
 }
+
+#selection-overlay {
+	border: 1px solid #cc3333;
+	background: rgba(204, 33, 33, 0.2);
+	border-radius: 2px;
+	z-index: 6000;
+	position: absolute;
+}

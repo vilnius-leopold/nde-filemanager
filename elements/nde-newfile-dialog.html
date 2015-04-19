@@ -14,6 +14,9 @@
 			width: 128px;
 			height: 128px;
 		}
+		#image-wrapper>img{
+			height: 100%;
+		}
 		#permission-wrapper {
 			display: inline-block;
 			height: 128px;
@@ -31,8 +34,10 @@
 			text-align: right;
 		}
 	</style>
-	<nde-popup width="400" height="300">
-		<div id="image-wrapper"></div>
+	<nde-popup width="400" height="230">
+		<div id="image-wrapper">
+			<img src="/usr/share/icons/Flattr/mimetypes/48/text-plain.svg">
+		</div>
 		<div id="permission-wrapper"></div>
 		<input id="filename-input" type="text">
 		<div id="control-wrapper">

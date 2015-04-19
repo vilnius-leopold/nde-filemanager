@@ -11,6 +11,7 @@ function UI( document ) {
 	    locationElement,
 	    actionElement,
 	    contextmenuElement,
+	    selectionOverlay,
 	    navButtonContainer,
 	    nextButtonElement,
 	    prevButtonElement;
@@ -131,6 +132,63 @@ function UI( document ) {
 	this.onFileClick = function( callback ) {
 		onFileClickHandler = callback;
 	};
+
+
+	var startX,
+	    startY,
+	    currentX,
+	    currentY,
+	    endX,
+	    endY;
+
+	function mouseMoveHandler( ev ) {
+		currentX = ev.clientX;
+		currentY = ev.clientY;
+
+		var top    = currentY <= startY ? currentY : startY,
+		    bottom = currentY >  startY ? currentY : startY,
+		    left   = currentX <= startX ? currentX : startX,
+		    right  = currentX >  startX ? currentX : startX,
+		    width  = right - left,
+		    height = bottom - top;
+
+		selectionOverlay.style.top     = top + 'px';
+		selectionOverlay.style.left    = left + 'px';
+		selectionOverlay.style.width   = width + 'px';
+		selectionOverlay.style.height  = height + 'px';
+
+	}
+
+	function mouseUpHandler( ev ) {
+		endX = ev.clientX;
+		endY = ev.clientY;
+
+		window.removeEventListener('mousemove', mouseMoveHandler);
+		window.removeEventListener('mouseup', mouseUpHandler);
+
+		selectionOverlay.remove();
+		selectionOverlay = undefined;
+	}
+
+	window.addEventListener('mousedown', function( ev ) {
+		var target = ev.target;
+
+		if ( target === filesElement ) {
+			startX = ev.clientX;
+			startY = ev.clientY;
+
+			selectionOverlay = document.createElement('div');
+			selectionOverlay.id = 'selection-overlay';
+			selectionOverlay.style.top     = startY + 'px';
+			selectionOverlay.style.left    = startX + 'px';
+			selectionOverlay.style.width   = '1px';
+			selectionOverlay.style.height  = '1px';
+			document.body.appendChild( selectionOverlay );
+
+			window.addEventListener('mousemove', mouseMoveHandler);
+			window.addEventListener('mouseup', mouseUpHandler);
+		}
+	});
 
 	var isContextMeuOpen = false,
 	    contextMenu;
