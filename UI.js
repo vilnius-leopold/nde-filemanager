@@ -17,7 +17,9 @@ function UI( document ) {
 	    prevButtonElement;
 
 	var selectedFile,
-	    locationBarKeyControlsActive = true;
+	    locationBarKeyControlsActive = true,
+	    fileCount = 0,
+	    fileObjects = [];
 
 	var upClickHandler        = function(){},
 	    selectedClickHandler  = function(){},
@@ -61,18 +63,21 @@ function UI( document ) {
 	}.bind(this);
 
 	this.setFiles = function( files ) {
-		var filteredFileCount = files.length,
-		    file,
+		var file,
 		    i;
+
+		fileObjects = files;
+
+		fileCount = files.length;
 
 		this.clear('files');
 		selectedFile = null;
 
-		if ( filteredFileCount > 0 ) {
+		if ( fileCount > 0 ) {
 			selectedFile = files[0];
 
 			window.requestAnimationFrame(function() {
-				for ( i = 0; i < filteredFileCount; i++ ) {
+				for ( i = 0; i < fileCount; i++ ) {
 					file = files[i];
 					this.addFile(file);
 				}
@@ -141,6 +146,53 @@ function UI( document ) {
 	    endX,
 	    endY;
 
+	function getSelectedFiles( startX, startY, endX, endY ) {
+		var fileWidth      = 190,
+		    fileHeight     = 150,
+		    availableWidth = filesElement.offsetWidth,
+		    columneCount   = parseInt( availableWidth / fileWidth );
+
+		console.log('columneCount', columneCount);
+
+		// center selection point
+		startX -= fileWidth/2;
+		endX   -= fileWidth/2;
+		startY += fileHeight + fileHeight/2;
+		endY   += fileHeight + fileHeight/2;
+
+		var selectedRowStart = parseInt( startY / fileHeight ),
+		    selectedRowEnd   = parseInt( endY / fileHeight );
+
+		// selection does not surround
+		// a row --> empty selection
+		if ( selectedRowStart === selectedRowEnd )
+			return [];
+
+		var selectedColumneStart = parseInt( startX / fileWidth ),
+		    selectedColumneEnd   = parseInt( endX / fileWidth );
+
+		// selection does not surround
+		// a columne --> empty selection
+		if ( selectedColumneStart === selectedColumneEnd )
+			return [];
+
+		console.log('Selected Square:');
+		console.log('Rows:    ', selectedRowEnd - selectedRowStart , selectedRowStart, selectedRowEnd);
+		console.log('Columnes:', selectedColumneEnd - selectedColumneStart, selectedColumneStart, selectedColumneEnd);
+
+		for ( var i = selectedRowStart; i < selectedRowEnd; i++ ) {
+			var rowOffset = i * columneCount;
+
+			for ( var k = selectedColumneStart; k < selectedColumneEnd; k++ ) {
+				var fileNumber = rowOffset + k;
+				var file = fileObjects[fileNumber];
+
+				// file.element.style.border = "3px solid red";
+				file.element.setAttribute('selected', '');
+			}
+		}
+	}
+
 	function mouseMoveHandler( ev ) {
 		currentX = ev.clientX;
 		currentY = ev.clientY;
@@ -163,6 +215,10 @@ function UI( document ) {
 		endX = ev.clientX;
 		endY = ev.clientY;
 
+		// deduct menubar + filesElement paddig
+		//  and sidebar offsets
+		getSelectedFiles( startX - 51 - 15, startY - 200, endX - 51 - 15, endY - 200 );
+
 		window.removeEventListener('mousemove', mouseMoveHandler);
 		window.removeEventListener('mouseup', mouseUpHandler);
 
@@ -173,7 +229,7 @@ function UI( document ) {
 	window.addEventListener('mousedown', function( ev ) {
 		var target = ev.target;
 
-		if ( target === filesElement ) {
+		if ( target === filesElement || target === contentElement ) {
 			startX = ev.clientX;
 			startY = ev.clientY;
 

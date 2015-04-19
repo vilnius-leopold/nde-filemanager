@@ -26,6 +26,10 @@
 			position: absolute;
 			border-radius: 2px;
 		}
+		#container.selected{
+			border: 1px solid #cc3333;
+			background: #F5D6D6;
+		}
 		#image-wrapper{
 			height: 64px;
 			overflow: hidden;
@@ -118,6 +122,12 @@
 			if ( this.hasAttribute('name') ) {
 				this.setName( this.getAttribute('name') );
 			}
+
+			if ( this.hasAttribute('selected') ) {
+				this.select();
+			} else {
+				this.unselect();
+			}
 		};
 
 		NdeFileProto.attachedCallback = function() {};
@@ -130,6 +140,22 @@
 			if (attr === 'name') {
 				this.setName(newVal);
 			}
+
+			if (attr === 'selected') {
+				if ( this.hasAttribute('selected') ) {
+					this.select();
+				} else {
+					this.unselect();
+				}
+			}
+		};
+
+		NdeFileProto.unselect = function() {
+			this._container.classList.remove( 'selected' );
+		};
+
+		NdeFileProto.select = function() {
+			this._container.classList.add( 'selected' );
 		};
 
 		NdeFileProto.show = function() {
