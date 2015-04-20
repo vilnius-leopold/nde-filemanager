@@ -358,10 +358,14 @@ function UI( document ) {
 			var menuItem = ev.target;
 
 			if ( menuItem.classList.contains('context-menu-item') ) {
-				console.log('Item click ev', ev);
-				console.log('Item click', menuItem);
+				var selectedFileObj = menuItem.fileObj;
 
-				menuItem.actionCallback( menuItem.fileObj );
+				if ( selectedFileObj.element.selected ) {
+					menuItem.actionCallback( selectedFiles );
+				} else {
+					menuItem.actionCallback( [selectedFileObj] );
+				}
+
 				closeContextMenu();
 			}
 		});
