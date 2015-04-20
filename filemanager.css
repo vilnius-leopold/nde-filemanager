@@ -95,15 +95,16 @@ html,body{
 	background: #f9f9f9;
 	position: relative;
 	padding-left: 200px;
-	padding-right: 70px;
+	padding-right: 60px;
 }
 #files {
 	padding: 10px 15px;
+	padding-right: 0px;
 	background: transparent;
 	overflow: hidden;
 }
 #actions {
-	position: absolute;
+	position: fixed;
 	top: 60px;
 	padding: 20px 10px;
 	right: 12px;
