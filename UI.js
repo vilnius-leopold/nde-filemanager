@@ -157,9 +157,9 @@ function UI( document ) {
 	}
 
 	function selectFiles( startX, startY, endX, endY ) {
-		unselectFiles()
+		unselectFiles();
 
-		var fileWidth      = 190,
+		var fileWidth      = 170,
 		    fileHeight     = 160,
 		    availableWidth = filesElement.offsetWidth,
 		    columneCount   = parseInt( availableWidth / fileWidth );
@@ -167,8 +167,8 @@ function UI( document ) {
 		console.log('columneCount', columneCount);
 
 		// center selection point
-		startX -= 35;
-		endX   -= 35;
+		startX -= 50;
+		endX   -= 50;
 		startY += fileHeight + fileHeight/2;
 		endY   += fileHeight + fileHeight/2;
 

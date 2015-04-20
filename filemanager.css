@@ -98,7 +98,7 @@ html,body{
 	padding-right: 70px;
 }
 #files {
-	padding: 15px 0;
+	padding: 10px 15px;
 	background: transparent;
 	overflow: hidden;
 }
@@ -121,7 +121,7 @@ html,body{
 
 .item{
 	float: left;
-	margin: 0 20px;
+	margin: 0 10px;
 	margin-bottom: 10px;
 /*
 	padding: 10px;
