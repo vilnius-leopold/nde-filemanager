@@ -439,28 +439,6 @@ function UI( document ) {
 		dialog.open();
 	}.bind(this));
 
-	this.updateLayout = function () {
-		window.requestAnimationFrame(function(){
-		// 	console.log('Resizing');
-
-			var height = window.innerHeight;
-
-			var menuHeight   = menuElement.offsetHeight;
-		// 	var sidebarWidth = sidebarElement.offsetWidth;
-		// 	var actionWidth  = actionElement.offsetWidth;
-		// 	var navButtonContainerWidth = navButtonContainer.offsetWidth;
-		// 	var locationMarginRight = 5;
-
-		// 	console.log(width,height,menuHeight,sidebarWidth);
-
-		// 	filesElement.style.width = (width - sidebarWidth - actionWidth) + 'px';
-		// 	contentElement.style.width = (width - sidebarWidth) + 'px';
-		// 	locationElement.style.width = (width - navButtonContainerWidth - locationMarginRight ) + 'px';
-			contentElement.style.height = (height - menuHeight) + 'px';
-		// 	sidebarElement.style.height = (height - menuHeight) + 'px';
-		});
-	};
-
 	(function init() {
 		fileRenderer = new FileRenderer( document );
 
@@ -474,8 +452,6 @@ function UI( document ) {
 		navButtonContainer = document.querySelector('#nav-button-container');
 		nextButtonElement  = document.querySelector('#next-button');
 		prevButtonElement  = document.querySelector('#prev-button');
-
-		window.onresize = this.updateLayout;
 
 		document.onkeydown = function (e) {
 			if ( ! locationBarKeyControlsActive ) return;
@@ -567,7 +543,6 @@ function UI( document ) {
 			*/
 		}.bind(this);
 
-		this.updateLayout();
 	}.bind(this)());
 }
 

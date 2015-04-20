@@ -44,11 +44,13 @@ html,body{
 	font-size: 13px;
 	color: #333;
 	position: relative;
+	height: 100%;
+	width: 100%;
 }
 
 #menu-bar{
 	background: #ddd;
-	/*width: 100%;*/
+	width: 100%;
 	height: 51px;
 	border-bottom: 1px solid #bbb;
 	overflow: hidden;
@@ -57,6 +59,8 @@ html,body{
 	padding: 0;
 	padding-left: 109px;
 	padding-right: 5px;
+	position: absolute;
+	z-index: 6000;
 }
 #sidebar{
 	background: #ddd;
@@ -64,11 +68,12 @@ html,body{
 	width: 200px;
 	height: 100%;
 	border-right: 1px solid #bbb;
-	position: relative;
+	position: absolute;
 	overflow: hidden;
 	position: absolute;
 	top: 51px;
 	left: 0;
+	z-index: 6000;
 }
 
 .float-right{
@@ -89,7 +94,8 @@ html,body{
 
 #content{
 	width: 100%;
-	height: 600px;
+	height: 100%;
+	padding-top: 51px;
 	overflow-y: auto;
 	overflow-x: hidden;
 	background: #f9f9f9;
@@ -112,6 +118,7 @@ html,body{
 	min-height: 580px;
 	/*border: 1px solid #ddd;*/
 	background: transparent;
+	z-index: 6000;
 }
 #actions:hover {
 	float: right;
