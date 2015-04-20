@@ -27,7 +27,7 @@
 			border-radius: 2px;
 		}
 		#container.selected{
-			border: 1px solid #cc3333;
+			border: 1px solid #F5D6D6;
 			background: #F5D6D6;
 		}
 		#image-wrapper{
@@ -81,6 +81,13 @@
 		#file:hover p{
 			/*color: black;*/
 			-webkit-line-clamp: initial;
+		}
+		#file:hover #container.selected {
+			border: 1px solid #E08585;
+			background: #FAEAEA;
+		}
+		#file:hover img {
+			-webkit-filter: contrast(1.1) brightness(1.05);
 		}
 	</style>
 	<div id="file">

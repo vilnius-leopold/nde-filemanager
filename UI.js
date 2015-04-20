@@ -148,7 +148,7 @@ function UI( document ) {
 
 	function getSelectedFiles( startX, startY, endX, endY ) {
 		var fileWidth      = 190,
-		    fileHeight     = 150,
+		    fileHeight     = 160,
 		    availableWidth = filesElement.offsetWidth,
 		    columneCount   = parseInt( availableWidth / fileWidth );
 
@@ -215,9 +215,14 @@ function UI( document ) {
 		endX = ev.clientX;
 		endY = ev.clientY;
 
+		top    = endY <= startY ? endY : startY;
+		bottom = endY >  startY ? endY : startY;
+		left   = endX <= startX ? endX : startX;
+		right  = endX >  startX ? endX : startX;
+
 		// deduct menubar + filesElement paddig
 		//  and sidebar offsets
-		getSelectedFiles( startX - 51 - 15, startY - 200, endX - 51 - 15, endY - 200 );
+		getSelectedFiles( left - 51 - 15, top - 200, right - 51 - 15, bottom - 200 );
 
 		window.removeEventListener('mousemove', mouseMoveHandler);
 		window.removeEventListener('mouseup', mouseUpHandler);
