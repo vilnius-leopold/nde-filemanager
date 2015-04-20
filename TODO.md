@@ -44,3 +44,4 @@
 - add copy/paste support
 - open with support
 - grouped view ( regular / hidden group )
+- undo/redo ceate/delete files/folder

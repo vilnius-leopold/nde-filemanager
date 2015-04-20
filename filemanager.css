@@ -95,11 +95,10 @@ html,body{
 	background: #f9f9f9;
 	position: relative;
 	padding-left: 200px;
-	padding-right: 60px;
 }
 #files {
 	padding: 10px 15px;
-	padding-right: 0px;
+	padding-right: 60px;
 	background: transparent;
 	overflow: hidden;
 }
@@ -112,12 +111,12 @@ html,body{
 	width: 70px;
 	min-height: 580px;
 	/*border: 1px solid #ddd;*/
-	transition: opacity .15s .3s;
 	background: transparent;
 }
 #actions:hover {
 	float: right;
 	opacity: 1;
+	transition: opacity .15s .3s;
 }
 
 .item{
