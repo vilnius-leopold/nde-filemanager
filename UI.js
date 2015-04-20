@@ -146,7 +146,19 @@ function UI( document ) {
 	    endX,
 	    endY;
 
-	function getSelectedFiles( startX, startY, endX, endY ) {
+	var selectedFiles = [];
+
+	function unselectFiles() {
+		var file;
+
+		while ( file = selectedFiles.pop() ) {
+			file.element.removeAttribute('selected');
+		}
+	}
+
+	function selectFiles( startX, startY, endX, endY ) {
+		unselectFiles()
+
 		var fileWidth      = 190,
 		    fileHeight     = 160,
 		    availableWidth = filesElement.offsetWidth,
@@ -155,8 +167,8 @@ function UI( document ) {
 		console.log('columneCount', columneCount);
 
 		// center selection point
-		startX -= fileWidth/2;
-		endX   -= fileWidth/2;
+		startX -= 35;
+		endX   -= 35;
 		startY += fileHeight + fileHeight/2;
 		endY   += fileHeight + fileHeight/2;
 
@@ -168,8 +180,8 @@ function UI( document ) {
 		if ( selectedRowStart === selectedRowEnd )
 			return [];
 
-		var selectedColumneStart = parseInt( startX / fileWidth ),
-		    selectedColumneEnd   = parseInt( endX / fileWidth );
+		var selectedColumneStart = Math.max( 0, parseInt( startX / fileWidth ) ),
+		    selectedColumneEnd   = Math.min( columneCount, parseInt( endX / fileWidth ) );
 
 		// selection does not surround
 		// a columne --> empty selection
@@ -180,6 +192,8 @@ function UI( document ) {
 		console.log('Rows:    ', selectedRowEnd - selectedRowStart , selectedRowStart, selectedRowEnd);
 		console.log('Columnes:', selectedColumneEnd - selectedColumneStart, selectedColumneStart, selectedColumneEnd);
 
+		unselectFiles();
+
 		for ( var i = selectedRowStart; i < selectedRowEnd; i++ ) {
 			var rowOffset = i * columneCount;
 
@@ -187,8 +201,12 @@ function UI( document ) {
 				var fileNumber = rowOffset + k;
 				var file = fileObjects[fileNumber];
 
-				// file.element.style.border = "3px solid red";
-				file.element.setAttribute('selected', '');
+				if ( file ) {
+					selectedFiles.push(file);
+
+					// file.element.style.border = "3px solid red";
+					file.element.setAttribute('selected', '');
+				}
 			}
 		}
 	}
@@ -209,6 +227,7 @@ function UI( document ) {
 		selectionOverlay.style.width   = width + 'px';
 		selectionOverlay.style.height  = height + 'px';
 
+		selectFiles( left - 51 - 15, top - 200, right - 51 - 15, bottom - 200 );
 	}
 
 	function mouseUpHandler( ev ) {
@@ -222,7 +241,7 @@ function UI( document ) {
 
 		// deduct menubar + filesElement paddig
 		//  and sidebar offsets
-		getSelectedFiles( left - 51 - 15, top - 200, right - 51 - 15, bottom - 200 );
+		selectFiles( left - 51 - 15, top - 200, right - 51 - 15, bottom - 200 );
 
 		window.removeEventListener('mousemove', mouseMoveHandler);
 		window.removeEventListener('mouseup', mouseUpHandler);

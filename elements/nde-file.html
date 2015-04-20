@@ -18,11 +18,11 @@
 			cursor: pointer;
 		}
 		#container{
-			width: 150px;
-			height: 150px;
+			width: 140px;
+			height: 146px;
 			min-height: 150px;
 			border: 1px solid transparent;
-			padding: 10px;
+			padding: 7px 5px;
 			position: absolute;
 			border-radius: 2px;
 		}
@@ -75,19 +75,18 @@
 		#file:hover #container{
 			background: white;
 			border-color: #ddd;
-			box-shadow: 0 2px 6px -3px rgba(0,0,0,0.3);
 			z-index: 500;
+			/*box-shadow: 0 2px 4px -5px rgba(0,0,0,0.4);*/
 		}
 		#file:hover p{
-			/*color: black;*/
 			-webkit-line-clamp: initial;
 		}
 		#file:hover #container.selected {
-			border: 1px solid #E08585;
+			border: 1px solid #F5D6D6;
 			background: #FAEAEA;
 		}
 		#file:hover img {
-			-webkit-filter: contrast(1.1) brightness(1.05);
+			-webkit-filter: contrast(1.05) brightness(1.02);
 		}
 	</style>
 	<div id="file">

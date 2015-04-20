@@ -20,4 +20,27 @@
 		and put sidebar as overlay on top with content padding left
 	- location bar / button container --> table cell display for dynamic resizing
 - tabs
-- watch file system changes
+- [x] watch file system changes
+- fix race condition for addbookmarks/opendir
+	--> addbookmarks callback --> markbookmark
+- double check select implementation
+	--> live select file items on selection overlay move --> to know better what your are selecting
+	--> fix scrollable selection
+- add directory/history memory
+	--> view
+	--> scrollbar position
+	--> last selected item (for better keyboard navigation)
+- fix row/tile view
+	--> nde-file add row view
+	--> add UI view button to toggle between row/tile view
+	--> find efficiant way for switching view ( css class instead of looping through fileElement and setting attribute - might require shadow: selector from top level)
+- fix slow loading of big directories (e.g. /home/leo/p)
+- faster mimeType implemenation
+	--> cache
+	--> extension based mimeType detection (node mime module)
+- add selection actions
+	--> delete multiple files
+- release selection action (click on empty space)
+- add copy/paste support
+- open with support
+- grouped view ( regular / hidden group )

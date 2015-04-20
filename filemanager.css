@@ -138,21 +138,21 @@ html,body{
 .inline-item.selected{
 	background: #DDBCBC;
 }
-.item:hover{
+.inline-item:hover{
 	background: #eee;
 	border-color: #ddd;
 	color: black;
 }
-.item:hover>img{
+.inline-item:hover>img{
 	-webkit-filter: contrast(1.1) brightness(1.05);
 }
-.item>img{
+.inline-item>img{
 	transition: -webkit-filter .1s;
 	height: 60px;
 	max-width: 120px;
 	max-height: 60px;
 }
-.item>p{
+.inline-item>p{
 	height: 80px;
 	word-wrap: break-word;
 /*	white-space: nowrap;
