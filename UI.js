@@ -83,7 +83,6 @@ function UI( document ) {
 				}
 			}.bind(this));
 		}
-
 	}.bind(this);
 
 	this.setView = function( view ) {
@@ -91,8 +90,6 @@ function UI( document ) {
 	};
 
 	this.addSidebarSection = function( sectionName ) {
-
-
 		var sectionId = sectionName.toLowerCase().replace(/[^a-z0-9]/g, '-');
 
 		if (sectionName === '')
@@ -138,7 +135,6 @@ function UI( document ) {
 		onFileClickHandler = callback;
 	};
 
-
 	var startX,
 	    startY,
 	    currentX,
@@ -156,12 +152,19 @@ function UI( document ) {
 		}
 	}
 
+	// no need to update on resize
+	// as this is a **reference** to
+	// the style object
+	var filesStyle;
+
 	function selectFiles( startX, startY, endX, endY ) {
 		unselectFiles();
 
+
+
 		var fileWidth      = 170,
 		    fileHeight     = 160,
-		    availableWidth = filesElement.offsetWidth,
+		    availableWidth = filesElement.offsetWidth - parseInt(filesStyle.paddingLeft) - parseInt(filesStyle.paddingRight),
 		    columneCount   = parseInt( availableWidth / fileWidth );
 
 		console.log('columneCount', columneCount);
@@ -440,8 +443,10 @@ function UI( document ) {
 	}.bind(this));
 
 	(function init() {
+		// init renderer
 		fileRenderer = new FileRenderer( document );
 
+		// cache elements
 		contentElement     = document.querySelector('#content');
 		menuElement        = document.querySelector('#menu-bar');
 		sidebarElement     = document.querySelector('#sidebar');
@@ -453,6 +458,10 @@ function UI( document ) {
 		nextButtonElement  = document.querySelector('#next-button');
 		prevButtonElement  = document.querySelector('#prev-button');
 
+		// cache style reference
+		filesStyle = window.getComputedStyle(filesElement);
+
+		// key handlers
 		document.onkeydown = function (e) {
 			if ( ! locationBarKeyControlsActive ) return;
 
@@ -542,7 +551,6 @@ function UI( document ) {
 				onUp/Down hit --> cycle through suggestions
 			*/
 		}.bind(this);
-
 	}.bind(this)());
 }
 
