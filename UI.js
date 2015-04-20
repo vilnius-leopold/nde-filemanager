@@ -8,6 +8,7 @@ function UI( document ) {
 	    menuElement,
 	    sidebarElement,
 	    filesElement,
+	    scrollPaneElement,
 	    locationElement,
 	    actionElement,
 	    contextmenuElement,
@@ -148,7 +149,7 @@ function UI( document ) {
 		var file;
 
 		while ( file = selectedFiles.pop() ) {
-			file.element.removeAttribute('selected');
+			if (file) file.element.removeAttribute('selected');
 		}
 	}
 
@@ -160,8 +161,6 @@ function UI( document ) {
 	function selectFiles( startX, startY, endX, endY ) {
 		unselectFiles();
 
-
-
 		var fileWidth      = 170,
 		    fileHeight     = 160,
 		    availableWidth = filesElement.offsetWidth - parseInt(filesStyle.paddingLeft) - parseInt(filesStyle.paddingRight),
@@ -170,10 +169,10 @@ function UI( document ) {
 		console.log('columneCount', columneCount);
 
 		// center selection point
-		startX -= 50;
-		endX   -= 50;
-		startY += fileHeight + fileHeight/2;
-		endY   += fileHeight + fileHeight/2;
+		startX += 160;
+		endX   += 160;
+		startY += 280;
+		endY   += 280;
 
 		var selectedRowStart = parseInt( startY / fileHeight ),
 		    selectedRowEnd   = parseInt( endY / fileHeight );
@@ -215,8 +214,8 @@ function UI( document ) {
 	}
 
 	function mouseMoveHandler( ev ) {
-		currentX = ev.clientX;
-		currentY = ev.clientY;
+		currentX = ev.clientX - 200;
+		currentY = ev.clientY + scrollPaneElement.scrollTop - 51;
 
 		var top    = currentY <= startY ? currentY : startY,
 		    bottom = currentY >  startY ? currentY : startY,
@@ -234,8 +233,8 @@ function UI( document ) {
 	}
 
 	function mouseUpHandler( ev ) {
-		endX = ev.clientX;
-		endY = ev.clientY;
+		endX = ev.clientX - 200;
+		endY = ev.clientY + scrollPaneElement.scrollTop - 51;
 
 		top    = endY <= startY ? endY : startY;
 		bottom = endY >  startY ? endY : startY;
@@ -249,24 +248,41 @@ function UI( document ) {
 		window.removeEventListener('mousemove', mouseMoveHandler);
 		window.removeEventListener('mouseup', mouseUpHandler);
 
-		selectionOverlay.remove();
-		selectionOverlay = undefined;
+		// selectionOverlay.remove();
+		// selectionOverlay = undefined;
+		hideOverlay();
+	}
+
+	function createOverlay() {
+		selectionOverlay = document.createElement('div');
+		selectionOverlay.id = 'selection-overlay';
+		scrollPaneElement.appendChild( selectionOverlay );
+	}
+
+	function showOverlay() {
+		selectionOverlay.style.display = 'block';
+	}
+
+	function hideOverlay() {
+		selectionOverlay.style.display = 'none';
 	}
 
 	window.addEventListener('mousedown', function( ev ) {
 		var target = ev.target;
 
-		if ( target === filesElement || target === contentElement ) {
-			startX = ev.clientX;
-			startY = ev.clientY;
+		if ( target === filesElement ||
+		     target === contentElement ||
+		     target === scrollPaneElement
+		) {
+			startX = ev.clientX - 200;
+			startY = ev.clientY + scrollPaneElement.scrollTop - 51;
 
-			selectionOverlay = document.createElement('div');
-			selectionOverlay.id = 'selection-overlay';
 			selectionOverlay.style.top     = startY + 'px';
 			selectionOverlay.style.left    = startX + 'px';
 			selectionOverlay.style.width   = '1px';
 			selectionOverlay.style.height  = '1px';
-			document.body.appendChild( selectionOverlay );
+
+			showOverlay();
 
 			window.addEventListener('mousemove', mouseMoveHandler);
 			window.addEventListener('mouseup', mouseUpHandler);
@@ -451,12 +467,14 @@ function UI( document ) {
 		menuElement        = document.querySelector('#menu-bar');
 		sidebarElement     = document.querySelector('#sidebar');
 		filesElement       = document.querySelector('#files');
+		scrollPaneElement  = document.querySelector('#scroll-pane');
 		locationElement    = document.querySelector('#location');
 		actionElement      = document.querySelector('#actions');
 		contextmenuElement = document.querySelector('.context-menu');
 		navButtonContainer = document.querySelector('#nav-button-container');
 		nextButtonElement  = document.querySelector('#next-button');
 		prevButtonElement  = document.querySelector('#prev-button');
+		createOverlay();
 
 		// cache style reference
 		filesStyle = window.getComputedStyle(filesElement);
