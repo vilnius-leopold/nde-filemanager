@@ -158,11 +158,13 @@
 
 		NdeFileProto.unselect = function() {
 			this._container.classList.remove( 'selected' );
+			this.removeAttribute('selected');
 			this.selected = false;
 		};
 
 		NdeFileProto.select = function() {
 			this._container.classList.add( 'selected' );
+			this.setAttribute('selected', '');
 			this.selected = true;
 		};
 

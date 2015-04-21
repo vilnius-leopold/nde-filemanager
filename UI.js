@@ -204,10 +204,11 @@ function UI( document ) {
 				var file = fileObjects[fileNumber];
 
 				if ( file ) {
-					selectedFiles.push(file);
+					if ( selectedFiles.indexOf(file) === -1 ) {
+						selectedFiles.push(file);
+					}
 
-					// file.element.style.border = "3px solid red";
-					file.element.setAttribute('selected', '');
+					file.element.select();
 				}
 			}
 		}
@@ -305,17 +306,44 @@ function UI( document ) {
 			return;
 		}
 
-		// console.log('click');
+		console.log('CLICK!', ev );
 
-		if (target.classList.contains('item') )  {
-			// console.log('click item');
-			onFileClickHandler( target.obj );
+		var fileObj = target.obj;
+
+		// if file
+		if ( target.tagName === 'NDE-FILE' ) {
+
+			if ( ev.ctrlKey ) {
+				if ( target.selected ) {
+					// remove file
+					var index = selectedFiles.indexOf( fileObj );
+
+					if (index > -1) {
+						selectedFiles.splice(index, 1);
+					}
+
+					target.unselect();
+				} else {
+					// add file
+					selectedFiles.push( fileObj );
+					target.select();
+				}
+			} else {
+				onFileClickHandler( fileObj );
+			}
+		// if bookmark
+		} else {
+			if (target.classList.contains('item') )  {
+				// console.log('click item');
+				onFileClickHandler( fileObj );
+			}
+
+			if (parent.classList.contains('item') )  {
+				// console.log('click item');
+				onFileClickHandler( parent.obj );
+			}
 		}
 
-		if (parent.classList.contains('item') )  {
-			// console.log('click item');
-			onFileClickHandler( parent.obj );
-		}
 	});
 
 	function closeContextMenu() {
