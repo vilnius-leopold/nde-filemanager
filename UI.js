@@ -231,16 +231,20 @@ function UI( document ) {
 		style.height  = height + 'px';
 	}
 
+	function updateCoordinates( x1, y1, x2, y2 ) {
+		top    = y2 <= y1 ? y2 : y1;
+		bottom = y2 >  y1 ? y2 : y1;
+		left   = x2 <= x1 ? x2 : x1;
+		right  = x2 >  x1 ? x2 : x1;
+		width  = right - left;
+		height = bottom - top;
+	}
+
 	function mouseMoveHandler( ev ) {
 		currentX = ev.clientX - 200;
 		currentY = ev.clientY + scrollPaneElement.scrollTop - 51;
 
-		top    = currentY <= startY ? currentY : startY;
-		bottom = currentY >  startY ? currentY : startY;
-		left   = currentX <= startX ? currentX : startX;
-		right  = currentX >  startX ? currentX : startX;
-		width  = right - left;
-		height = bottom - top;
+		updateCoordinates( startX, startY, currentX, currentY );
 
 		setOverlay( left, top, width, height );
 
@@ -252,10 +256,7 @@ function UI( document ) {
 		endX = ev.clientX - 200;
 		endY = ev.clientY + scrollPaneElement.scrollTop - 51;
 
-		top    = endY <= startY ? endY : startY;
-		bottom = endY >  startY ? endY : startY;
-		left   = endX <= startX ? endX : startX;
-		right  = endX >  startX ? endX : startX;
+		updateCoordinates( startX, startY, endX, endY );
 
 		// deduct menubar + filesElement paddig
 		//  and sidebar offsets
