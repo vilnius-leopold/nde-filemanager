@@ -151,7 +151,14 @@ function UI( document ) {
 	    width,
 	    height;
 
-	var selectedFiles = [];
+	var committedSelectedFiles = [],
+	    selectedFiles = [],
+	    additionMode  = false;
+
+	// no need to update on resize
+	// as this is a **reference** to
+	// the style object
+	var filesStyle;
 
 	function unselectFiles() {
 		var file;
@@ -161,10 +168,18 @@ function UI( document ) {
 		}
 	}
 
-	// no need to update on resize
-	// as this is a **reference** to
-	// the style object
-	var filesStyle;
+	function commitSelectedFiles () {
+		committedSelectedFiles = committedSelectedFiles.concat( selectedFiles );
+		selectedFiles = [];
+	}
+
+	function unselectCommittedFiles() {
+		var file;
+
+		while ( file = committedSelectedFiles.pop() ) {
+			if (file) file.element.removeAttribute('selected');
+		}
+	}
 
 	function selectFiles( startX, startY, endX, endY ) {
 		unselectFiles();
@@ -196,7 +211,7 @@ function UI( document ) {
 		if ( selectedColumneStart === selectedColumneEnd )
 			return [];
 
-		unselectFiles();
+		// unselectFiles();
 
 		for ( var i = selectedRowStart; i < selectedRowEnd; i++ ) {
 			var rowOffset = i * columneCount;
@@ -206,7 +221,10 @@ function UI( document ) {
 				var file = fileObjects[fileNumber];
 
 				if ( file ) {
-					if ( selectedFiles.indexOf(file) === -1 ) {
+					if (
+					    selectedFiles.indexOf(file) === -1 &&
+					    committedSelectedFiles.indexOf(file) === -1
+					) {
 						selectedFiles.push(file);
 					}
 
@@ -266,6 +284,8 @@ function UI( document ) {
 		window.removeEventListener('mousemove', mouseMoveHandler);
 		window.removeEventListener('mouseup', mouseUpHandler);
 
+		commitSelectedFiles();
+
 		hideOverlay();
 	}
 
@@ -276,6 +296,15 @@ function UI( document ) {
 		     target === contentElement ||
 		     target === scrollPaneElement
 		) {
+			if ( ev.ctrlKey ) {
+				console.log('Addition mode ON');
+				additionMode = true;
+			} else {
+				console.log('Addition mode OFF');
+				unselectCommittedFiles();
+				additionMode = false;
+			}
+
 			startX = calculateRelativeX( ev.clientX );
 			startY = calculateRelativeY( ev.clientY );
 
@@ -405,7 +434,7 @@ function UI( document ) {
 				var selectedFileObj = menuItem.fileObj;
 
 				if ( selectedFileObj.element.selected ) {
-					menuItem.actionCallback( selectedFiles );
+					menuItem.actionCallback( committedSelectedFiles );
 				} else {
 					menuItem.actionCallback( [selectedFileObj] );
 				}
