@@ -174,13 +174,11 @@ function UI( document ) {
 		    availableWidth = filesElement.offsetWidth - parseInt(filesStyle.paddingLeft) - parseInt(filesStyle.paddingRight),
 		    columneCount   = parseInt( availableWidth / fileWidth );
 
-		console.log('columneCount', columneCount);
-
 		// center selection point
-		startX += 160;
-		endX   += 160;
-		startY += 280;
-		endY   += 280;
+		startX += fileWidth/2;
+		endX   += fileWidth/2;
+		startY += fileHeight/2;
+		endY   += fileHeight/2;
 
 		var selectedRowStart = parseInt( startY / fileHeight ),
 		    selectedRowEnd   = parseInt( endY / fileHeight );
@@ -197,10 +195,6 @@ function UI( document ) {
 		// a columne --> empty selection
 		if ( selectedColumneStart === selectedColumneEnd )
 			return [];
-
-		console.log('Selected Square:');
-		console.log('Rows:    ', selectedRowEnd - selectedRowStart , selectedRowStart, selectedRowEnd);
-		console.log('Columnes:', selectedColumneEnd - selectedColumneStart, selectedColumneStart, selectedColumneEnd);
 
 		unselectFiles();
 
@@ -240,33 +234,38 @@ function UI( document ) {
 		height = bottom - top;
 	}
 
+	function calculateRelativeX( clientX ) {
+		return clientX - scrollPaneElement.offsetLeft;
+	}
+
+	function calculateRelativeY( clientY ) {
+		return clientY + scrollPaneElement.scrollTop - scrollPaneElement.offsetTop;
+	}
+
 	function mouseMoveHandler( ev ) {
-		currentX = ev.clientX - 200;
-		currentY = ev.clientY + scrollPaneElement.scrollTop - 51;
+		currentX = calculateRelativeX( ev.clientX );
+		currentY = calculateRelativeY( ev.clientY );
 
 		updateCoordinates( startX, startY, currentX, currentY );
 
 		setOverlay( left, top, width, height );
 
-		selectFiles( left - 51 - 15, top - 200, right - 51 - 15, bottom - 200 );
+		selectFiles( left, top, right, bottom );
 	}
 
-
 	function mouseUpHandler( ev ) {
-		endX = ev.clientX - 200;
-		endY = ev.clientY + scrollPaneElement.scrollTop - 51;
+		endX = calculateRelativeX( ev.clientX );
+		endY = calculateRelativeY( ev.clientY );
 
 		updateCoordinates( startX, startY, endX, endY );
 
 		// deduct menubar + filesElement paddig
 		//  and sidebar offsets
-		selectFiles( left - 51 - 15, top - 200, right - 51 - 15, bottom - 200 );
+		selectFiles( left, top, right, bottom );
 
 		window.removeEventListener('mousemove', mouseMoveHandler);
 		window.removeEventListener('mouseup', mouseUpHandler);
 
-		// selectionOverlay.remove();
-		// selectionOverlay = undefined;
 		hideOverlay();
 	}
 
@@ -277,8 +276,8 @@ function UI( document ) {
 		     target === contentElement ||
 		     target === scrollPaneElement
 		) {
-			startX = ev.clientX - 200;
-			startY = ev.clientY + scrollPaneElement.scrollTop - 51;
+			startX = calculateRelativeX( ev.clientX );
+			startY = calculateRelativeY( ev.clientY );
 
 			setOverlay( startX, startY, 1, 1 );
 
