@@ -214,6 +214,15 @@ function UI( document ) {
 		}
 	}
 
+	function setOverlay( left, top, width, height ) {
+		var style = selectionOverlay.style;
+
+		style.left    = left + 'px';
+		style.top     = top + 'px';
+		style.width   = width + 'px';
+		style.height  = height + 'px';
+	}
+
 	function mouseMoveHandler( ev ) {
 		currentX = ev.clientX - 200;
 		currentY = ev.clientY + scrollPaneElement.scrollTop - 51;
@@ -225,13 +234,11 @@ function UI( document ) {
 		    width  = right - left,
 		    height = bottom - top;
 
-		selectionOverlay.style.top     = top + 'px';
-		selectionOverlay.style.left    = left + 'px';
-		selectionOverlay.style.width   = width + 'px';
-		selectionOverlay.style.height  = height + 'px';
+		setOverlay( left, top, width, height );
 
 		selectFiles( left - 51 - 15, top - 200, right - 51 - 15, bottom - 200 );
 	}
+
 
 	function mouseUpHandler( ev ) {
 		endX = ev.clientX - 200;
@@ -278,10 +285,7 @@ function UI( document ) {
 			startX = ev.clientX - 200;
 			startY = ev.clientY + scrollPaneElement.scrollTop - 51;
 
-			selectionOverlay.style.top     = startY + 'px';
-			selectionOverlay.style.left    = startX + 'px';
-			selectionOverlay.style.width   = '1px';
-			selectionOverlay.style.height  = '1px';
+			setOverlay( startX, startY, 1, 1 );
 
 			showOverlay();
 
