@@ -136,12 +136,20 @@ function UI( document ) {
 		onFileClickHandler = callback;
 	};
 
+	////////////////////
+	// FILE SELECTION //
 	var startX,
 	    startY,
 	    currentX,
 	    currentY,
 	    endX,
-	    endY;
+	    endY,
+	    top,
+	    bottom,
+	    left,
+	    right,
+	    width,
+	    height;
 
 	var selectedFiles = [];
 
@@ -227,12 +235,12 @@ function UI( document ) {
 		currentX = ev.clientX - 200;
 		currentY = ev.clientY + scrollPaneElement.scrollTop - 51;
 
-		var top    = currentY <= startY ? currentY : startY,
-		    bottom = currentY >  startY ? currentY : startY,
-		    left   = currentX <= startX ? currentX : startX,
-		    right  = currentX >  startX ? currentX : startX,
-		    width  = right - left,
-		    height = bottom - top;
+		top    = currentY <= startY ? currentY : startY;
+		bottom = currentY >  startY ? currentY : startY;
+		left   = currentX <= startX ? currentX : startX;
+		right  = currentX >  startX ? currentX : startX;
+		width  = right - left;
+		height = bottom - top;
 
 		setOverlay( left, top, width, height );
 
@@ -261,21 +269,7 @@ function UI( document ) {
 		hideOverlay();
 	}
 
-	function createOverlay() {
-		selectionOverlay = document.createElement('div');
-		selectionOverlay.id = 'selection-overlay';
-		scrollPaneElement.appendChild( selectionOverlay );
-	}
-
-	function showOverlay() {
-		selectionOverlay.style.display = 'block';
-	}
-
-	function hideOverlay() {
-		selectionOverlay.style.display = 'none';
-	}
-
-	window.addEventListener('mousedown', function( ev ) {
+	function mouseDownHandler( ev ) {
 		var target = ev.target;
 
 		if ( target === filesElement ||
@@ -292,8 +286,26 @@ function UI( document ) {
 			window.addEventListener('mousemove', mouseMoveHandler);
 			window.addEventListener('mouseup', mouseUpHandler);
 		}
-	});
+	}
 
+	function createOverlay() {
+		selectionOverlay = document.createElement('div');
+		selectionOverlay.id = 'selection-overlay';
+		scrollPaneElement.appendChild( selectionOverlay );
+	}
+
+	function showOverlay() {
+		selectionOverlay.style.display = 'block';
+	}
+
+	function hideOverlay() {
+		selectionOverlay.style.display = 'none';
+	}
+
+	window.addEventListener('mousedown', mouseDownHandler);
+
+	//////////////////
+	// CONTEXT MENU //
 	var isContextMeuOpen = false,
 	    contextMenu;
 
