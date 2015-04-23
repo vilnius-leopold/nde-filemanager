@@ -61,6 +61,13 @@
 	- SymLink
 - remove bookmark type
 	--> only on front-end: nde-bookmark (instead of backend bookmark file)
-- find single process solution for mimedb command
+- better mime lookup: find single process solution for mimedb command
 	--> see 'file.js' 'getMimeType' function
+	--> glib mime-server solution:
+	--> https://developer.gnome.org/gio/stable/gio-GContentType.html#g-content-type-get-mime-type
+	--> http://stackoverflow.com/questions/1629172/how-do-you-get-the-icon-mime-type-and-application-associated-with-a-file-in-th/2170880#2170880
+	--> possible directly combineable with icon-server to lower used resources ...but might block more... maybe better in separate server process. Also e.g. for sorting we might not need an icon but only the mimetype.
 - desktop file open error handling
+- make action sidebar scrollable
+- back-button on left side of files window
+- read NoDisplay to determin if App is hidden or not.
