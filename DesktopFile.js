@@ -87,7 +87,7 @@ DesktopFile.prototype.getIconPath = function( callback ) {
 			}
 
 			// if only icon name (no path)
-			this.iconPathFetcher.getIconPath( value, 48, function( err, iconPath ) {
+			this.iconPathFetcher.getIconPath( value.replace(/\.(png)$/,''), 48, function( err, iconPath ) {
 				callback( err, iconPath );
 			});
 		}.bind(this));

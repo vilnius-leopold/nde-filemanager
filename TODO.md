@@ -63,3 +63,4 @@
 	--> only on front-end: nde-bookmark (instead of backend bookmark file)
 - find single process solution for mimedb command
 	--> see 'file.js' 'getMimeType' function
+- desktop file open error handling
