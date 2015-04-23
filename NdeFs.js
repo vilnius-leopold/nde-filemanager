@@ -1,9 +1,11 @@
-var fs         = require('fs'),
-    rmdir      = require('rimraf'),
-    exec       = require('child_process').exec,
-    File       = require('./File.js'),
-    FileSorter = require('./FileSorter.js'),
-    FileFilter = require('./FileFilter.js');
+var fs              = require('fs'),
+    rmdir           = require('rimraf'),
+    exec            = require('child_process').exec,
+    File            = require('./File.js'),
+    DesktopFile     = require('./DesktopFile.js'),
+    IconPathFetcher = require('./IconPathFetcher.js'),
+    FileSorter      = require('./FileSorter.js'),
+    FileFilter      = require('./FileFilter.js');
 
 function NdeFs() {
 	var directoryWatcher;
@@ -12,7 +14,8 @@ function NdeFs() {
 	    filterSettings = ['hiddenFiles'];
 
 	var fileSorter      = new FileSorter( sortSettings ),
-	    fileFilter      = new FileFilter( filterSettings );
+	    fileFilter      = new FileFilter( filterSettings ),
+	    iconPathFetcher = new IconPathFetcher();
 
 	this.userHome         = process.env.HOME;
 	this.currentDirectory = null;
@@ -129,7 +132,15 @@ function NdeFs() {
 			for ( i = 0; i < fileCount; i++ ) {
 				fileName = fileList[i];
 
-				file = new File(fileName, this.currentDirectory);
+				if ( fileName.match(/\.desktop$/) ) {
+					file = new DesktopFile({
+						fileName:        fileName,
+						parentDirectory: this.currentDirectory,
+						iconPathFetcher: iconPathFetcher
+					});
+				} else {
+					file = new File(fileName, this.currentDirectory);
+				}
 
 				fileFilter.onPass(file, fileSorter.add);
 			}
@@ -145,9 +156,13 @@ function NdeFs() {
 				if ( isDir ) {
 					this.getFilesInDirectory( absPath );
 				} else {
-					var command = '/usr/bin/xdg-open "' + absPath + '"';
+					if ( file instanceof DesktopFile ) {
+						file.open();
+					} else {
+						var command = '/usr/bin/xdg-open "' + absPath + '"';
 
-					exec(command);
+						exec(command);
+					}
 				}
 			}.bind(this));
 		}.bind(this));

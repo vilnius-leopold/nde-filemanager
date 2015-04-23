@@ -45,3 +45,21 @@
 - open with support
 - grouped view ( regular / hidden group )
 - undo/redo ceate/delete files/folder
+- uninstall apps via application view
+	--> pacman -Qo $(which /usr/bin/firefox) // query package name via executable
+	--> pacman -Qo /usr/share/applications/firefox.desktop // query package via .desktop file
+- execute .desktop files:
+	--> 1) http://askubuntu.com/questions/5172/running-a-desktop-file-in-the-terminal
+	-->    ISSUES! --> check comments
+	-->    find solution via .destkop spec / gtk implementation
+	--> 2) http://askubuntu.com/questions/471282/is-it-possible-to-execute-a-desktop-file-from-a-quicklist
+	-->    gtk-launch
+- implement File types
+	- File
+	- DesktopFile
+	- Directory
+	- SymLink
+- remove bookmark type
+	--> only on front-end: nde-bookmark (instead of backend bookmark file)
+- find single process solution for mimedb command
+	--> see 'file.js' 'getMimeType' function

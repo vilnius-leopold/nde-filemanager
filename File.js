@@ -66,6 +66,10 @@ function File( fN, pD) {
 		return fileName;
 	};
 
+	this.getCachedAbsolutePath = function() {
+		return absolutePath;
+	};
+
 	this.getCachedLastModified = function() {
 		return lastModified;
 	};
@@ -97,6 +101,12 @@ function File( fN, pD) {
 
 			var command = 'mimedb "' + absolutePath + '"';
 
+			// CAUTION:
+			// There is a max process limit
+			// With large directory this limit
+			// can be exceeded
+			//
+			// FIXME: Need to find single process solution!
 			exec(command, function(error, stdout, stderr){
 				// console.log('Expensive lookup:', error, stdout, stderr, command);
 

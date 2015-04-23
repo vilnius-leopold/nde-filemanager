@@ -20,7 +20,8 @@ var bookmarks = {
 		'/home/leo/Videos',
 		'/home/leo/Documents',
 		'/home/leo/Projects',
-		'/home/leo/Games'
+		'/home/leo/Games',
+		'/usr/share/applications'
 		// 'Applications.desktop',
 		// 'Settings.desktop',
 	],

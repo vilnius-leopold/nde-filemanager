@@ -1,5 +1,7 @@
 var BookmarkFile    = require('./BookmarkFile.js'),
-    IconPathFetcher = require('./IconPathFetcher.js');
+    DesktopFile     = require('./DesktopFile.js'),
+    IconPathFetcher = require('./IconPathFetcher.js'),
+    execSync        = require("child_process").execSync;
 
 
 var folderIconMapping = {
@@ -89,25 +91,54 @@ function FileRenderer( document ) {
 		}
 
 	};
+var escapeShell = function(cmd) {
+  return '"'+cmd.replace(/(["\s'$`\\])/g,'\\$1')+'"';
+};
+	function getDesktopFileIconName( path ) {
+		var command  = 'grep -E ^Icon= ' + path.replace(/(["\s'$`\\])/g,'\\$1');
+
+		console.log('Command', command);
+
+		var matchedLine = execSync( command ) + '';
+
+		console.log('matchedLine', matchedLine);
+
+		var iconName = matchedLine.replace(/^Icon=\s*/, '').trim();
+
+		if ( matchedLine === '' ) return null;
+
+		return iconName;
+	}
 
 	this.renderIcon = function(file, size) {
 		size = size || 64;
 
 		file.isDirectory(function(err, isDir) {
 			if ( ! isDir ) {
-				file.getMimeType(function( err, mimeType ){
-					if ( mimeType )
-						iconPathFetcher.getIconPath( mimeType.replace(/\//g, '-'), 48, function( err, iconPath ) {
-							if ( err )
-								iconPath = '/usr/share/icons/Flattr/mimetypes/48/text-plain.svg';
+				if ( file instanceof DesktopFile ) {
+					console.log('Desktop file:', file);
 
-							if ( file instanceof BookmarkFile ) {
-								file.iconElement.src = iconPath;
-							} else {
-								file.element.setAttribute('icon', iconPath);
-							}
-						});
-				});
+					file.getIconPath(function( err, iconPath ) {
+						if ( err )
+							iconPath = '/usr/share/icons/Flattr/mimetypes/48/text-plain.svg';
+
+						file.element.setAttribute('icon', iconPath);
+					});
+				} else {
+					file.getMimeType(function( err, mimeType ){
+						if ( mimeType )
+							iconPathFetcher.getIconPath( mimeType.replace(/\//g, '-'), 48, function( err, iconPath ) {
+								if ( err )
+									iconPath = '/usr/share/icons/Flattr/mimetypes/48/text-plain.svg';
+
+								if ( file instanceof BookmarkFile ) {
+									file.iconElement.src = iconPath;
+								} else {
+									file.element.setAttribute('icon', iconPath);
+								}
+							});
+					});
+				}//END if Desktop file
 			} else {
 				file.getAbsolutePath(function( err, absolutePath ) {
 					var mappedPathIndex = folderIconMappingList.indexOf(absolutePath),
@@ -123,6 +154,7 @@ function FileRenderer( document ) {
 						iconCategory = mapData[0];
 						iconName     = mapData[1];
 					}
+
 
 					iconPathFetcher.getIconPath( iconName.replace(/\//g, '-'), size, function( err, iconPath ) {
 						if ( err )
@@ -155,9 +187,12 @@ function FileRenderer( document ) {
 
 					file.fileNameElement.textContent = fileName;
 				});
+			} else if ( file instanceof DesktopFile ) {
+				file.getDisplayName(function(err, displayName) {
+					file.element.setAttribute( 'name', displayName );
+				});
 			} else {
-				if ( ! err )
-					file.element.setAttribute( 'name', fileName );
+				file.element.setAttribute( 'name', fileName );
 			}
 		});
 	};
