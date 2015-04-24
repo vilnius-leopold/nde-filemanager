@@ -56,8 +56,6 @@ function UI( document ) {
 	};
 
 	this.addFile = function( file ) {
-		// console.log('Adding file to UI:', file);
-
 		fileRenderer.render(file, function( fileElement ) {
 			filesElement.appendChild( fileElement );
 		});
@@ -297,10 +295,8 @@ function UI( document ) {
 		     target === scrollPaneElement
 		) {
 			if ( ev.ctrlKey ) {
-				console.log('Addition mode ON');
 				additionMode = true;
 			} else {
-				console.log('Addition mode OFF');
 				unselectCommittedFiles();
 				additionMode = false;
 			}
@@ -351,8 +347,6 @@ function UI( document ) {
 			return;
 		}
 
-		console.log('CLICK!', ev );
-
 		var fileObj = target.obj;
 
 		// if file
@@ -379,12 +373,10 @@ function UI( document ) {
 		// if bookmark
 		} else {
 			if (target.classList.contains('item') )  {
-				// console.log('click item');
 				onFileClickHandler( fileObj );
 			}
 
 			if (parent.classList.contains('item') )  {
-				// console.log('click item');
 				onFileClickHandler( parent.obj );
 			}
 		}
@@ -403,8 +395,6 @@ function UI( document ) {
 	var openFileContextMenu = function ( ev ) {
 		if ( isContextMeuOpen ) closeContextMenu();
 
-		console.log('Context menu click!');
-
 		isContextMeuOpen = true;
 
 		// create context menu
@@ -420,10 +410,6 @@ function UI( document ) {
 		deleteItem.actionCallback = this.fileDeleteHandler;
 		deleteItem.fileObj        = ev.target.obj;
 		contextMenu.appendChild( deleteItem );
-
-		console.log('handler', this.fileDeleteHandler);
-		console.log('delte Item', deleteItem);
-		console.log('delte Item actionCallback', deleteItem.actionCallback);
 
 		// add event handler for items
 		// add window handler for closing
@@ -452,8 +438,6 @@ function UI( document ) {
 
 	window.addEventListener('contextmenu', function( ev ) {
 		var target = ev.target;
-
-		console.log('click');
 
 		if (target.tagName === 'NDE-FILE' )  {
 			openFileContextMenu( ev );
@@ -562,7 +546,7 @@ function UI( document ) {
 
 			var keyCode = e.keyCode;
 			var letter = String.fromCharCode(keyCode);
-			console.log('Keydown', keyCode, keyCode);
+
 			// key code table
 			// http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
 			var exclude = [
@@ -582,7 +566,6 @@ function UI( document ) {
 
 			var keyCode = e.keyCode;
 			var letter = String.fromCharCode(keyCode);
-			console.log('Keyup', keyCode, keyCode);
 
 			if ( keyCode === 27 && document.activeElement === locationElement ) {
 				locationElement.blur();
@@ -598,8 +581,6 @@ function UI( document ) {
 
 			var keyCode = e.keyCode;
 			var letter = String.fromCharCode(keyCode);
-
-			console.log('Keypress', keyCode, keyCode);
 
 			if ( document.activeElement !== locationElement ) {
 				switch (keyCode) {
