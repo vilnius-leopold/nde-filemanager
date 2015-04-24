@@ -61,8 +61,6 @@ function FileRenderer( document ) {
 
 
 	this.renderShell = function( file ) {
-		// console.log('Rendering shell:', file);
-
 		if ( file instanceof BookmarkFile ) {
 			var fileElement     = document.createElement('div');
 			fileElement.className = 'item file';
@@ -78,7 +76,6 @@ function FileRenderer( document ) {
 			file.iconElement     = iconElement;
 			file.fileNameElement = fileNameElement;
 
-			// console.log('Rendered shell:', file.getFileName);
 			return fileElement;
 		} else {
 			var fileElement = document.createElement('nde-file');
@@ -97,11 +94,7 @@ var escapeShell = function(cmd) {
 	function getDesktopFileIconName( path ) {
 		var command  = 'grep -E ^Icon= ' + path.replace(/(["\s'$`\\])/g,'\\$1');
 
-		console.log('Command', command);
-
 		var matchedLine = execSync( command ) + '';
-
-		console.log('matchedLine', matchedLine);
 
 		var iconName = matchedLine.replace(/^Icon=\s*/, '').trim();
 
@@ -116,8 +109,6 @@ var escapeShell = function(cmd) {
 		file.isDirectory(function(err, isDir) {
 			if ( ! isDir ) {
 				if ( file instanceof DesktopFile ) {
-					console.log('Desktop file:', file);
-
 					file.getIconPath(function( err, iconPath ) {
 						if ( err )
 							iconPath = '/usr/share/icons/Flattr/mimetypes/48/text-plain.svg';
@@ -172,13 +163,6 @@ var escapeShell = function(cmd) {
 	};
 
 	this.renderFileName = function(file) {
-		// console.log( 'Render file:', file);
-
-		if ( ! file || ! file.getFileName ){
-			console.log('Faulty File:', file);
-			return;
-		}
-
 		file.getFileName(function( err, fileName ){
 			if ( file instanceof BookmarkFile ) {
 				file.getAbsolutePath(function(err, absPath){
@@ -198,12 +182,8 @@ var escapeShell = function(cmd) {
 	};
 
 	this.render = function( file, callback, iconSize ) {
-		// console.log('Rendering file:', file);
 		var fileElement = this.renderShell(file);
-		// console.log('After shell render file:', file);
-		// console.log('Rendered file element:', fileElement);
 		callback(fileElement);
-		// console.log('After callback file:', file);
 		this.renderFileName(file);
 		this.renderIcon(file, iconSize);
 	}.bind(this);
