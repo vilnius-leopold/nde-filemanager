@@ -171,6 +171,18 @@ function FileManager() {
 			}
 		};
 
+		ui.onfilerename = function( sourceFile, targetFile ) {
+			ndeFs.renameFile( sourceFile, targetFile , function( err ) {
+				if ( err ) {
+					alert('Failed to rename/move file!\n' +
+					       sourceFile + '\n' +
+					       targetFile + '\n' +
+					       err);
+				}
+				console.log('Renamed file!');
+			});
+		};
+
 		ui.onnewfile = function( fileName ) {
 			var absPath = ndeFs.currentDirectory + '/' + fileName;
 

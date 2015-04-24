@@ -19,6 +19,7 @@ function UI( document ) {
 
 	var selectedFile,
 	    locationBarKeyControlsActive = true,
+	    cutFiles = [],
 	    fileCount = 0,
 	    fileObjects = [];
 
@@ -388,14 +389,42 @@ function UI( document ) {
 		isContextMeuOpen = false;
 	}
 
-	this.fileDeleteHandler = function( file ) {
-		console.log('File delete handler trigger', file);
+	this.fileDeleteHandler = function( files ) {
+		console.log('File delete handler trigger', files);
 	};
+
+	this.fileCutHandler = function( files ) {
+		console.log('File cut handler trigger', files);
+
+		cutFiles = files;
+	};
+
+	this.filePasteIntoHandler = function( files ) {
+		console.log('File paste into handler trigger', files);
+
+		var targetDirectory = files[0];
+
+		targetDirectory.getAbsolutePath(function( err, dirPath ){
+			cutFiles.forEach(function( cutFile ){
+				cutFile.getFileName(function( err, fileName ) {
+					cutFile.getAbsolutePath(function( err, absPath ) {
+						console.log('Move:', absPath, '-->', dirPath + '/' + fileName);
+
+						this.onfilerename(absPath, dirPath + '/' + fileName);
+					}.bind(this));
+				}.bind(this));
+			}.bind(this));
+
+			cutFiles = [];
+		}.bind(this));
+	}.bind(this);
 
 	var openFileContextMenu = function ( ev ) {
 		if ( isContextMeuOpen ) closeContextMenu();
 
 		isContextMeuOpen = true;
+
+		var fileObj = ev.target.obj;
 
 		// create context menu
 		contextMenu = document.createElement('div');
@@ -408,8 +437,22 @@ function UI( document ) {
 		var deleteItem            = contextMenuItem.cloneNode();
 		deleteItem.textContent    = 'Delete File';
 		deleteItem.actionCallback = this.fileDeleteHandler;
-		deleteItem.fileObj        = ev.target.obj;
+		deleteItem.fileObj        = fileObj;
 		contextMenu.appendChild( deleteItem );
+
+		var cutItem            = contextMenuItem.cloneNode();
+		cutItem.textContent    = 'Cut';
+		cutItem.actionCallback = this.fileCutHandler;
+		cutItem.fileObj        = fileObj;
+		contextMenu.appendChild( cutItem );
+
+		if ( cutFiles.length > 0 && fileObj.cachedIsDirectory() ) {
+			var pasteIntoItem            = contextMenuItem.cloneNode();
+			pasteIntoItem.textContent    = 'Paste into';
+			pasteIntoItem.actionCallback = this.filePasteIntoHandler;
+			pasteIntoItem.fileObj        = fileObj;
+			contextMenu.appendChild( pasteIntoItem );
+		}
 
 		// add event handler for items
 		// add window handler for closing

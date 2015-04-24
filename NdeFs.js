@@ -1,5 +1,6 @@
 var fs              = require('fs'),
     rmdir           = require('rimraf'),
+    mv              = require('mv'), // for moving files accross devices
     exec            = require('child_process').exec,
     File            = require('./File.js'),
     DesktopFile     = require('./DesktopFile.js'),
@@ -198,5 +199,12 @@ NdeFs.prototype.newFile = function( path, callback ) {
 		fs.close( fd, callback );
 	});
 };
+
+// We can't use the fs.rename API
+// when moving files accross
+// different devices/partitions
+// the 'mv' library will
+// take care of that for us
+NdeFs.prototype.renameFile = mv;
 
 module.exports = NdeFs;
