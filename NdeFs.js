@@ -48,18 +48,9 @@ function NdeFs() {
 		if ( path.substr(path.length - 1) != '/' )
 			path += '/';
 
-		// preform bash expansion
-		// var matches = path.replace(/(\$HOME)/g, function(envVar){
-		// 	var envVarValue = process.env[envVar.replace(/^\$/,'')];
-		// 	console.log('Found var:', envVar, envVarValue);
-
-		// 	return '~';
-		// });
-
 		var expansionFailed = false;
 
 		path = path.replace(/(\$[A-Z_]+)/g, function(envVar){
-			console.log('Found var:', envVar);
 			var envVarValue = process.env[envVar.replace(/^\$/,'')];
 
 			if ( ! envVarValue ) {
@@ -101,6 +92,7 @@ function NdeFs() {
 
 		fs.readdir( path, function( err, fileList ) {
 			var fileCount,
+			    filteredCount = 0,
 			    fileName,
 			    file,
 			    i;
@@ -142,11 +134,19 @@ function NdeFs() {
 					file = new File(fileName, this.currentDirectory);
 				}
 
-				fileFilter.onPass(file, fileSorter.add);
+				fileFilter.onPass(file,
+				function( file ) {
+					fileSorter.add( file );
+
+					filteredCount++;
+					if ( filteredCount === fileCount ) fileSorter.done();
+				}, function( file ) {
+					filteredCount++;
+					if ( filteredCount === fileCount ) fileSorter.done();
+				});
 			}
 
 			// close file sorter
-			fileSorter.add( null );
 		}.bind(this));
 	}.bind(this);
 

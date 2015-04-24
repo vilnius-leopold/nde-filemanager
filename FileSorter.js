@@ -135,16 +135,26 @@ function FileSorter( sortSettings ) {
 	// sort dependencies
 	// - crazy V8 ... seems like nothing
 	// makes a difference
-	this.add = function( file ) {
-		if ( file === null ) {
-			receivedAllFiles = true;
+	this.done = function() {
+		receivedAllFiles = true;
 
-			if ( noSorters ) {
-				this.onsorted(files);
-			}
-
-			return;
+		if ( noSorters ) {
+			this.onsorted(files);
 		}
+
+		return;
+	};
+
+	this.add = function( file ) {
+		// if ( file === null ) {
+		// 	receivedAllFiles = true;
+
+		// 	if ( noSorters ) {
+		// 		this.onsorted(files);
+		// 	}
+
+		// 	return;
+		// }
 
 		this.fileCount++;
 

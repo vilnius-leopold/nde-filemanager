@@ -1,6 +1,8 @@
+var async = require('async');
+
 function FileFilter( filterSettings ) {
 	var filterMap = {
-		'hiddenFiles': filterHiddenFiles
+		'hiddenFiles': testHiddenFiles
 	};
 
 	var filters     = [],
@@ -27,43 +29,34 @@ function FileFilter( filterSettings ) {
 
 	setFilters();
 
-	function filterCallback( pass, file, isLast, callback ){
-		if ( ! pass ) {
-			// stop other filters
-			interrupt = true;
-		} else if ( isLast ) {
-			callback( file );
-		}
-	}
-
-	this.onPass = function(file, callback) {
+	this.onPass = function(file, passCallback, failCallback) {
 		var interrupt = false,
 		    filter,
 		    i;
 
-		if ( noFilters ) {
-			callback( file );
-			return;
-		}
-
-		for ( i = 0; i < filterCount; i++ ) {
-			filter = filters[i];
-
-			if ( interrupt ) {
-				return false;
+		async.parallel(
+			filters.map(function(f){return f.bind(file);}),
+			function( err, results) {
+				if ( ! err ) {
+					passCallback( file );
+				} else {
+					failCallback( file );
+				}
 			}
-
-			filter(file, filterCallback, i === filterCount - 1, callback );
-
-			if ( interrupt ) {
-				return false;
-			}
-		}
+		);
 	};
 
-	function filterHiddenFiles( file, callback, isLast, finalCallback ) {
-		file.isHidden(function(err, isHidden){
-			callback( ! isHidden, file, isLast, finalCallback );
+	// FIXME:
+	// breaks app with truely async (isHidden) function
+	// (e.g. for DesktopFile.isHidden)
+	// needs to be fixed!
+	function testHiddenFiles( callback ) {
+		this.isHidden(function(err, isHidden) {
+			if ( ! err && isHidden ) {
+				callback(true, false);
+			} else {
+				callback(null, true);
+			}
 		});
 	}
 }
