@@ -71,3 +71,10 @@
 - make action sidebar scrollable
 - back-button on left side of files window
 - read NoDisplay to determin if App is hidden or not.
+- distribute files on entire width
+	--> on resize calculate available columns. If extra space --> adjust margins
+	--> looks nicer if no big space on right edge at action bar
+- implement recent:// spec
+- drap/drop files support
+- fuse mount archives
+- fuse mount torrents?
