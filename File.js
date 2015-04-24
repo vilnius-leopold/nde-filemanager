@@ -16,17 +16,17 @@ function File( fN, pD) {
 	    isDir,
 	    mimeType,
 	    lastModified,
-	    parentDirectory,
-	    isHidden,
-	    fileName;
+	    parentDirectory;
+
+	this._fileName;
 
 	(function init( fN, pD ){
 		if ( ! fN || ! pD )
 			throw new Error('Missing fileName and/or direcotry!');
 
-		fileName        = fN;
+		this._fileName        = fN;
 		parentDirectory = pD.match(/\/$/) ? pD : pD + '/';
-	}( fN, pD ));
+	}.bind(this)( fN, pD ));
 
 	var getStats = function ( callback ) {
 		if ( stats ) {
@@ -59,11 +59,11 @@ function File( fN, pD) {
 	}.bind(this);
 
 	this.getFileName = function( callback ) {
-		callback( null, fileName );
+		callback( null, this._fileName );
 	}.bind(this);
 
 	this.getCachedFileName = function() {
-		return fileName;
+		return this._fileName;
 	};
 
 	this.getCachedAbsolutePath = function() {
@@ -78,15 +78,18 @@ function File( fN, pD) {
 		return isDir;
 	};
 
-	this.isHidden = function( callback ) {
-		if ( typeof isHidden === 'undefined' )
-			isHidden = !! fileName.match(/^\./);
+	File.prototype.isHidden = function( callback ) {
+		console.log('Hidden File?');
 
-		callback(null, isHidden);
+		if ( typeof this._isHidden === 'undefined' )
+			this._isHidden = !! this._fileName.match(/^\./);
+
+		callback(null, this._isHidden);
 	};
 
-	this.cachedIsHidden = function() {
-		return isHidden;
+	File.prototype.cachedIsHidden = function() {
+		console.log('Cached hidden', this._isHidden);
+		return this._isHidden;
 	};
 
 	// FIXME:
@@ -168,7 +171,7 @@ function Directory() {
 		if ( ! fN || ! pD )
 			throw new Error('Missing fileName and/or direcotry!');
 
-		fileName        = fN;
+		this._fileName        = fN;
 		parentDirectory = pD.match(/\/$/) ? pD : pD + '/';
 	}( fN, pD ));
 }
