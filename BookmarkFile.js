@@ -1,7 +1,7 @@
 var File = require('./File.js');
 
-function BookmarkFile(fileName, parentDirectory) {
-	File.call(this, fileName, parentDirectory);
+function BookmarkFile( options ) {
+	File.call( this, options );
 }
 
 BookmarkFile.prototype = Object.create(File.prototype);

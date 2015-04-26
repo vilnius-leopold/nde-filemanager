@@ -1,37 +1,63 @@
-var fs              = require('fs'),
-    rmdir           = require('rimraf'),
-    mv              = require('mv'), // for moving files accross devices
-    exec            = require('child_process').exec,
-    File            = require('./File.js'),
-    DesktopFile     = require('./DesktopFile.js'),
-    IconPathFetcher = require('./IconPathFetcher.js'),
-    FileSorter      = require('./FileSorter.js'),
-    FileFilter      = require('./FileFilter.js');
+var fs               = require('fs'),
+    rmdir            = require('rimraf'),
+    mv               = require('mv'), // for moving files accross devices
+    spawn            = require('child_process').spawn,
+    recursiveReaddir = require('recursive-readdir'),
+    async            = require('async'),
+    path             = require('path'),
+    File             = require('./File.js'),
+    DesktopFile      = require('./DesktopFile.js'),
+    FileSorter       = require('./FileSorter.js'),
+    FileFilter       = require('./FileFilter.js');
 
-function NdeFs() {
-	var directoryWatcher;
+function NdeFs( options ) {
+	var directoryWatchers = [];
 
-	var sortSettings   = ['directoryFirst', 'fileName'],
+	var sortSettings   = ['directoryFirst', 'displayName'],
 	    filterSettings = ['hiddenFiles'];
 
 	var fileSorter      = new FileSorter( sortSettings ),
 	    fileFilter      = new FileFilter( filterSettings ),
-	    iconPathFetcher = new IconPathFetcher();
+	    iconPathFetcher = options.iconPathFetcher;
 
 	this.userHome         = process.env.HOME;
 	this.currentDirectory = null;
 
+	// dirs with lower index in Array
+	// override dir applications
+	// with higher indices
+	var applicationDirectories = [
+		this.userHome  + '/.local/share/applications/',
+		'/usr/share/applications/'
+	];
+
+	function addWatcher( path, handler ) {
+		try {
+			var watcher = fs.watch(path, handler);
+			directoryWatchers.push( watcher );
+		} catch(e) {
+			console.error('Can not watch directory\n' + path + '\n' + e);
+		}
+	}
+
 	function watchDirectory( path, handler ) {
 		// unwatch last directory
-		if ( directoryWatcher ) directoryWatcher.close();
+		directoryWatchers.forEach(function( watcher ){
+			watcher.close();
+		});
+		directoryWatchers = [];
 
 		// refresh directory
 		// on file changes
-		try {
-			directoryWatcher = fs.watch(path, handler);
-		} catch(e) {
-			console.error('Can not watch directory\n' + path + '\n' + e);
-			return;
+
+		// special applications view
+		if ( path === 'applications://') {
+			applicationDirectories.forEach(function( applicationDirectory ) {
+				addWatcher( applicationDirectory, handler );
+			});
+		// regular directories
+		} else {
+			addWatcher( path, handler );
 		}
 	}
 
@@ -71,6 +97,104 @@ function NdeFs() {
 		return path;
 	}.bind(this);
 
+	// As we only have to create a
+	// virtual directory view
+	// we can move the watch and
+	// readdir code into a separate function
+	// and use the body of sort/filter
+	// as before
+	// thus not duplicating the efforts
+	// try to keep it dry
+	//
+	// Differences to opening regular
+	// directory
+	// - virtual path applications:// (because virtual directory / composed view)
+	// - watch several directories at the same time
+	// - fileList items have virtual parent applications:// and can have different real parent directories
+	//
+	// application root dirs
+	// need to search recursively
+	// watch dirs recursively
+
+	// recursively get all files
+	// applications in ~/.local override
+	// applications in /usr
+	// merge to final list
+	// then apply sort/filter on them
+	// var applicationDirectories = [
+	//     '/usr/share/applications/',
+	//     this.userHome + '/.local/share/applications/'
+	// ];
+
+	this.getApplicationsViewFileList = function( callback ) {
+		async.map(applicationDirectories, recursiveReaddir, function( err, fileLists ){
+			if ( err ) {
+				callback( err, null);
+				return;
+			}
+
+			var purifiedFileList     = [],
+			    purifiedFileNameList = [];
+
+			var fileList = [].concat
+			                   .apply( [], fileLists )
+			                   .filter(function( f ) {
+			                       // filter out non-.desktop files
+			                       return !! f.match(/[^\/]\.desktop$/);
+			                   });
+
+			var fileNameList = fileList.map(function( absFilePath ){
+				return path.basename( absFilePath );
+			});
+
+			var fileCount = fileNameList.length;
+
+			// As the indices of the fileList
+			// and the fileNameList are the same
+			// we can compare fileNames
+			// but pick absFilePaths with
+			// the same indices.
+			// The purifiedFileNameList serves us
+			// to identify duplicates
+			// and the purifiedFileList is the
+			// filtered collection we want to return
+			for ( var i = 0; i < fileCount; i++ ) {
+				var fileName = fileNameList[i];
+
+				if ( purifiedFileNameList.indexOf( fileName ) === -1 ) {
+					var absFilePath = fileList[i];
+
+					purifiedFileNameList.push( fileName );
+					purifiedFileList.push( absFilePath );
+				}
+			}
+
+
+			callback( null, purifiedFileList );
+		});
+	};
+
+	this.getFileList = function( path, callback ) {
+		// special applications view
+		if ( path === 'applications://') {
+			this.getApplicationsViewFileList( callback );
+		// regular directories
+		} else {
+			fs.readdir( path, function(err, fileNameList) {
+				if ( err ) {
+					callback( err, null );
+					return;
+				}
+
+				var fileList = fileNameList.map(function( fileName ){
+					return path + fileName;
+				});
+
+				callback(null, fileList);
+			});
+		}
+	}.bind(this);
+
 	this.getFilesInDirectory = function( path ) {
 		path = cleanPath( path );
 
@@ -91,10 +215,10 @@ function NdeFs() {
 			}
 		}.bind(this));
 
-		fs.readdir( path, function( err, fileList ) {
+		this.getFileList( path, function( err, fileList ) {
 			var fileCount,
 			    filteredCount = 0,
-			    fileName,
+			    absoluteFilePath,
 			    file,
 			    i;
 
@@ -123,33 +247,43 @@ function NdeFs() {
 			fileSorter.onsorted = this.onFiles;
 
 			for ( i = 0; i < fileCount; i++ ) {
-				fileName = fileList[i];
+				absoluteFilePath = fileList[i];
 
-				if ( fileName.match(/\.desktop$/) ) {
-					file = new DesktopFile({
-						fileName:        fileName,
-						parentDirectory: this.currentDirectory,
-						iconPathFetcher: iconPathFetcher
+				this.createFileObj(absoluteFilePath, function( file ) {
+					fileFilter.onPass(file,
+					function( file ) {
+						fileSorter.add( file );
+
+						filteredCount++;
+						if ( filteredCount === fileCount ) fileSorter.done();
+					}, function( file ) {
+						filteredCount++;
+						if ( filteredCount === fileCount ) fileSorter.done();
 					});
-				} else {
-					file = new File(fileName, this.currentDirectory);
-				}
+				}.bind(this));
 
-				fileFilter.onPass(file,
-				function( file ) {
-					fileSorter.add( file );
-
-					filteredCount++;
-					if ( filteredCount === fileCount ) fileSorter.done();
-				}, function( file ) {
-					filteredCount++;
-					if ( filteredCount === fileCount ) fileSorter.done();
-				});
 			}
 
 			// close file sorter
 		}.bind(this));
 	}.bind(this);
+
+	this.createFileObj = function( absoluteFilePath, callback ) {
+		var file;
+
+		if ( absoluteFilePath.match(/\.desktop$/) ) {
+			file = new DesktopFile({
+				absoluteFilePath: absoluteFilePath,
+				iconPathFetcher:  iconPathFetcher
+			});
+		} else {
+			file = new File({
+				absoluteFilePath: absoluteFilePath
+			});
+		}
+
+		callback( file );
+	};
 
 	this.openFile = function( file ) {
 		file.isDirectory(function( err, isDir ) {
@@ -160,9 +294,11 @@ function NdeFs() {
 					if ( file instanceof DesktopFile ) {
 						file.open();
 					} else {
-						var command = '/usr/bin/xdg-open "' + absPath + '"';
+						var app = spawn('/usr/bin/xdg-open', [absPath], {detached: true});
 
-						exec(command);
+						app.on('error', function ( err ) {
+							console.error('child process error ' + err);
+						});
 					}
 				}
 			}.bind(this));

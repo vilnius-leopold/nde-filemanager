@@ -17,9 +17,10 @@ var iconTheme     = 'Flattr';
 var iconDirectory = '/usr/share/icons/';
 
 
-function FileRenderer( document ) {
-	var folderIconMappingList = Object.keys(folderIconMapping),
-	    iconPathFetcher       = new IconPathFetcher();
+function FileRenderer( options ) {
+	var document              = options.document,
+	    folderIconMappingList = Object.keys(folderIconMapping),
+	    iconPathFetcher       = options.iconPathFetcher;
 
 	function getIconPath( category, size, iconName ) {
 		return iconDirectory + iconTheme + '/' + category + '/' + size + '/' + (iconName.replace(/\//g, '-')) + '.svg';
@@ -163,20 +164,11 @@ var escapeShell = function(cmd) {
 	};
 
 	this.renderFileName = function(file) {
-		file.getFileName(function( err, fileName ){
+		file.getDisplayName(function( err, displayName ){
 			if ( file instanceof BookmarkFile ) {
-				file.getAbsolutePath(function(err, absPath){
-					if (absPath === '/home/leo')
-						fileName = 'Home';
-
-					file.fileNameElement.textContent = fileName;
-				});
-			} else if ( file instanceof DesktopFile ) {
-				file.getDisplayName(function(err, displayName) {
-					file.element.setAttribute( 'name', displayName );
-				});
+				file.fileNameElement.textContent = displayName;
 			} else {
-				file.element.setAttribute( 'name', fileName );
+				file.element.setAttribute( 'name', displayName );
 			}
 		});
 	};

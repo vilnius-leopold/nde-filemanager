@@ -8,17 +8,13 @@ function NdeHistory() {
 	this.push = function(path) {
 		if ( path === history[this.position] ) {
 			// do nothing
-			console.log('Same dir. Do nothing.');
 		} else if ( path === history[this.position-1] ) {
 			// set history to previous point
 			this.position = this.position - 1;
-			console.log('Is prev dir. go back in histry.');
 		} else if ( path === history[this.position+1] ) {
 			// set history to next point
-			console.log('Is next dir. go forward in histry.');
 			this.position = this.position + 1;
 		} else {
-			console.log('New dir. Set new head.');
 			// add item to history
 			// set history to head
 			// remove all old history between ( 0 and currentPos )

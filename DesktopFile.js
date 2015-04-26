@@ -1,10 +1,11 @@
+
 var File          = require('./File.js'),
     child_process = require("child_process"),
     exec          = child_process.exec,
     spawn         = child_process.spawn;
 
 function DesktopFile( options ) {
-	File.call(this, options.fileName, options.parentDirectory);
+	File.call(this, options);
 
 	this.iconPathFetcher = options.iconPathFetcher;
 }
@@ -12,10 +13,17 @@ function DesktopFile( options ) {
 DesktopFile.prototype = Object.create(File.prototype);
 
 DesktopFile.prototype.getDisplayName = function( callback ) {
+	if ( typeof this._displayName !== 'undefined' ) {
+		callback( null, this._displayName);
+		return;
+	}
+
 	this.getDesktopFileProperty('Name', function( err, value ) {
 		// use name in desktop file
 		if ( ! err && value ) {
-			callback( null, value );
+			this._displayName = value;
+
+			callback( null, this._displayName );
 
 		// use fileName
 		} else {
@@ -25,7 +33,9 @@ DesktopFile.prototype.getDisplayName = function( callback ) {
 					return;
 				}
 
-				callback( null, fileName.replace(/\.desktop$/,'') );
+				this._displayName = fileName.replace(/\.desktop$/,'');
+
+				callback( null, this._displayName );
 			});
 		}
 	}.bind(this));
@@ -84,13 +94,37 @@ DesktopFile.prototype.getIconPath = function( callback ) {
 };
 
 DesktopFile.prototype.open = function() {
+	"use strict";
+
 	this.getFileName(function( err, fileName ) {
 		if ( err ) {
-			console.log( err, null );
+			console.error( err, null );
 			return;
 		}
+		console.log('Current uid: ' + process.getuid());
+		console.log('Current gid: ' + process.getgid());
 
-		spawn('gtk-launch', [fileName]);
+		var app = spawn('/usr/bin/gtk-launch', [fileName], {
+			detached: true
+		});
+
+		app.stdout.on('data', function (data) {
+			console.log('stdout: ' + data);
+		});
+
+		app.stderr.on('data', function (data) {
+			console.log('stderr: ' + data);
+		});
+
+		app.on('error', function (err) {
+			console.log('child process error ' + err);
+			throw err;
+			// window.alert('Error calling' + fileName + '\n' + err);
+		});
+
+		// app.on('close', function (code) {
+		// 	console.log('child process exited with code ' + code);
+		// });
 
 		// this.getDesktopFileProperty(path, 'Exec', function( err, value ) {
 		// 	var command = value.replace(/\s+%[fFuU](\s+|$)/, ' ').trim();
@@ -111,8 +145,6 @@ DesktopFile.prototype.isHidden = function( callback ) {
 		} else {
 			this._isHidden = true;
 		}
-
-		console.log('Hidden?', this._isHidden, value, this, err );
 
 		callback( null, this._isHidden );
 	}.bind(this));

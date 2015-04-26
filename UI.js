@@ -1,6 +1,8 @@
 var FileRenderer  = require('./FileRenderer.js');
 
-function UI( document ) {
+function UI( options ) {
+	var document = options.document;
+
 	var fileRenderer;
 
 	// UI elements
@@ -389,26 +391,24 @@ function UI( document ) {
 		isContextMeuOpen = false;
 	}
 
-	this.fileDeleteHandler = function( files ) {
-		console.log('File delete handler trigger', files);
-	};
+	this.fileDeleteHandler = undefined;
 
 	this.fileCutHandler = function( files ) {
-		console.log('File cut handler trigger', files);
-
 		cutFiles = files;
 	};
 
 	this.filePasteIntoHandler = function( files ) {
-		console.log('File paste into handler trigger', files);
-
 		var targetDirectory = files[0];
 
-		targetDirectory.getAbsolutePath(function( err, dirPath ){
+		targetDirectory.getAbsolutePath(function( err, dirPath ) {
+			if ( err ) console.error('Failed to paste into folder', err);
+
 			cutFiles.forEach(function( cutFile ){
 				cutFile.getFileName(function( err, fileName ) {
+					if ( err ) console.error('Failed to paste into folder', err);
+
 					cutFile.getAbsolutePath(function( err, absPath ) {
-						console.log('Move:', absPath, '-->', dirPath + '/' + fileName);
+						if ( err ) console.error('Failed to paste into folder', err);
 
 						this.onfilerename(absPath, dirPath + '/' + fileName);
 					}.bind(this));
@@ -435,7 +435,7 @@ function UI( document ) {
 		contextMenuItem.className = 'context-menu-item';
 
 		var deleteItem            = contextMenuItem.cloneNode();
-		deleteItem.textContent    = 'Delete File';
+		deleteItem.textContent    = 'Delete';
 		deleteItem.actionCallback = this.fileDeleteHandler;
 		deleteItem.fileObj        = fileObj;
 		contextMenu.appendChild( deleteItem );
@@ -562,9 +562,12 @@ function UI( document ) {
 		dialog.open();
 	}.bind(this));
 
-	(function init() {
+	(function init( options ) {
 		// init renderer
-		fileRenderer = new FileRenderer( document );
+		fileRenderer = new FileRenderer({
+		                                    document: options.document,
+		                                    iconPathFetcher: options.iconPathFetcher
+		                                });
 
 		// cache elements
 		contentElement     = document.querySelector('#content');
@@ -670,7 +673,7 @@ function UI( document ) {
 				onUp/Down hit --> cycle through suggestions
 			*/
 		}.bind(this);
-	}.bind(this)());
+	}.bind(this)( options ));
 }
 
 module.exports = UI;

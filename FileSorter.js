@@ -13,6 +13,10 @@ function FileSorter( sortSettings ) {
 			dependencies: 'getFileName',
 			sorter:        sortByFileName
 		},
+		'displayName': {
+			dependencies: 'getDisplayName',
+			sorter:        sortByDisplayName
+		},
 		'lastModified': {
 			dependencies: 'getLastModified',
 			sorter:        sortByLastModified
@@ -106,6 +110,13 @@ function FileSorter( sortSettings ) {
 		return fileNameA > fileNameB ? 1 : -1;
 	}
 
+	function sortByDisplayName(fileA, fileB) {
+		var displayNameA = fileA.getCachedDisplayName().toLowerCase();
+		var displayNameB = fileB.getCachedDisplayName().toLowerCase();
+
+		return displayNameA > displayNameB ? 1 : -1;
+	}
+
 	function sortByMimeType(fileA, fileB) {
 		var mimeTypeA = fileA.getCachedMimeType();
 		var mimeTypeB = fileB.getCachedMimeType();
@@ -167,7 +178,7 @@ function FileSorter( sortSettings ) {
 
 		// prepare sort
 		async.parallel(
-		sortDependencies.map(function(dep){ return file[dep]; }),
+		sortDependencies.map(function(dep){ return file[dep].bind(file); }),
 		function( err, isDir ) {
 			files.push(file);
 			sortWhenReady();

@@ -1,5 +1,6 @@
 var fs    = require('fs'),
     async = require('async'),
+    path  = require('path'),
     exec  = require('child_process').exec;
 
 
@@ -10,7 +11,7 @@ var fs    = require('fs'),
 //   to to prevent subsequent system calls
 //   no performance improvement
 //   can even harm performance!!!
-function File( fN, pD) {
+function File( options ) {
 	var stats,
 	    absolutePath,
 	    isDir,
@@ -18,15 +19,33 @@ function File( fN, pD) {
 	    lastModified,
 	    parentDirectory;
 
-	this._fileName;
+	this._absolutePath    = undefined;
+	this._fileName        = undefined;
+	// this._displayName     = undefined;
+	this._parentDirectory = undefined;
 
-	(function init( fN, pD ){
-		if ( ! fN || ! pD )
-			throw new Error('Missing fileName and/or direcotry!');
+	// console.log('File pre init this:',   this);
 
-		this._fileName        = fN;
-		parentDirectory = pD.match(/\/$/) ? pD : pD + '/';
-	}.bind(this)( fN, pD ));
+
+	(function init( options ){
+		if ( ! options || ! options.absoluteFilePath )
+			throw new Error( 'Missing options!' );
+
+		// console.log('File init options:', options);
+		// console.log('File init this:',   this);
+
+		this._absolutePath    = options.absoluteFilePath;
+		if (options.displayName) this._displayName     = options.displayName; // can be undefined
+		this._fileName        = path.basename( this._absolutePath );
+		this._parentDirectory = path.dirname( this._absolutePath ) + '/';
+
+		// console.log(
+		// 	this._absolutePath,
+		// 	this._displayName,
+		// 	this._fileName,
+		// 	this._parentDirectory
+		// );
+	}.bind(this)( options ));
 
 	var getStats = function ( callback ) {
 		if ( stats ) {
@@ -43,54 +62,20 @@ function File( fN, pD) {
 		});
 	}.bind(this);
 
-	this.getAbsolutePath = function( callback ) {
-		if ( absolutePath ) {
-			callback ( null, absolutePath );
-			return;
-		}
-
-		async.parallel([
-			this.getParentDirectory,
-			this.getFileName
-		], function( err, results ){
-			absolutePath = results.join('');
-			callback(err, absolutePath);
-		});
-	}.bind(this);
-
-	this.getFileName = function( callback ) {
-		callback( null, this._fileName );
-	}.bind(this);
-
-	this.getCachedFileName = function() {
-		return this._fileName;
-	};
-
-	this.getCachedAbsolutePath = function() {
-		return absolutePath;
-	};
 
 	this.getCachedLastModified = function() {
+		if ( ! lastModified ) throw new Error( "'lastModified' not cached!" );
+
 		return lastModified;
 	};
 
 	this.cachedIsDirectory = function() {
+		if ( typeof isDir === 'undefined' )
+			throw new Error( "'isDir' not cached!" );
+
 		return isDir;
 	};
 
-	File.prototype.isHidden = function( callback ) {
-		console.log('Hidden File?');
-
-		if ( typeof this._isHidden === 'undefined' )
-			this._isHidden = !! this._fileName.match(/^\./);
-
-		callback(null, this._isHidden);
-	};
-
-	File.prototype.cachedIsHidden = function() {
-		console.log('Cached hidden', this._isHidden);
-		return this._isHidden;
-	};
 
 	// FIXME:
 	// getMimeType is very slow
@@ -111,8 +96,6 @@ function File( fN, pD) {
 			//
 			// FIXME: Need to find single process solution!
 			exec(command, function(error, stdout, stderr){
-				// console.log('Expensive lookup:', error, stdout, stderr, command);
-
 				if ( ! error )
 					mimeType = stdout.trim();
 
@@ -122,11 +105,9 @@ function File( fN, pD) {
 	}.bind(this);
 
 	this.getCachedMimeType = function() {
-		return mimeType;
-	}.bind(this);
+		if ( ! mimeType ) throw new Error( "'mimeType' not cached!" );
 
-	this.getParentDirectory = function( callback ) {
-		callback( null, parentDirectory );
+		return mimeType;
 	}.bind(this);
 
 	this.isDirectory = function( callback ) {
@@ -162,87 +143,76 @@ function File( fN, pD) {
 			callback( null, lastModified );
 		});
 	}.bind(this);
+
+	// console.log('File post init this:',   this);
+
 }
 
-module.exports = File;
+File.prototype.getFileName = function( callback ) {
+	callback( null, this._fileName );
+};
 
-function Directory() {
-	(function init( fN, pD ){
-		if ( ! fN || ! pD )
-			throw new Error('Missing fileName and/or direcotry!');
+File.prototype.getCachedFileName = function() {
+	if ( typeof this._fileName === 'undefined' )
+		throw new Error( "'this._fileName' not cached!" );
 
-		this._fileName        = fN;
-		parentDirectory = pD.match(/\/$/) ? pD : pD + '/';
-	}( fN, pD ));
-}
+	return this._fileName;
+};
 
-function test(){
-	console.log('Running test');
-	var file = new File('file.js', '/media/Share/Projects/nde-filemanager');
+File.prototype.getAbsolutePath = function( callback ) {
+	callback ( null, this._absolutePath );
+};
 
-	var isDirectory  = file.isDirectory,
-	    _isDirectory = async.memoize(isDirectory);
+File.prototype.getCachedAbsolutePath = function() {
+	if ( typeof this._absolutePath === 'undefined' )
+		throw new Error( "'this._absolutePath' not cached!" );
 
-	console.log(_isDirectory);
+	return this._absolutePath;
+};
 
-	for ( var i = 0; i < 130; i++ ) {
-		isDirectory(function( err, isDir ) {
-			console.log('isDir', err, isDir);
-		});
-		// setTimeout(function(){
-		// 	isDirectory(function( err, isDir ) {
-		// 		console.log('isDir', err, isDir);
-		// 	});
-		// },1);
+File.prototype.isHidden = function( callback ) {
+	if ( typeof this._isHidden === 'undefined' )
+		this._isHidden = !! this._fileName.match(/^\./);
+
+	callback(null, this._isHidden);
+};
+
+File.prototype.cachedIsHidden = function() {
+	if ( typeof this._isHidden === 'undefined' )
+		throw new Error( "'this._isHidden' not cached!" );
+
+	return this._isHidden;
+};
+
+File.prototype.getParentDirectory = function( callback ) {
+	callback( null, this._parentDirectory );
+};
+
+// 'displayName'is the name that should be used
+// when rendering the file
+// also e.g. when sorting by name
+// e.g. for DesktopFile the 'fileName'
+// isn't relevatn to the user
+// but 'displayName' is
+// == (The app name set inside .desktop file),
+// OR usefull for setting custom display name
+// e.g. instead of (/home/)<username> only 'Home'
+// or for virtual directories like applications:
+File.prototype.getDisplayName = function( callback ) {
+	// check if manually overriden in constructor
+	// else set displayName equal to fileName
+	if ( typeof this._displayName === 'undefined' ) {
+		this._displayName = this._fileName;
 	}
-	// setTimeout(function(){
-	// 	_isDirectory(function( err, isDir ) {
-	// 		console.log('isDir', err, isDir);
-	// 	});
-	// },10);
-}
 
-// test();
+	callback(null, this._displayName);
+};
 
-function optimize( resultFunction ) {
-	var callbackBuffer = [];
-	var state = 'new'; //new/running/done
-	var cachedResult;
+File.prototype.getCachedDisplayName = function() {
+	if ( typeof this._displayName === 'undefined' )
+		throw new Error( "'this._displayName' not cached!" );
 
-	var cacheFunction = function( callback ) {
-		console.log('Running optimized function');
-
-		if ( state === 'done' ) {
-			console.log('Done Execution');
-			callback( null, cachedResult );
-		} else if ( state === 'running') {
-			console.log('Subsequent Execution');
-			callbackBuffer.push(callback);
-		} else if ( state === 'new') {
-			state = 'running';
-			console.log('First Execution');
-			callbackBuffer.push(callback);
-
-			resultFunction(function( err, result ) {
-				if ( err ) {
-					state = 'new';
-				} else {
-					cachedResult = result;
-					state = 'done';
-				}
-
-				callbackBuffer.forEach(function( cb){
-					cb(err,cachedResult);
-				});
-			});
-		}
-
-		// not running --> run request
-		// running --> queue next request callback and run them all then done
-		// done --> return result
-	};
-
-	return cacheFunction;
-}
+	return this._displayName;
+};
 
 module.exports = File;

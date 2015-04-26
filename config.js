@@ -21,8 +21,8 @@ var bookmarks = {
 		'/home/leo/Documents',
 		'/home/leo/Projects',
 		'/home/leo/Games',
-		'/usr/share/applications'
-		// 'Applications.desktop',
+		// '/usr/share/applications'
+		'applications://'
 		// 'Settings.desktop',
 	],
 	'Administration': [

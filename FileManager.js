@@ -1,6 +1,7 @@
 var fs              = require('fs'),
     UI              = require('./UI.js'),
     BookmarkFile    = require('./BookmarkFile.js'),
+    IconPathFetcher = require('./IconPathFetcher.js'),
     NdeFs           = require('./NdeFs.js'),
     NdeHistory      = require('./NdeHistory.js'),
     argParser       = require('optimist'),
@@ -10,6 +11,7 @@ function FileManager() {
 	var ui,
 	    ndeFs,
 	    ndeHistory,
+	    iconPathFetcher,
 	    debug             = false,
 	    bookmarkFiles     = [],
 	    bookmarkCount     = 0;
@@ -76,18 +78,21 @@ function FileManager() {
 					var sectionItems = bookmarks[sectionName];
 
 					sectionItems.forEach(function( absoluteFilePath ) {
-						// console.log('Bookmark', filePath);
+						var displayName = undefined;
 
-						var splitIndex = absoluteFilePath.lastIndexOf("/");
-						var parentDirectory = absoluteFilePath.substring(0, splitIndex+1);
-						var fileName = absoluteFilePath.substring(splitIndex+1);
+						if ( absoluteFilePath === '/')
+							displayName = '/';
 
-						if (absoluteFilePath === '/') {
-							parentDirectory = '/';
-							fileName        = '/';
-						}
+						if ( absoluteFilePath === ndeFs.userHome )
+							displayName = 'Home';
 
-						var bookmarkFile = new BookmarkFile(fileName, parentDirectory);
+						if ( absoluteFilePath === 'applications://')
+							displayName = 'Applications';
+
+						var bookmarkFile = new BookmarkFile({
+							absoluteFilePath: absoluteFilePath,
+							displayName: displayName
+						});
 
 						bookmarkFiles.push( bookmarkFile );
 						bookmarkCount++;
@@ -102,9 +107,14 @@ function FileManager() {
 	(function init() {
 		//////////////////
 		// init modules //
-		ndeFs      = new NdeFs();
-		ndeHistory = new NdeHistory();
-		ui         = new UI( document );
+
+		iconPathFetcher = new IconPathFetcher();
+		ndeFs           = new NdeFs({iconPathFetcher: iconPathFetcher});
+		ndeHistory      = new NdeHistory();
+		ui              = new UI({
+		                             document: document,
+		                             iconPathFetcher: iconPathFetcher
+		                         });
 
 
 		/////////////////////
@@ -179,7 +189,6 @@ function FileManager() {
 					       targetFile + '\n' +
 					       err);
 				}
-				console.log('Renamed file!');
 			});
 		};
 

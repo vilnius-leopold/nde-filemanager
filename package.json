@@ -20,6 +20,7 @@
     "mv": "^2.0.3",
     "optimist": "^0.6.1",
     "performance-now": "^0.2.0",
+    "recursive-readdir": "^1.2.1",
     "rimraf": "^2.3.2",
     "sort-stream": "^1.0.1"
   },
