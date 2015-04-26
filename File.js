@@ -13,15 +13,14 @@ var fs    = require('fs'),
 //   can even harm performance!!!
 function File( options ) {
 	var stats,
-	    absolutePath,
-	    isDir,
 	    mimeType,
 	    lastModified,
 	    parentDirectory;
 
 	this._absolutePath    = undefined;
 	this._fileName        = undefined;
-	// this._displayName     = undefined;
+	this._displayName     = undefined;
+	this._isDirectory     = undefined;
 	this._parentDirectory = undefined;
 
 	// console.log('File pre init this:',   this);
@@ -47,7 +46,7 @@ function File( options ) {
 		// );
 	}.bind(this)( options ));
 
-	var getStats = function ( callback ) {
+	this._getStats = function ( callback ) {
 		if ( stats ) {
 			callback(null, stats);
 			return;
@@ -67,13 +66,6 @@ function File( options ) {
 		if ( ! lastModified ) throw new Error( "'lastModified' not cached!" );
 
 		return lastModified;
-	};
-
-	this.cachedIsDirectory = function() {
-		if ( typeof isDir === 'undefined' )
-			throw new Error( "'isDir' not cached!" );
-
-		return isDir;
 	};
 
 
@@ -110,30 +102,13 @@ function File( options ) {
 		return mimeType;
 	}.bind(this);
 
-	this.isDirectory = function( callback ) {
-		if ( typeof isDir !== 'undefined' ) {
-			callback( null, isDir );
-			return;
-		}
-
-		getStats(function(err, stats){
-			if ( err ) {
-				callback( err, null );
-				return;
-			}
-
-			isDir = stats.isDirectory();
-			callback( null, isDir );
-		});
-	}.bind(this);
-
 	this.getLastModified = function( callback ) {
 		if ( lastModified ) {
 			callback( null, lastModified );
 			return;
 		}
 
-		getStats(function(err, stats){
+		this._getStats(function(err, stats){
 			if ( err ) {
 				callback( err, null );
 				return;
@@ -143,10 +118,31 @@ function File( options ) {
 			callback( null, lastModified );
 		});
 	}.bind(this);
-
-	// console.log('File post init this:',   this);
-
 }
+
+File.prototype.cachedIsDirectory = function() {
+	if ( typeof this._isDirectory === 'undefined' )
+		throw new Error( "'this._isDirectory' not cached!" );
+
+	return this._isDirectory;
+};
+
+File.prototype.isDirectory = function( callback ) {
+	if ( typeof this._isDirectory !== 'undefined' ) {
+		callback( null, this._isDirectory );
+		return;
+	}
+
+	this._getStats(function(err, stats){
+		if ( err ) {
+			callback( err, null );
+			return;
+		}
+
+		this._isDirectory = stats.isDirectory();
+		callback( null, this._isDirectory );
+	}.bind(this));
+};
 
 File.prototype.getFileName = function( callback ) {
 	callback( null, this._fileName );
