@@ -64,9 +64,10 @@ function FileSorter( sortSettings ) {
 	var sortWhenReady = function () {
 		readyCount++;
 
-		// console.log(readyCount);
+		if ( receivedAllFiles && readyCount >= this.fileCount ) {
+			receivedAllFiles = false;
+			readyCount = 0;
 
-		if ( receivedAllFiles && readyCount === this.fileCount ) {
 			var sortedFiles = files
 			.sort(sortBySettings);
 
@@ -151,22 +152,16 @@ function FileSorter( sortSettings ) {
 
 		if ( noSorters ) {
 			this.onsorted(files);
+			return;
 		}
+
+		sortWhenReady();
+
 
 		return;
 	};
 
 	this.add = function( file ) {
-		// if ( file === null ) {
-		// 	receivedAllFiles = true;
-
-		// 	if ( noSorters ) {
-		// 		this.onsorted(files);
-		// 	}
-
-		// 	return;
-		// }
-
 		this.fileCount++;
 
 

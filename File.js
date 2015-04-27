@@ -30,20 +30,11 @@ function File( options ) {
 		if ( ! options || ! options.absoluteFilePath )
 			throw new Error( 'Missing options!' );
 
-		// console.log('File init options:', options);
-		// console.log('File init this:',   this);
-
 		this._absolutePath    = options.absoluteFilePath;
-		if (options.displayName) this._displayName     = options.displayName; // can be undefined
+		this._displayName     = options.displayName; // can be undefined
+		this._isDirectory     = options.isDirectory; // can be undefined
 		this._fileName        = path.basename( this._absolutePath );
 		this._parentDirectory = path.dirname( this._absolutePath ) + '/';
-
-		// console.log(
-		// 	this._absolutePath,
-		// 	this._displayName,
-		// 	this._fileName,
-		// 	this._parentDirectory
-		// );
 	}.bind(this)( options ));
 
 	this._getStats = function ( callback ) {
@@ -55,6 +46,9 @@ function File( options ) {
 		this.getAbsolutePath(function( err, absolutePath ) {
 			fs.stat(absolutePath, function( err, st ) {
 				stats = st;
+
+				if ( err )
+					console.error("STATS ERROR:", err);
 
 				callback( err, stats );
 			});

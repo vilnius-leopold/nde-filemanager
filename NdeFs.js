@@ -7,6 +7,7 @@ var fs               = require('fs'),
     path             = require('path'),
     File             = require('./File.js'),
     DesktopFile      = require('./DesktopFile.js'),
+    DirectoryFile    = require('./DirectoryFile.js'),
     FileSorter       = require('./FileSorter.js'),
     FileFilter       = require('./FileFilter.js');
 
@@ -244,7 +245,9 @@ function NdeFs( options ) {
 
 			fileSorter.reset();
 
-			fileSorter.onsorted = this.onFiles;
+			fileSorter.onsorted = function( files ){
+				this.onFiles( files );
+			}.bind(this);
 
 			for ( i = 0; i < fileCount; i++ ) {
 				absoluteFilePath = fileList[i];
@@ -255,35 +258,78 @@ function NdeFs( options ) {
 						fileSorter.add( file );
 
 						filteredCount++;
-						if ( filteredCount === fileCount ) fileSorter.done();
+
+						if ( filteredCount === fileCount )
+							fileSorter.done();
 					}, function( file ) {
 						filteredCount++;
-						if ( filteredCount === fileCount ) fileSorter.done();
+
+						if ( filteredCount === fileCount )
+							fileSorter.done();
 					});
 				}.bind(this));
-
 			}
 
 			// close file sorter
 		}.bind(this));
 	}.bind(this);
 
+	// this.stat
+	// is meant to deal
+	// with broken symlinks
+	// fs.stat will treat an
+	// broken symlink as an
+	// ENOENT is no file or directory error
+	// which then breaks the view
+	// for this directory.
+	// To prevent that from happening
+	// I retry with lstat if an error
+	// occurs.
+	// lstat will list the broken symlink
+	// as a regular file instead of
+	// throwing an error
+	this.stat = function( path, callback ) {
+		fs.stat(path, function( err, stats ){
+			if ( err ) {
+				fs.lstat( path, callback );
+				return;
+			}
+
+			callback( err, stats );
+		});
+	};
+
 	this.createFileObj = function( absoluteFilePath, callback ) {
 		var file;
 
-		if ( absoluteFilePath.match(/\.desktop$/) ) {
-			file = new DesktopFile({
-				absoluteFilePath: absoluteFilePath,
-				iconPathFetcher:  iconPathFetcher
-			});
-		} else {
-			file = new File({
-				absoluteFilePath: absoluteFilePath
-			});
-		}
+		this.stat(absoluteFilePath, function( err, stats ) {
+			if ( err )
+				throw err;
 
-		callback( file );
-	};
+			if ( stats.isDirectory() ) {
+				file = new DirectoryFile({
+					absoluteFilePath: absoluteFilePath,
+					isDirectory: true
+				});
+			} else {
+				if ( absoluteFilePath.match(/\.desktop$/) ) {
+					file = new DesktopFile({
+						absoluteFilePath: absoluteFilePath,
+						iconPathFetcher:  iconPathFetcher,
+						isDirectory: false
+					});
+				} else {
+					file = new File({
+						absoluteFilePath: absoluteFilePath,
+						isDirectory: false
+					});
+				}
+
+			}
+
+			callback( file );
+		});
+	}.bind(this);
 
 	this.openFile = function( file ) {
 		file.isDirectory(function( err, isDir ) {
