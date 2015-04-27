@@ -306,18 +306,24 @@ function NdeFs( options ) {
 			if ( err )
 				throw err;
 
+			// Directory
 			if ( stats.isDirectory() ) {
 				file = new DirectoryFile({
 					absoluteFilePath: absoluteFilePath,
 					isDirectory: true
 				});
+
+			// File
 			} else {
+				// Desktop App
 				if ( absoluteFilePath.match(/\.desktop$/) ) {
 					file = new DesktopFile({
 						absoluteFilePath: absoluteFilePath,
 						iconPathFetcher:  iconPathFetcher,
 						isDirectory: false
 					});
+
+				// Regular File
 				} else {
 					file = new File({
 						absoluteFilePath: absoluteFilePath,

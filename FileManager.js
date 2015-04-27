@@ -78,7 +78,8 @@ function FileManager() {
 					var sectionItems = bookmarks[sectionName];
 
 					sectionItems.forEach(function( absoluteFilePath ) {
-						var displayName = undefined;
+						var displayName = undefined,
+						    isDirectory = undefined;
 
 						if ( absoluteFilePath === '/')
 							displayName = '/';
@@ -86,11 +87,14 @@ function FileManager() {
 						if ( absoluteFilePath === ndeFs.userHome )
 							displayName = 'Home';
 
-						if ( absoluteFilePath === 'applications://')
+						if ( absoluteFilePath === 'applications://') {
 							displayName = 'Applications';
+							isDirectory = true;
+						}
 
 						var bookmarkFile = new BookmarkFile({
 							absoluteFilePath: absoluteFilePath,
+							isDirectory: isDirectory,
 							displayName: displayName
 						});
 
