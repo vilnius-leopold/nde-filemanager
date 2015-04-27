@@ -8,6 +8,7 @@ function UI( options ) {
 	// UI elements
 	var contentElement,
 	    menuElement,
+	    newfileDialog,
 	    sidebarElement,
 	    filesElement,
 	    scrollPaneElement,
@@ -45,12 +46,15 @@ function UI( options ) {
 	*/
 
 	this.getLocation = function() {
-		return document.querySelector('#location').value;
+		return locationElement.value;
 	};
 
 	// must likely run on directory change
 	this.setLocation = function( path ) {
-		document.querySelector('#location').value = path;
+		if ( newfileDialog.isOpen() )
+			newfileDialog.close();
+
+		locationElement.value = path;
 
 		// blur so we can use
 		// enter/backspace buttons
@@ -546,20 +550,19 @@ function UI( options ) {
 	};
 
 	document.querySelector('#new-file-button').addEventListener('click', function( ev ) {
-		var dialog = document.querySelector('nde-newfile-dialog');
 
-		dialog.oncreate = this.onnewfile;
+		newfileDialog.oncreate = this.onnewfile;
 
 		// location bar steals focus
 		// when starting to type
-		// --> toggle on/off for dialog
-		dialog.onopen = function() {
+		// --> toggle on/off for newfileDialog
+		newfileDialog.onopen = function() {
 			locationBarKeyControlsActive = false;
 		};
-		dialog.onclose = function() {
+		newfileDialog.onclose = function() {
 			locationBarKeyControlsActive = true;
 		};
-		dialog.open();
+		newfileDialog.open();
 	}.bind(this));
 
 	(function init( options ) {
@@ -570,6 +573,7 @@ function UI( options ) {
 		                                });
 
 		// cache elements
+		newfileDialog      = document.querySelector('nde-newfile-dialog');
 		contentElement     = document.querySelector('#content');
 		menuElement        = document.querySelector('#menu-bar');
 		sidebarElement     = document.querySelector('#sidebar');

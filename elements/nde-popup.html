@@ -127,6 +127,8 @@
 		};
 
 		NdePopupProto.close = function( ev ) {
+			this._isOpen   = false;
+			this._isClosed = true;
 			this._overlay.style.display = 'none';
 
 			this._overlay.removeEventListener("click", this.close.bind(this));
@@ -144,7 +146,17 @@
 			}
 		};
 
+		NdePopupProto.isOpen = function() {
+			return this._isOpen;
+		};
+
+		NdePopupProto.isClosed = function() {
+			return this._isClosed;
+		};
+
 		NdePopupProto.open = function() {
+			this._isOpen   = true;
+			this._isClosed = false;
 			this._overlay.addEventListener("click", this._closeHandler.bind(this));
 			this._overlay.addEventListener("contextmenu", this._closeHandler.bind(this));
 			window.addEventListener("resize", this._updateVerticalPosition.bind(this));
