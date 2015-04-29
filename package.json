@@ -9,7 +9,7 @@
     "position": null,
     "width": 900,
     "height": 600,
-    "icon": "/usr/share/icons/Flattr/places/64/folder.svg"
+    "icon": "assets/icons/nde-filemanager.png"
   },
   "webkit": {
     "plugin": true

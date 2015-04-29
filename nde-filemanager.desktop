@@ -2,7 +2,7 @@
 Name=NDE Files
 Comment=NDE File Manager
 Exec=/home/leo/.local/bin/nde-filemanager %U
-Icon=folder
+Icon=nde-filemanager
 Terminal=false
 Type=Application
 Categories=System;

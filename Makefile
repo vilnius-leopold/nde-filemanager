@@ -25,11 +25,17 @@ build: clean lookup_icon
 	mkdir -p dist
 	mv ../$(PACKAGE_NAME).nw dist/$(PACKAGE_NAME).nw
 
-install: build
+install: build install-icons
 	install $(PACKAGE_NAME).desktop $(PREFX)/share/applications
 	install $(PACKAGE_NAME) $(PREFX)/bin
 	mkdir -p $(PREFX)/share/$(PACKAGE_NAME)
 	install dist/$(PACKAGE_NAME).nw $(PREFX)/share/$(PACKAGE_NAME)
+
+install-icons:
+	mkdir -p $(PREFX)/share/icons/hicolor/scalable/apps
+	mkdir -p $(PREFX)/share/icons/hicolor/64x64/apps
+	install assets/icons/nde-filemanager.svg $(PREFX)/share/icons/hicolor/scalable/apps
+	install assets/icons/nde-filemanager.png $(PREFX)/share/icons/hicolor/64x64/apps
 
 run: build
 	$(PREFX)/bin/$(PACKAGE_NAME) --debug
