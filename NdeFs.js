@@ -83,7 +83,7 @@ function NdeFs( options ) {
 		path = path.replace(/^file:\/\//, '');
 
 		// allow relative path
-		if ( path[0] !== '/' )
+		if ( path[0] !== '/' && ! path.match(/^[a-z\-]+:\/\//) )
 			path = this.currentDirectory + path;
 
 		var expansionFailed = false;
