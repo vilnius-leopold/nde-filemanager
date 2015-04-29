@@ -1,7 +1,8 @@
 var FileRenderer  = require('./FileRenderer.js');
 
 function UI( options ) {
-	var document = options.document;
+	var document = options.document,
+	    window   = options.window;
 
 	var fileRenderer;
 

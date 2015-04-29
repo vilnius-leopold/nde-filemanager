@@ -117,6 +117,7 @@ function FileManager() {
 		ndeHistory      = new NdeHistory();
 		ui              = new UI({
 		                             document: document,
+		                             window:   window,
 		                             iconPathFetcher: iconPathFetcher
 		                         });
 
