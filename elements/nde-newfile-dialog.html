@@ -105,7 +105,7 @@
 				if ( this._isCancelled ) {
 					if ( this.oncancel ) this.oncancel();
 				} else {
-					if ( this.oncreate ) this.oncreate(this._filenameInput.value);
+					if ( this.oncreate ) this.oncreate( this.getFileName() );
 				}
 
 				if ( this.onclose ) this.onclose();
@@ -116,74 +116,15 @@
 
 			this.isOpen   = this._popup.isOpen.bind(this._popup);
 			this.isClosed = this._popup.isClosed.bind(this._popup);
-			// this._popup.open();
-
-			// if ( this.hasAttribute('width') ) {
-			// 	this.setWidth( this.getAttribute('width') );
-			// }
-
-			// if ( this.hasAttribute('height') ) {
-			// 	this.setHeight( this.getAttribute('height') );
-			// }
 		};
 
-		// NdeNewFileDialogProto._updateVerticalPosition = function() {
-		// 	this._popup.style.top = (window.innerHeight / 2) + 'px';
-		// };
+		NdeNewFileDialogProto.setFileName = function( value ) {
+			this._filenameInput.value = value;
+		};
 
-		// NdeNewFileDialogProto.setWidth = function( width ) {
-		// 	this.width = width;
-		// 	this._popup.style.width = width + 'px';
-		// };
-
-		// NdeNewFileDialogProto.setHeight = function( height ) {
-		// 	this.height = height;
-		// 	this._popup.style.height = height + 'px';
-		// 	this._popup.style.marginTop = '-' + (height / 2) + 'px';
-		// 	this._updateVerticalPosition();
-		// };
-
-		// NdeNewFileDialogProto.close = function( ev ) {
-		// 	this._overlay.style.display = 'none';
-
-		// 	this._overlay.removeEventListener("click", this.close.bind(this));
-		// 	this._overlay.removeEventListener("contextmenu", this.close.bind(this));
-		// 	window.removeEventListener("resize", this._updateVerticalPosition.bind(this));
-
-		// 	if ( this.onclose ) this.onclose();
-		// };
-
-		// NdeNewFileDialogProto._closeHandler = function( ev ) {
-		// 	if ( ev.target === this._overlay ||
-		// 	     ev.target === this._closeButton
-		// 	) {
-		// 		this.close();
-		// 	}
-		// };
-
-		// NdeNewFileDialogProto.open = function() {
-		// 	this._overlay.addEventListener("click", this._closeHandler.bind(this));
-		// 	this._overlay.addEventListener("contextmenu", this._closeHandler.bind(this));
-		// 	window.addEventListener("resize", this._updateVerticalPosition.bind(this));
-
-		// 	this._updateVerticalPosition();
-
-		// 	this._overlay.style.display = 'block';
-
-		// 	if ( this.onopen ) this.onopen();
-		// };
-
-		// NdeNewFileDialogProto.attachedCallback = function() {};
-
-		// NdeNewFileDialogProto.attributeChangedCallback = function(attr, oldVal, newVal) {
-		// 	if (attr === 'width') {
-		// 		this.setWidth(newVal);
-		// 	}
-
-		// 	if (attr === 'height') {
-		// 		this.setHeight(newVal);
-		// 	}
-		// };
+		NdeNewFileDialogProto.getFileName = function( value ) {
+			return this._filenameInput.value;
+		};
 
 		window.NdeNewFileDialog = thatDoc.registerElement('nde-newfile-dialog', {
 			prototype: NdeNewFileDialogProto

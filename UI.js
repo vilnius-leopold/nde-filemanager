@@ -415,6 +415,33 @@ function UI( options ) {
 		cutMode   = false;
 	};
 
+	this.fileRenameHandler = function( files ) {
+		var renameFile = files[0];
+
+		renameFile.getFileName(function( err, fileName ) {
+			if ( err ) console.error( 'Failed to rename file', err );
+
+			newfileDialog.oncreate = function( newFileName ) {
+				renameFile.getParentDirectory(function( err, parentDirectory ) {
+					if ( err ) console.error( 'Failed to rename file', err );
+
+					console.log( 'Renaming',  parentDirectory + fileName,  parentDirectory + newFileName);
+					this.onfilerename( parentDirectory + fileName, parentDirectory + newFileName);
+				}.bind(this));
+			}.bind(this);
+
+			newfileDialog.onopen = function() {
+				locationBarKeyControlsActive = false;
+			};
+			newfileDialog.onclose = function() {
+				locationBarKeyControlsActive = true;
+			};
+
+			newfileDialog.open();
+			newfileDialog.setFileName( fileName );
+		}.bind(this));
+	}.bind(this);
+
 	this.filePasteIntoHandler = function( files ) {
 		var targetDirectory = files[0];
 
@@ -483,6 +510,12 @@ function UI( options ) {
 		copyItem.actionCallback = this.fileCopyHandler;
 		copyItem.fileObj        = fileObj;
 		contextMenu.appendChild( copyItem );
+
+		var renameItem            = contextMenuItem.cloneNode();
+		renameItem.textContent    = 'Rename';
+		renameItem.actionCallback = this.fileRenameHandler;
+		renameItem.fileObj        = fileObj;
+		contextMenu.appendChild( renameItem );
 
 		if ( (
 				( cutMode && cutFiles.length > 0 ) ||
@@ -716,6 +749,22 @@ function UI( options ) {
 			*/
 		}.bind(this);
 	}.bind(this)( options ));
+
+	// prevent default behavior from changing page on dropped file
+	window.ondragover = function(e) { e.preventDefault(); return false };
+	window.ondrop = function(e) { e.preventDefault(); return false };
+
+	var holder = document.body;
+	holder.ondragover = function () { console.log('ondragover') };
+	holder.ondragleave = function () { console.log('ondragleave') };
+	holder.ondrop = function (e) {
+		e.preventDefault();
+
+		for (var i = 0; i < e.dataTransfer.files.length; ++i) {
+			console.log(e.dataTransfer.files[i].path);
+		}
+		return false;
+	};
 }
 
 module.exports = UI;
