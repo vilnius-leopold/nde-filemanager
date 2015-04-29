@@ -101,40 +101,40 @@ DesktopFile.prototype.open = function() {
 			console.error( err, null );
 			return;
 		}
-		console.log('Current uid: ' + process.getuid());
-		console.log('Current gid: ' + process.getgid());
 
-		var app = spawn('/usr/bin/gtk-launch', [fileName], {
-			detached: true
-		});
+		this.getDesktopFileProperty('Exec', function( err, value ) {
+			if ( err ) throw err;
 
-		app.stdout.on('data', function (data) {
-			console.log('stdout: ' + data);
-		});
+			console.log('Exec=', value);
 
-		app.stderr.on('data', function (data) {
-			console.log('stderr: ' + data);
-		});
+			var commandString   = value.replace(/\s+%[fFuU](\s+|$)/, ' ').trim(),
+			    commandSegments = commandString.split(/\s+/),
+			    command         = commandSegments.shift();
 
-		app.on('error', function (err) {
-			console.log('child process error ' + err);
-			throw err;
-			// window.alert('Error calling' + fileName + '\n' + err);
-		});
+			console.log('Opening App:', command, commandSegments);
 
-		// app.on('close', function (code) {
-		// 	console.log('child process exited with code ' + code);
-		// });
+			var app = spawn(command, commandSegments, {
+				detached: true
+			});
 
-		// this.getDesktopFileProperty(path, 'Exec', function( err, value ) {
-		// 	var command = value.replace(/\s+%[fFuU](\s+|$)/, ' ').trim();
+			app.stdout.on('data', function (data) {
+				console.log('stdout: ' + data);
+			});
 
-		// 	console.log('Opening App:', command);
+			app.stderr.on('data', function (data) {
+				console.log('stderr: ' + data);
+			});
 
-		// 	spawn(command, [], {
-		// 		detached: true
-		// 	});
-		// });
+			app.on('error', function (err) {
+				console.log('child process error ' + err);
+				throw err;
+				// window.alert('Error calling' + fileName + '\n' + err);
+			});
+
+			app.on('close', function (code) {
+				console.log('child process exited with code ' + code);
+			});
+		}.bind(this));
 	}.bind(this));
 };
 
