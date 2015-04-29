@@ -72,13 +72,24 @@ function NdeFs( options ) {
 	}.bind(this);
 
 	var cleanPath = function( path ) {
+		// remove unecessary white spaces
 		path = path.trim();
 
+		// ensure slash '/' at end of path
 		if ( path.substr(path.length - 1) !== '/' )
 			path += '/';
 
+		// remove file protocol
+		path = path.replace(/^file:\/\//, '');
+
+		// allow relative path
+		if ( path[0] !== '/' )
+			path = this.currentDirectory + path;
+
 		var expansionFailed = false;
 
+		// perform bash variable expansion
+		// as well as tilde '~' home expansion
 		path = path.replace(/(\$[A-Z_]+)/g, function(envVar){
 			var envVarValue = process.env[envVar.replace(/^\$/,'')];
 
