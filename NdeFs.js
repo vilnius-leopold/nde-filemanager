@@ -1,4 +1,5 @@
 var fs               = require('fs'),
+    fsExtra          = require('fs-extra'),
     rmdir            = require('rimraf'),
     mv               = require('mv'), // for moving files accross devices
     spawn            = require('child_process').spawn,
@@ -394,5 +395,6 @@ NdeFs.prototype.newFile = function( path, callback ) {
 // the 'mv' library will
 // take care of that for us
 NdeFs.prototype.renameFile = mv;
+NdeFs.prototype.copyFile = fsExtra.copy;
 
 module.exports = NdeFs;

@@ -22,8 +22,11 @@ function UI( options ) {
 
 	var selectedFile,
 	    locationBarKeyControlsActive = true,
-	    cutFiles = [],
-	    fileCount = 0,
+	    cutFiles    = [],
+	    copyFiles   = [],
+	    cutMode     = false,
+	    copyMode    = false,
+	    fileCount   = 0,
 	    fileObjects = [];
 
 	var upClickHandler        = function(){},
@@ -398,28 +401,52 @@ function UI( options ) {
 	this.fileDeleteHandler = undefined;
 
 	this.fileCutHandler = function( files ) {
+		cutFiles = [];
 		cutFiles = files;
+		cutMode  = true;
+		copyMode = false;
+	};
+
+	this.fileCopyHandler = function( files ) {
+		copyFiles = [];
+		copyFiles = files;
+		copyMode  = true;
+		cutMode   = false;
 	};
 
 	this.filePasteIntoHandler = function( files ) {
 		var targetDirectory = files[0];
 
+		var pasteFiles = [],
+		    eventHandler;
+
+		if ( cutMode ) {
+			pasteFiles = cutFiles;
+			eventHandler   = this.onfilerename;
+		} else if ( copyMode ) {
+			pasteFiles = copyFiles;
+			eventHandler   = this.onfilecopy;
+		}
+
 		targetDirectory.getAbsolutePath(function( err, dirPath ) {
 			if ( err ) console.error('Failed to paste into folder', err);
 
-			cutFiles.forEach(function( cutFile ){
-				cutFile.getFileName(function( err, fileName ) {
+			pasteFiles.forEach(function( file ){
+				file.getFileName(function( err, fileName ) {
 					if ( err ) console.error('Failed to paste into folder', err);
 
-					cutFile.getAbsolutePath(function( err, absPath ) {
+					file.getAbsolutePath(function( err, absPath ) {
 						if ( err ) console.error('Failed to paste into folder', err);
 
-						this.onfilerename(absPath, dirPath + '/' + fileName);
+						eventHandler(absPath, dirPath + '/' + fileName);
 					}.bind(this));
 				}.bind(this));
 			}.bind(this));
 
-			cutFiles = [];
+			cutFiles  = [];
+			copyFiles = [];
+			copyMode  = false;
+			cutMode   = false;
 		}.bind(this));
 	}.bind(this);
 
@@ -450,7 +477,17 @@ function UI( options ) {
 		cutItem.fileObj        = fileObj;
 		contextMenu.appendChild( cutItem );
 
-		if ( cutFiles.length > 0 && fileObj.cachedIsDirectory() ) {
+		var copyItem            = contextMenuItem.cloneNode();
+		copyItem.textContent    = 'Copy';
+		copyItem.actionCallback = this.fileCopyHandler;
+		copyItem.fileObj        = fileObj;
+		contextMenu.appendChild( copyItem );
+
+		if ( (
+				( cutMode && cutFiles.length > 0 ) ||
+				( copyMode & copyFiles.length > 0 )
+			) && fileObj.cachedIsDirectory()
+		) {
 			var pasteIntoItem            = contextMenuItem.cloneNode();
 			pasteIntoItem.textContent    = 'Paste into';
 			pasteIntoItem.actionCallback = this.filePasteIntoHandler;

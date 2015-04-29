@@ -196,6 +196,17 @@ function FileManager() {
 			});
 		};
 
+		ui.onfilecopy = function( sourceFile, targetFile ) {
+			ndeFs.copyFile( sourceFile, targetFile , function( err ) {
+				if ( err ) {
+					alert('Failed to copy file!\n' +
+					       sourceFile + '\n' +
+					       targetFile + '\n' +
+					       err);
+				}
+			});
+		};
+
 		ui.onnewfile = function( fileName ) {
 			var absPath = ndeFs.currentDirectory + '/' + fileName;
 
