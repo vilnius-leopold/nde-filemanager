@@ -55,8 +55,8 @@ function FileManager() {
 		for ( i = 0; i < bookmarkCount; i++ ) {
 			bookmarkFile = bookmarkFiles[i];
 
-			bookmarkFile.getAbsolutePath(function(err, absPath) {
-				if ( absPath + '/' === path ) {
+			bookmarkFile.getAbsolutePath(function( err, absPath ) {
+				if ( absPath === path || absPath + '/' === path ) {
 					bookmarkFile.element.classList.add('selected');
 				} else {
 					bookmarkFile.element.classList.remove('selected');

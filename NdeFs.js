@@ -74,7 +74,7 @@ function NdeFs( options ) {
 	var cleanPath = function( path ) {
 		path = path.trim();
 
-		if ( path.substr(path.length - 1) != '/' )
+		if ( path.substr(path.length - 1) !== '/' )
 			path += '/';
 
 		var expansionFailed = false;
