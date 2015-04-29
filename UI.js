@@ -362,16 +362,16 @@ function UI( options ) {
 			if ( ev.ctrlKey ) {
 				if ( target.selected ) {
 					// remove file
-					var index = selectedFiles.indexOf( fileObj );
+					var index = committedSelectedFiles.indexOf( fileObj );
 
 					if (index > -1) {
-						selectedFiles.splice(index, 1);
+						committedSelectedFiles.splice(index, 1);
 					}
 
 					target.unselect();
 				} else {
 					// add file
-					selectedFiles.push( fileObj );
+					committedSelectedFiles.push( fileObj );
 					target.select();
 				}
 			} else {
