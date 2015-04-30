@@ -1,6 +1,7 @@
 var fs    = require('fs'),
     async = require('async'),
     path  = require('path'),
+    spawn = require('child_process').spawn,
     exec  = require('child_process').exec;
 
 
@@ -203,6 +204,21 @@ File.prototype.getCachedDisplayName = function() {
 		throw new Error( "'this._displayName' not cached!" );
 
 	return this._displayName;
+};
+
+File.prototype.open = function() {
+	this.getAbsolutePath(function(err, absPath) {
+		if ( err ) {
+			console.error('Failed to open file. Missing absolute Path.', err);
+			return;
+		}
+
+		var app = spawn('/usr/bin/xdg-open', [absPath], {detached: true});
+
+		app.on('error', function ( err ) {
+			console.error('child process error ' + err);
+		});
+	}.bind(this));
 };
 
 module.exports = File;

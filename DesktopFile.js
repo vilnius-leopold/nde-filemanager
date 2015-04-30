@@ -225,6 +225,13 @@ DesktopFile.prototype.getPackageName = function( callback ) {
 	}.bind(this));
 };
 
+DesktopFile.prototype.edit = function( callback ) {
+	this._getStats(function(err, stats) {
+		console.log('Mode:', parseInt(stats.mode, 8) );
+	});
+
+	File.prototype.open.call(this, callback);
+};
 
 DesktopFile.prototype.uninstall = function( callback ) {
 	this.getPackageName(function( err, packageName ) {

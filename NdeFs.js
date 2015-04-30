@@ -355,15 +355,7 @@ function NdeFs( options ) {
 				if ( isDir ) {
 					this.getFilesInDirectory( absPath );
 				} else {
-					if ( file instanceof DesktopFile ) {
-						file.open();
-					} else {
-						var app = spawn('/usr/bin/xdg-open', [absPath], {detached: true});
-
-						app.on('error', function ( err ) {
-							console.error('child process error ' + err);
-						});
-					}
+					file.open();
 				}
 			}.bind(this));
 		}.bind(this));

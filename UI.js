@@ -420,6 +420,10 @@ function UI( options ) {
 		files[0].uninstall();
 	};
 
+	this.fileEditHandler = function( files ) {
+		files[0].edit();
+	};
+
 	this.fileRenameHandler = function( files ) {
 		var renameFile = files[0];
 
@@ -498,36 +502,42 @@ function UI( options ) {
 		var contextMenuItem       = document.createElement('div');
 		contextMenuItem.className = 'context-menu-item';
 
-		var deleteItem            = contextMenuItem.cloneNode();
-		deleteItem.textContent    = 'Delete';
-		deleteItem.actionCallback = this.fileDeleteHandler;
-		deleteItem.fileObj        = fileObj;
-		contextMenu.appendChild( deleteItem );
-
-		var cutItem            = contextMenuItem.cloneNode();
-		cutItem.textContent    = 'Cut';
-		cutItem.actionCallback = this.fileCutHandler;
-		cutItem.fileObj        = fileObj;
-		contextMenu.appendChild( cutItem );
-
-		var copyItem            = contextMenuItem.cloneNode();
-		copyItem.textContent    = 'Copy';
-		copyItem.actionCallback = this.fileCopyHandler;
-		copyItem.fileObj        = fileObj;
-		contextMenu.appendChild( copyItem );
-
-		var renameItem            = contextMenuItem.cloneNode();
-		renameItem.textContent    = 'Rename';
-		renameItem.actionCallback = this.fileRenameHandler;
-		renameItem.fileObj        = fileObj;
-		contextMenu.appendChild( renameItem );
-
 		if ( fileObj instanceof DesktopFile ) {
 			var uninstallItem            = contextMenuItem.cloneNode();
 			uninstallItem.textContent    = 'Uninstall';
 			uninstallItem.actionCallback = this.fileUninstallHandler;
 			uninstallItem.fileObj        = fileObj;
 			contextMenu.appendChild( uninstallItem );
+
+			var editItem            = contextMenuItem.cloneNode();
+			editItem.textContent    = 'Edit';
+			editItem.actionCallback = this.fileEditHandler;
+			editItem.fileObj        = fileObj;
+			contextMenu.appendChild( editItem );
+		} else {
+			var deleteItem            = contextMenuItem.cloneNode();
+			deleteItem.textContent    = 'Delete';
+			deleteItem.actionCallback = this.fileDeleteHandler;
+			deleteItem.fileObj        = fileObj;
+			contextMenu.appendChild( deleteItem );
+
+			var cutItem            = contextMenuItem.cloneNode();
+			cutItem.textContent    = 'Cut';
+			cutItem.actionCallback = this.fileCutHandler;
+			cutItem.fileObj        = fileObj;
+			contextMenu.appendChild( cutItem );
+
+			var copyItem            = contextMenuItem.cloneNode();
+			copyItem.textContent    = 'Copy';
+			copyItem.actionCallback = this.fileCopyHandler;
+			copyItem.fileObj        = fileObj;
+			contextMenu.appendChild( copyItem );
+
+			var renameItem            = contextMenuItem.cloneNode();
+			renameItem.textContent    = 'Rename';
+			renameItem.actionCallback = this.fileRenameHandler;
+			renameItem.fileObj        = fileObj;
+			contextMenu.appendChild( renameItem );
 		}
 
 		if ( (
