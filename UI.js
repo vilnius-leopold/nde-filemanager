@@ -1,4 +1,5 @@
-var FileRenderer  = require('./FileRenderer.js');
+var FileRenderer  = require('./FileRenderer.js'),
+    DesktopFile   = require('./DesktopFile.js');
 
 function UI( options ) {
 	var document = options.document,
@@ -415,6 +416,10 @@ function UI( options ) {
 		cutMode   = false;
 	};
 
+	this.fileUninstallHandler = function( files ) {
+		files[0].uninstall();
+	};
+
 	this.fileRenameHandler = function( files ) {
 		var renameFile = files[0];
 
@@ -516,6 +521,14 @@ function UI( options ) {
 		renameItem.actionCallback = this.fileRenameHandler;
 		renameItem.fileObj        = fileObj;
 		contextMenu.appendChild( renameItem );
+
+		if ( fileObj instanceof DesktopFile ) {
+			var uninstallItem            = contextMenuItem.cloneNode();
+			uninstallItem.textContent    = 'Uninstall';
+			uninstallItem.actionCallback = this.fileUninstallHandler;
+			uninstallItem.fileObj        = fileObj;
+			contextMenu.appendChild( uninstallItem );
+		}
 
 		if ( (
 				( cutMode && cutFiles.length > 0 ) ||

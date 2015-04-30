@@ -23,7 +23,7 @@
 - [x] watch file system changes
 - fix race condition for addbookmarks/opendir
 	--> addbookmarks callback --> markbookmark
-- double check select implementation
+- [x] double check select implementation
 	--> live select file items on selection overlay move --> to know better what your are selecting
 	--> fix scrollable selection
 - add directory/history memory
@@ -40,27 +40,29 @@
 	--> extension based mimeType detection (node mime module)
 - add selection actions
 	--> delete multiple files
-- release selection action (click on empty space)
+- [x] release selection action (click on empty space)
 - add copy/paste support
 - open with support
+- dir menu (paste / open in terminal)
 - grouped view ( regular / hidden group )
 - undo/redo ceate/delete files/folder
 - uninstall apps via application view
-	--> pacman -Qo $(which /usr/bin/firefox) // query package name via executable
+	--> pacman -Qo $(which /usr/bin/firefox) // query package name via executable / desktop file name is usually the same as the name of the executable. Also check TryExec for executable path
 	--> pacman -Qo /usr/share/applications/firefox.desktop // query package via .desktop file
-- execute .desktop files:
+- [x] execute .desktop files:
 	--> 1) http://askubuntu.com/questions/5172/running-a-desktop-file-in-the-terminal
 	-->    ISSUES! --> check comments
 	-->    find solution via .destkop spec / gtk implementation
 	--> 2) http://askubuntu.com/questions/471282/is-it-possible-to-execute-a-desktop-file-from-a-quicklist
 	-->    gtk-launch
 - implement File types
-	- File
-	- DesktopFile
-	- Directory
+	- [x] File
+	- [x] DesktopFile
+	- [x] Directory
 	- SymLink
 - remove bookmark type
 	--> only on front-end: nde-bookmark (instead of backend bookmark file)
+	--> add different renderer
 - better mime lookup: find single process solution for mimedb command
 	--> see 'file.js' 'getMimeType' function
 	--> glib mime-server solution:
@@ -70,11 +72,14 @@
 - desktop file open error handling
 - make action sidebar scrollable
 - back-button on left side of files window
-- read NoDisplay to determin if App is hidden or not.
+- [x] read NoDisplay to determin if App is hidden or not.
 - distribute files on entire width
 	--> on resize calculate available columns. If extra space --> adjust margins
 	--> looks nicer if no big space on right edge at action bar
 - implement recent:// spec
+- implement trash:// spec
 - drap/drop files support
 - fuse mount archives
 - fuse mount torrents?
+- mime-type determination: file --mime-type FILE_NAME
+	file -i FILE_NAME
