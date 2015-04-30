@@ -1,14 +1,18 @@
 
-var File          = require('./File.js'),
-    child_process = require("child_process"),
-    exec          = child_process.exec,
-    execFile      = child_process.execFile,
-    spawn         = child_process.spawn;
+var File            = require('./File.js'),
+    XdgDesktopEntry = require('./XdgDesktopEntry.js'),
+    child_process   = require("child_process"),
+    exec            = child_process.exec,
+    execFile        = child_process.execFile,
+    spawn           = child_process.spawn;
 
 function DesktopFile( options ) {
 	File.call(this, options);
 
 	this.iconPathFetcher = options.iconPathFetcher;
+	this.xdgDesktopEntry = new XdgDesktopEntry({
+		path: this._absolutePath
+	});
 }
 
 DesktopFile.prototype = Object.create(File.prototype);
@@ -43,34 +47,14 @@ DesktopFile.prototype.getDisplayName = function( callback ) {
 };
 
 DesktopFile.prototype.getDesktopFileProperty = function( property, callback ) {
-	this.getAbsolutePath(function( err, path ) {
-		if ( err ) {
-			callback( err, null );
+	this.xdgDesktopEntry.getProperty( property, function( err, value ) {
+		if ( err || ! value ) {
+			callback( new Error('Missing key or value for ' + err), null );
 			return;
 		}
 
-		var command  = 'grep -E ^' + property + '= ' + path.replace(/(["\s'$`\\])/g,'\\$1') + '  | head -1';
-
-		exec( command, function( error, stdout, stderr ) {
-			if ( error || stderr ) {
-				callback( new Error('Failed to execute command:\n' + command + '\n' + error + '\n' + stderr), null );
-				return;
-			}
-
-			var matchedLine = stdout  + '';
-
-			var regex = new RegExp('^' + property + '=\\s*');
-
-			var iconName = matchedLine.replace(regex, '').trim();
-
-			if ( matchedLine === '' ) {
-				callback( new Error('Missing icon key or value for ' + path), null );
-				return;
-			}
-
-			callback( null, iconName );
-		});
-	}.bind(this));
+		callback( null, value );
+	});
 };
 
 DesktopFile.prototype.getIconPath = function( callback ) {
