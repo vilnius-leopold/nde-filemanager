@@ -206,14 +206,47 @@ File.prototype.getCachedDisplayName = function() {
 	return this._displayName;
 };
 
-File.prototype.open = function() {
+File.prototype.isWritable = function( callback ) {
+	this._getStats(function( err, stats ) {
+		if ( err ) {
+			callback( new Error ('Can not determine if file is writable.' +
+			                     'Failed to aquire stats!\n' + err),
+			          null );
+			return;
+		}
+
+		var isOwner    = process.getuid() === stats.uid,
+		    inGroup    = process.getgid() === stats.gid,
+		    mode       = stats.mode,
+		    isWritable = isOwner && (mode & 00200) || // User is owner and owner can write.
+		                 inGroup && (mode & 00020) || // User is in group and group can write.
+		                 (mode & 00002); // Anyone can write.
+
+		console.log(
+process.getuid(),
+ stats.uid,
+process.getgid(),
+ stats.gid,
+isOwner
+,inGroup
+,mode
+,isWritable
+		);
+
+		callback( null, isWritable );
+	});
+};
+
+File.prototype.open = function( asRoot ) {
 	this.getAbsolutePath(function(err, absPath) {
 		if ( err ) {
 			console.error('Failed to open file. Missing absolute Path.', err);
 			return;
 		}
 
-		var app = spawn('/usr/bin/xdg-open', [absPath], {detached: true});
+		var command     = asRoot ? 'gksudo' : '/usr/bin/xdg-open',
+		    commandArgs = asRoot ? ['/usr/bin/xdg-open', absPath] : [absPath],
+		    app         = spawn( command, commandArgs, {detached: true});
 
 		app.on('error', function ( err ) {
 			console.error('child process error ' + err);

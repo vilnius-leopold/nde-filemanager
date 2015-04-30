@@ -226,11 +226,21 @@ DesktopFile.prototype.getPackageName = function( callback ) {
 };
 
 DesktopFile.prototype.edit = function( callback ) {
-	this._getStats(function(err, stats) {
-		console.log('Mode:', parseInt(stats.mode, 8) );
-	});
+	var asRoot = false;
 
-	File.prototype.open.call(this, callback);
+	this.isWritable(function( err, isWritable ) {
+		if ( err ) {
+			console.error( 'Failed to edit DesktopFile', err );
+			return;
+		} else {
+			if ( ! isWritable ) {
+				asRoot = true;
+				console.warn('Opening app as root!');
+			}
+
+			File.prototype.open.call(this, asRoot);
+		}
+	}.bind(this));
 };
 
 DesktopFile.prototype.uninstall = function( callback ) {
