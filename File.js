@@ -1,8 +1,8 @@
-var fs    = require('fs'),
-    async = require('async'),
-    path  = require('path'),
-    spawn = require('child_process').spawn,
-    exec  = require('child_process').exec;
+var fs       = require('fs'),
+    async    = require('async'),
+    path     = require('path'),
+    spawn    = require('child_process').spawn,
+    execFile = require('child_process').execFile;
 
 
 // WARNING:
@@ -74,15 +74,13 @@ function File( options ) {
 				return;
 			}
 
-			var command = 'mimedb "' + absolutePath + '"';
-
 			// CAUTION:
 			// There is a max process limit
 			// With large directory this limit
 			// can be exceeded
 			//
 			// FIXME: Need to find single process solution!
-			exec(command, function(error, stdout, stderr){
+			execFile('mimedb', [absolutePath], function(error, stdout, stderr){
 				if ( ! error )
 					mimeType = stdout.trim();
 

@@ -57,6 +57,10 @@ DesktopFile.prototype.getDesktopFileProperty = function( property, callback ) {
 	});
 };
 
+DesktopFile.prototype.setDesktopFileProperty = function( property, value, callback ) {
+	this.xdgDesktopEntry.setProperty( property, value, callback );
+};
+
 DesktopFile.prototype.getIconPath = function( callback ) {
 	this.getDesktopFileProperty('Icon', function( err, value ) {
 		if ( err ) {

@@ -26,6 +26,7 @@ function XdgDesktopEntry( options ) {
 	this._onloadCallbacks = [];
 	this._loading = false;
 	this._loaded  = false;
+	this._mainSectionStartLine = null;
 }
 
 XdgDesktopEntry.prototype.getLines = function( callback ) {
@@ -62,39 +63,48 @@ XdgDesktopEntry.prototype.getLines = function( callback ) {
 };
 
 XdgDesktopEntry.prototype.setProperty = function( property, value, callback ) {
-	var pattern = new RegExp('^' + property + '\\s*=\\s*'),
-	    value = null;
+	var propertyLine = property + '=' + value,
+	    linesCopy    = this._lines.slice(); // Make copy, don't operate on original
 
-	this.getLines(function( err, lines ) {
-		if ( err ) {
-			callback( err, null );
-			return;
-		}
-
-		var lineCount = this._lineCount,
-		    line;
-
-		for ( var i = 0; i < lineCount; i++ ) {
-			line = lines[i];
-
-			if ( line.match(pattern) ) {
-				value = line.replace(pattern, '').trim();
-				value = value === '' ? null : value;
-				break;
+	this.getPropertyAndLineNumber(property, function( err, value, lineNumber ) {
+		if ( err || ! lineNumber ) {
+			if ( this._mainSectionStartLine === null ) {
+				callback( new Error('Unable to find start of main desktop entry section') );
+				return;
 			}
+
+			linesCopy.splice(this._mainSectionStartLine + 1, 0, propertyLine);
+		} else {
+			linesCopy[ lineNumber ] = propertyLine;
 		}
 
-		callback( null, value );
+		fs.writeFile(this.desktopFilePath, linesCopy.join('\n'), { encoding: 'utf8' }, function ( err ) {
+			if ( err ) {
+				callback( err );
+				return;
+			}
+
+			// write changes back to object
+			this._lines = linesCopy;
+			callback( null );
+		}.bind(this));
 	}.bind(this));
 };
 
 XdgDesktopEntry.prototype.getProperty = function( property, callback ) {
-	var pattern = new RegExp('^' + property + '\\s*=\\s*'),
-	    value = null;
+	this.getPropertyAndLineNumber(property, function( err, value, lineNumber ) {
+		callback( err, value );
+	});
+};
+
+XdgDesktopEntry.prototype.getPropertyAndLineNumber = function( property, callback ) {
+	var pattern            = new RegExp('^' + property + '\\s*=\\s*'),
+	    value              = null,
+	    propertyLineNumber = null;
 
 	this.getLines(function( err, lines ) {
 		if ( err ) {
-			callback( err, null );
+			callback( err, value, propertyLineNumber );
 			return;
 		}
 
@@ -112,18 +122,21 @@ XdgDesktopEntry.prototype.getProperty = function( property, callback ) {
 			}
 
 			if ( ! inMainSection && line.match(/^\[\s*Desktop\s+Entry\s*\]/) ) {
+				this._mainSectionStartLine = i;
 				inMainSection = true;
+				continue;
 			}
 
 
 			if ( line.match(pattern) ) {
 				value = line.replace(pattern, '').trim();
 				value = value === '' ? null : value;
+				propertyLineNumber = i;
 				break;
 			}
 		}
 
-		callback( null, value );
+		callback( null, value, propertyLineNumber );
 	}.bind(this));
 };
 

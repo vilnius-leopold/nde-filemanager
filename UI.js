@@ -424,6 +424,13 @@ function UI( options ) {
 		files[0].edit();
 	};
 
+	this.desktopFileNoDisplayHandler = function( files ) {
+		files[0].setDesktopFileProperty('NoDisplay', 'true', function(err){
+			console.log('Error:', err);
+		});
+	};
+
+
 	this.fileRenameHandler = function( files ) {
 		var renameFile = files[0];
 
@@ -514,6 +521,12 @@ function UI( options ) {
 			editItem.actionCallback = this.fileEditHandler;
 			editItem.fileObj        = fileObj;
 			contextMenu.appendChild( editItem );
+
+			var noDisplayItem            = contextMenuItem.cloneNode();
+			noDisplayItem.textContent    = 'Hide';
+			noDisplayItem.actionCallback = this.desktopFileNoDisplayHandler;
+			noDisplayItem.fileObj        = fileObj;
+			contextMenu.appendChild( noDisplayItem );
 		} else {
 			var deleteItem            = contextMenuItem.cloneNode();
 			deleteItem.textContent    = 'Delete';
