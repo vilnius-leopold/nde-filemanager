@@ -43,8 +43,8 @@ run: build
 file-test:
 	node file.js
 
-pipe-test:
-	node pipeTest.js
+test:
+	cd testing/; node root-test.js
 
 dev-reload:
 	# start server if not running

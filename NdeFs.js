@@ -35,7 +35,30 @@ function NdeFs( options ) {
 
 	function addWatcher( path, handler ) {
 		try {
-			var watcher = fs.watch(path, handler);
+			var watcher = fs.watch(path, function( ev, fileName ) {
+				//  e.g. torrent downloads
+				// the 'change' event is triggered
+				// very frequently
+				// to avoid constant refreshes
+				// ignore change event
+				//
+				// Better solution instead of ignoring
+				// is to prevent subsequent updates
+				// by giving it a min time
+				// between updates e.g. 1s
+				// and in conjunction with that
+				// prevent repaints of the directory
+				// if no file elements have changed
+				// e.g. checking the filelist and
+				// the file object list for changes
+				// and only then rerender the folder
+				if ( ev === 'change' && fileName.match(/\.part$/) ) {
+					// do nothing
+					// console.log('Part file - no trigger', ev, fileName);
+				} else {
+					handler( ev, fileName );
+				}
+			});
 			directoryWatchers.push( watcher );
 		} catch(e) {
 			console.error('Can not watch directory\n' + path + '\n' + e);
@@ -218,14 +241,7 @@ function NdeFs( options ) {
 
 		// refresh dir on file changes
 		watchDirectory(path, function( ev, fileName ) {
-			//  e.g. torrent downloads
-			// the 'change' event is triggered
-			// very frequently
-			// to avoid constant refreshes
-			// ignore change event
-			if ( ev !== 'change' ) {
-				this.getFilesInDirectory(path);
-			}
+			this.getFilesInDirectory( path );
 		}.bind(this));
 
 		this.getFileList( path, function( err, fileList ) {

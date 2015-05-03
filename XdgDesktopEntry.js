@@ -1,4 +1,5 @@
-var fs = require("fs");
+var fs = require("fs"),
+    writeFileAsRoot = require("./testing/fs.writeFileAsRoot.js");
 
 /*
 	- You set the desktop file path
@@ -80,13 +81,29 @@ XdgDesktopEntry.prototype.setProperty = function( property, value, callback ) {
 
 		fs.writeFile(this.desktopFilePath, linesCopy.join('\n'), { encoding: 'utf8' }, function ( err ) {
 			if ( err ) {
-				callback( err );
-				return;
+				writeFileAsRoot(
+				this.desktopFilePath,
+				linesCopy.join('\n'),
+				{
+					rootExecArgs: ['-m', 'Nde File Manager wants to write to ' + this.desktopFilePath],
+					encoding:     'utf8'
+				},
+				function ( err ) {
+					if ( err ) {
+						callback( err );
+						return;
+					}
+
+					// write changes back to object
+					this._lines = linesCopy;
+					callback( null );
+				}.bind(this));
+			} else {
+				// write changes back to object
+				this._lines = linesCopy;
+				callback( null );
 			}
 
-			// write changes back to object
-			this._lines = linesCopy;
-			callback( null );
 		}.bind(this));
 	}.bind(this));
 };

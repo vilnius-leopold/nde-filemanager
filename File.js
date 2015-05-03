@@ -220,17 +220,6 @@ File.prototype.isWritable = function( callback ) {
 		                 inGroup && (mode & 00020) || // User is in group and group can write.
 		                 (mode & 00002); // Anyone can write.
 
-		console.log(
-process.getuid(),
- stats.uid,
-process.getgid(),
- stats.gid,
-isOwner
-,inGroup
-,mode
-,isWritable
-		);
-
 		callback( null, isWritable );
 	});
 };
