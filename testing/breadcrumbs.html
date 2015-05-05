@@ -1,0 +1,280 @@
+<template>
+<style>
+	* {
+		margin: 0;
+		padding: 0;
+		outline: none;
+		border: none;
+		box-sizing: border-box;
+	}
+	html{
+		font-size: 16px;
+		font-family: sans-serif;
+	}
+	body{
+		/*padding: 15px;*/
+	}
+	.group:after {
+		content: "";
+		display: table;
+		clear: both;
+	}
+	.table{
+		display: table;
+	}
+	.table-cell{
+		display: table-cell;
+		vertical-align: top;
+	}
+	#breadcrumbs{
+		width: 100%;
+		padding: 5px 5px;
+		padding-right: 3px;
+		border-bottom: 1px solid #ccc;
+		background: #f9f9f9;
+		box-sizing: border-box;
+	}
+	.button{
+		border: 1px solid #ddd;
+		padding: 0 1.2em;
+		background: #f9f9f9;
+		color: #333;
+		line-height: 2.4em;
+		vertical-align: baseline;
+		text-align: center;
+		font-size: 16px;
+		display: inline-block;
+		float: none;
+		position: relative;
+		cursor: default;
+		height: 2.4em;
+		margin-left: -1px;
+	}
+	.button:hover{
+		background: white;
+		color: #111;
+		border-color: #ccc;
+		z-index: 10;
+		box-shadow: 0 0.1em 0.5em -0.3em rgba(0,0,0,0.3);
+	}
+	.button.button-left:first-child{
+		border-top-left-radius: 0.15em;
+		border-bottom-left-radius: 0.15em;
+		margin-left: 0px;
+	}
+	.button:last-child{
+		border-top-right-radius: 0.15em;
+		border-bottom-right-radius: 0.15em;
+	}
+	#button-wrapper{
+		white-space: nowrap;
+		font-size: 0;
+	}
+	#button-cell{
+		width: 1px;
+	}
+	.edit-input.button.button-right{
+		text-align: left;
+		/*-webkit-appearance: button;*/
+		background: transparent;
+		border-color: transparent;
+		color: transparent;
+		float: none;
+		width: 100%;
+		margin-left: -2px;
+		white-space: nowrap;
+		min-width: 100px;
+	}
+	.edit-input.button.button-right:focus, .edit-input.button.button-right:hover{
+		background: white;
+		color: #111;
+		/*color: transparent;*/
+		border-color: #ccc;
+		z-index: 10;
+		box-shadow: inset 0 0 0.5em -0.3em rgba(0,0,0,0.3);
+	}
+</style>
+<div>
+	<div id="breadcrumbs" class="table">
+		<div id="button-cell" class="table-cell">
+			<div id="button-wrapper" class="group">
+				<button class="button">/</button>
+				<button class="button">home</button>
+				<button class="button">leo</button>
+				<button class="button">Videos</button>
+				<button class="button">Batman The Animated Series DvDRip x264 Complete</button>
+				<button class="button">Volume 1 rips</button>
+			</div>
+		</div>
+		<!-- /home/leo/Videos/Batman The Animated Series DvDRip x264 Complete/Volume 1 rips -->
+		<div class="table-cell">
+			<div id="input" contenteditable="true" class="edit-input button button-right" value="">
+		</div>
+	</div>
+</div>
+</template>
+
+<script>
+	(function(window, document, undefined) {
+		var thatDoc        = document,
+		    thisDoc        =  (thatDoc._currentScript || thatDoc.currentScript).ownerDocument,
+		    template       = thisDoc.querySelector('template').content,
+		    BreadcrumbsProto = Object.create(HTMLElement.prototype);
+
+		// Fires when an instance of the element is created
+		BreadcrumbsProto.createdCallback = function() {
+			// Creates the shadow root
+			var shadowRoot = this.createShadowRoot();
+			    clone      = thatDoc.importNode(template, true);
+
+			shadowRoot.appendChild(clone);
+
+			this._input         = shadowRoot.querySelector('#input');
+			this._buttonWrapper = shadowRoot.querySelector('#button-wrapper');
+
+			// Events:
+			// oninput (when typing)
+			// onclick (when breadcrumb is clicked)
+			// onup (when backspace pressed in empty input field)
+			// --> equal to onclick( breadcrumbs[breadcrumbs.length -2].path )
+
+			this._buttonWrapper.addEventListener('click', function( ev ) {
+				this.onclick( ev.target.path );
+			}.bind(this));
+
+			this._input.addEventListener('blur', function( ev ) {
+				this._input.innerHTML = '';
+			}.bind(this));
+
+			this._input.addEventListener('keyup', function( ev ) {
+				var keyCode = ev.keyCode;
+
+				// ESC
+				if ( keyCode === 27 ) {
+					this._input.blur();
+				} else if ( keyCode === 13 ) {
+					var value = this._input.textContent.trim();
+
+					if ( value === '' ) {
+						this._input.blur();
+					} else {
+						this.onreturn( value );
+					}
+				}
+			}.bind(this));
+
+			window.addEventListener('keyup', function( ev ) {
+				var keyCode = ev.keyCode;
+
+				console.log('Window keyup', keyCode);
+
+				// backspace
+				if ( keyCode === 8 ) {
+					if ( ( ev.target !== this._input ) || ( ev.target === this && this._input.textContent.trim() === '' )
+					) {
+						console.log('Input IS focused but empty', this._input.textContent);
+
+						var ancestorCrumb = this.breadcrumbElements[this.breadcrumbElements.length - 2];
+
+						console.log('UP event');
+
+						if ( ancestorCrumb ) {
+							this.onclick( ancestorCrumb.path );
+						}
+					}
+				}
+			}.bind(this));
+
+			// Not sufficient
+			// general change event
+			// use Mutation observer
+			// to monitor content
+			// e.g. on copy/paste
+			// or scripted change
+			// e.g. on blur clear etc
+			this._input.addEventListener('keyup', function( ev ) {
+
+				this.oninput( this._input.textContent );
+			}.bind(this));
+
+			window.addEventListener('keydown', function( ev ) {
+				var keyCode = ev.keyCode;
+
+				console.log('Win key down', ev.target);
+
+				// backspace
+				if ( ( keyCode === 8 && ev.target !== this) || ( keyCode === 13 ) ) {
+					console.log('Win key down prevent default', ev.target);
+					ev.preventDefault();
+					// ev.stopPropagation();
+				} else if ( keyCode === 27 ) {
+
+				} else {
+					this._input.focus();
+				}
+
+			}.bind(this));
+
+
+			// window.addEventListener('keyup', function( ev ) {
+
+
+			// }.bind(this));
+		};
+
+		BreadcrumbsProto.getPath = function( absolutePath ) {
+			return this._currentPath;
+		};
+
+		BreadcrumbsProto.clearInput = function( absolutePath ) {
+			this._input.textContent = '';
+		};
+
+		BreadcrumbsProto.blur = function( absolutePath ) {
+			this._input.blur();
+		};
+
+		BreadcrumbsProto.setPath = function( absolutePath ) {
+			this._currentPath = absolutePath;
+
+			var breadcrumbs = absolutePath.split('/');
+
+			console.log('breadcrumbs', breadcrumbs);
+
+
+
+			var path = '';
+
+			this._buttonWrapper.innerHTML = '';
+			this.breadcrumbElements = [];
+
+			breadcrumbs.forEach(function( crumb ) {
+				path += crumb;
+				this.addBreadcrumb( crumb, path );
+				path += '/';
+			}.bind(this));
+		};
+
+		BreadcrumbsProto.addBreadcrumb = function( value, path ) {
+			var crumb = document.createElement('button');
+
+			if ( value === '' )
+				value = '/';
+
+			crumb.className    = 'button';
+			crumb.textContent  = value;
+			crumb.path         = path;
+
+			this.breadcrumbElements.push( crumb );
+			this._buttonWrapper.appendChild( crumb );
+		};
+
+		BreadcrumbsProto.attachedCallback = function() {};
+
+		BreadcrumbsProto.attributeChangedCallback = function(attr, oldVal, newVal) {};
+
+		window.Breadcrumbs = thatDoc.registerElement('bread-crumbs', {
+			prototype: BreadcrumbsProto
+		});
+	})(window, document);
+</script>
