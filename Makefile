@@ -43,8 +43,11 @@ run: build
 file-test:
 	node file.js
 
-test:
-	cd testing/; node root-test.js
+lookup_associated_apps: lookup_associated_apps.c
+	gcc -o lookup_associated_apps lookup_associated_apps.c
+
+test: lookup_associated_apps
+	# cd testing/; node root-test.js
 
 dev-reload:
 	# start server if not running

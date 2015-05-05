@@ -672,6 +672,82 @@ function UI( options ) {
 		newfileDialog.open();
 	}.bind(this));
 
+	// Returns two pattern
+	// one generic fuzzy pattern
+	// and one that requires the first
+	// pattern character to also be
+	// the first letter in the word
+	// that should be matched
+	// e.g.
+	// ^w.*o.*r.*d.*
+	// ^.*w.*o.*r.*d.*
+	//
+	// @return array [startFuzzyPattern, genericFuzzyPattern]
+	function generateFuzzyPatterns( string ) {
+		var stringLength = string.length,
+		    patternString = '',
+		    startPatternString = '',
+		    pattern,
+		    startPattern,
+		    character;
+
+		console.log("string", string);
+
+		// word
+		// .*w.*o.*r.*d.*
+		for ( var i = 0; i < stringLength; i++ ) {
+			console.log("character", i, character);
+			character = string.charAt(i);
+			character = character.replace(/([\.\[\]\\\/\+\*\?])/g,'\\$1');
+			startPatternString += character + '.*';
+		}
+
+		patternString      = '^.*' + startPatternString;
+		startPatternString = '^' + startPatternString;
+
+		console.log("patternString", patternString);
+		console.log("startPatternString", startPatternString);
+
+		pattern      = new RegExp(patternString, 'i');
+		startPattern = new RegExp(startPatternString, 'i');
+
+		console.log("pattern", pattern);
+
+		return [startPattern, pattern];
+	}
+
+	this.getMatches = function() {
+		var currentLocation     = locationElement.value,
+		    matches             = currentLocation.match(/([^\/]+)$/),
+		    entry               = matches ? matches[0] : '',
+		    patterns            = generateFuzzyPatterns(entry),
+		    startFuzzyPattern   = patterns[0],
+		    genericFuzzyPattern = patterns[1],
+		    startMatchedFileObjects  = [],
+		    matchedFileObjects  = [];
+
+		console.log('entry', entry);
+
+		fileObjects.forEach(function( fileObject ){
+			var displayName = fileObject.getCachedDisplayName();
+			if ( displayName.match( startFuzzyPattern ) ) {
+				// console.log('Match', displayName);
+				startMatchedFileObjects.push( fileObject );
+				// fileObject.element.style.display = 'block';
+			} else if ( displayName.match( genericFuzzyPattern ) ) {
+				// console.log('Match', displayName);
+				matchedFileObjects.push( fileObject );
+				// fileObject.element.style.display = 'block';
+			} else {
+				// fileObject.element.style.display = 'none';
+			}
+		});
+
+		console.log('MATCHES', matchedFileObjects);
+
+		this.setFiles( startMatchedFileObjects.concat(matchedFileObjects) );
+	}.bind(this);
+
 	(function init( options ) {
 		// init renderer
 		fileRenderer = new FileRenderer({
@@ -697,6 +773,7 @@ function UI( options ) {
 		// cache style reference
 		filesStyle = window.getComputedStyle(filesElement);
 
+
 		// key handlers
 		document.onkeydown = function (e) {
 			if ( ! locationBarKeyControlsActive ) return;
@@ -716,6 +793,7 @@ function UI( options ) {
 			if ( exclude.indexOf( keyCode ) === -1 ) {
 				locationElement.focus();
 			}
+
 		};
 
 		document.onkeyup = function (e) {
@@ -731,7 +809,8 @@ function UI( options ) {
 				upClickHandler();
 			}
 
-		};
+			this.getMatches();
+		}.bind(this);
 
 		document.onkeypress = function (e) {
 			if ( ! locationBarKeyControlsActive ) return;
@@ -758,12 +837,14 @@ function UI( options ) {
 						// location += '/';
 
 
-					locationChangeHandler(location);
+					if ( selectedFile ) onFileClickHandler( selectedFile );
+					// locationChangeHandler(location);
 				} else {
 					var hint = locationElement.value;
 					hintHandler();
 				}
 			}
+
 			/*
 				// entire filelist with hidden files
 				fileList.each file

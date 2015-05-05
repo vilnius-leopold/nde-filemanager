@@ -83,3 +83,7 @@
 - fuse mount torrents?
 - mime-type determination: file --mime-type FILE_NAME
 	file -i FILE_NAME
+- mimetype related implementations in: http://www.freedesktop.org/wiki/Specifications/shared-mime-info-spec/
+--> under 'Current implementors'
+- check gvfs and gio methods
+	--> https://developer.gnome.org/gnome-vfs/2.24/gnome-vfs-2.0-gnome-vfs-mime-database.html
