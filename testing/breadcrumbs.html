@@ -139,7 +139,11 @@
 			// --> equal to onclick( breadcrumbs[breadcrumbs.length -2].path )
 
 			this._buttonWrapper.addEventListener('click', function( ev ) {
-				this.onclick( ev.target.path );
+				if ( ev.target.className === 'button' ) {
+					console.log('Click', ev.target);
+
+					this.onclick( ev.target.path );
+				}
 			}.bind(this));
 
 			this._input.addEventListener('blur', function( ev ) {
@@ -168,21 +172,7 @@
 
 				console.log('Window keyup', keyCode);
 
-				// backspace
-				if ( keyCode === 8 ) {
-					if ( ( ev.target !== this._input ) || ( ev.target === this && this._input.textContent.trim() === '' )
-					) {
-						console.log('Input IS focused but empty', this._input.textContent);
 
-						var ancestorCrumb = this.breadcrumbElements[this.breadcrumbElements.length - 2];
-
-						console.log('UP event');
-
-						if ( ancestorCrumb ) {
-							this.onclick( ancestorCrumb.path );
-						}
-					}
-				}
 			}.bind(this));
 
 			// Not sufficient
@@ -213,6 +203,22 @@
 					this._input.focus();
 				}
 
+
+				// backspace
+				if ( keyCode === 8 ) {
+					if ( ( ev.target !== this._input ) || ( ev.target === this && this._input.textContent.trim() === '' )
+					) {
+						console.log('Input IS focused but empty', this._input.textContent);
+
+						var ancestorCrumb = this.breadcrumbElements[this.breadcrumbElements.length - 2];
+
+						console.log('UP event');
+
+						if ( ancestorCrumb && this._input.textContent === '' ) {
+							this.onclick( ancestorCrumb.path );
+						}
+					}
+				}
 			}.bind(this));
 
 
