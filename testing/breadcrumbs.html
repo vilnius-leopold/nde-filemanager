@@ -156,7 +156,7 @@
 				// ESC
 				if ( keyCode === 27 ) {
 					this._input.blur();
-				} else if ( keyCode === 13 ) {
+				} else if ( keyCode === 13 || keyCode === 9 ) {
 					var value = this._input.textContent.trim();
 
 					if ( value === '' ) {
@@ -185,6 +185,9 @@
 			this._input.addEventListener('keyup', function( ev ) {
 				if ( this._input.textContent === '' ) {
 					this.blur();
+				} else if ( this._input.textContent === '/' ) {
+					this.setPath('');
+					this.clearInput();
 				} else {
 					this.oninput( this._input.textContent );
 				}
@@ -195,8 +198,10 @@
 
 				console.log('Win key down', ev.target);
 
-				// backspace
-				if ( ( keyCode === 8 && ev.target !== this) || ( keyCode === 13 ) ) {
+				// 8  backspace
+				// 13 enter
+				// 9  tab
+				if ( ( keyCode === 8 && ev.target !== this) || keyCode === 13 || keyCode === 9 ) {
 					console.log('Win key down prevent default', ev.target);
 					ev.preventDefault();
 					// ev.stopPropagation();
@@ -246,7 +251,15 @@
 		BreadcrumbsProto.setPath = function( absolutePath ) {
 			this._currentPath = absolutePath;
 
-			var breadcrumbs = absolutePath.split('/');
+			var breadcrumbs = this._currentPath.split('/');
+
+			if ( this._currentPath.startsWith('/home/leo/') ) {
+				breadcrumbs.shift();
+				breadcrumbs.shift();
+				breadcrumbs.shift();
+				breadcrumbs.unshift('⌂');
+			}
+
 
 			console.log('breadcrumbs', breadcrumbs);
 
