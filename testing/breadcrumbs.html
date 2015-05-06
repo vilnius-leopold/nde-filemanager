@@ -6,6 +6,7 @@
 		outline: none;
 		border: none;
 		box-sizing: border-box;
+		-webkit-user-select: none;
 	}
 	html{
 		font-size: 16px;
@@ -40,15 +41,20 @@
 		background: #f9f9f9;
 		color: #333;
 		line-height: 2.4em;
-		vertical-align: baseline;
+		vertical-align: top;
 		text-align: center;
 		font-size: 16px;
 		display: inline-block;
 		float: none;
 		position: relative;
-		cursor: default;
+		cursor: pointer;
 		height: 2.4em;
 		margin-left: -1px;
+	}
+	.button>img{
+		height: 1.25em;
+		vertical-align: middle;
+		margin-top: -0.075em;
 	}
 	.button:hover{
 		background: white;
@@ -57,7 +63,7 @@
 		z-index: 10;
 		box-shadow: 0 0.1em 0.5em -0.3em rgba(0,0,0,0.3);
 	}
-	.button.button-left:first-child{
+	.button:first-child{
 		border-top-left-radius: 0.15em;
 		border-bottom-left-radius: 0.15em;
 		margin-left: 0px;
@@ -73,7 +79,7 @@
 	#button-cell{
 		width: 1px;
 	}
-	.edit-input.button.button-right{
+	.edit-input.button{
 		text-align: left;
 		/*-webkit-appearance: button;*/
 		background: transparent;
@@ -84,8 +90,20 @@
 		margin-left: -2px;
 		white-space: nowrap;
 		min-width: 100px;
+		cursor: text;
+		font-family: sans-serif;
 	}
-	.edit-input.button.button-right:focus, .edit-input.button.button-right:hover{
+	.edit-input.button:hover{
+		background: white;
+		color: #111;
+		/*color: transparent;*/
+		/*border-color: #ccc;*/
+		z-index: 10;
+		box-shadow: inset 0 0 0.5em -0.3em rgba(0,0,0,0.3);
+		border-color: #ddd;
+		background: rgba(253, 253, 253, 1);
+	}
+	.edit-input.button:focus{
 		background: white;
 		color: #111;
 		/*color: transparent;*/
@@ -93,18 +111,21 @@
 		z-index: 10;
 		box-shadow: inset 0 0 0.5em -0.3em rgba(0,0,0,0.3);
 	}
+	.button.badge{
+		background: rgba(253, 253, 253, 1);
+		color: #aaa;
+		box-shadow: none;
+		border-color: #ddd;
+		padding: 0 8px;
+		cursor: default;
+		font-size: 13px;
+		height: 38px;
+	}
 </style>
 <div>
 	<div id="breadcrumbs" class="table">
 		<div id="button-cell" class="table-cell">
-			<div id="button-wrapper" class="group">
-				<button class="button">/</button>
-				<button class="button">home</button>
-				<button class="button">leo</button>
-				<button class="button">Videos</button>
-				<button class="button">Batman The Animated Series DvDRip x264 Complete</button>
-				<button class="button">Volume 1 rips</button>
-			</div>
+			<div id="button-wrapper" class="group"></div>
 		</div>
 		<!-- /home/leo/Videos/Batman The Animated Series DvDRip x264 Complete/Volume 1 rips -->
 		<div class="table-cell">
@@ -132,6 +153,10 @@
 			this._input         = shadowRoot.querySelector('#input');
 			this._buttonWrapper = shadowRoot.querySelector('#button-wrapper');
 
+			this._userhome = '/home/leo';
+			this._rootIcon = '/assets/icons/drive-harddisk.svg';
+			this._homeIcon = '/assets/icons/user-home.svg';
+
 			// Events:
 			// oninput (when typing)
 			// onclick (when breadcrumb is clicked)
@@ -143,6 +168,9 @@
 					console.log('Click', ev.target);
 
 					this.oncrumbclick( ev.target.path );
+				} else if ( ev.target.parentNode.className === 'button' ) {
+					this.oncrumbclick( ev.target.parentNode.path );
+
 				}
 			}.bind(this));
 
@@ -156,7 +184,7 @@
 				// ESC
 				if ( keyCode === 27 ) {
 					this._input.blur();
-				} else if ( keyCode === 13 || keyCode === 9 ) {
+				} else if ( keyCode === 13 || keyCode === 9 || keyCode === 191  ) {
 					var value = this._input.textContent.trim();
 
 					if ( value === '' ) {
@@ -169,10 +197,6 @@
 
 			window.addEventListener('keyup', function( ev ) {
 				var keyCode = ev.keyCode;
-
-				console.log('Window keyup', keyCode);
-
-
 			}.bind(this));
 
 			// Not sufficient
@@ -182,31 +206,42 @@
 			// e.g. on copy/paste
 			// or scripted change
 			// e.g. on blur clear etc
-			this._input.addEventListener('keyup', function( ev ) {
-				if ( this._input.textContent === '' ) {
+			var contentChangeHandler = function ( ev ) {
+				var content = this._input.textContent.trim();
+
+				if ( content === '' ) {
 					this.blur();
-				} else if ( this._input.textContent === '/' ) {
-					this.setPath('');
-					this.clearInput();
+					this.oncrumbinput( content );
+				} else if ( content === '/' ) {
+					this.setPath('/');
+					this.blur();
 				} else {
-					this.oninput( this._input.textContent );
+					this.oncrumbinput( content );
 				}
-			}.bind(this));
+
+			}.bind(this);
+
+			this._input.addEventListener("input", contentChangeHandler, false);
+			this._input.addEventListener("DOMNodeInserted", contentChangeHandler, false);
+			this._input.addEventListener("DOMNodeRemoved", contentChangeHandler, false);
+			this._input.addEventListener("DOMCharacterDataModified", contentChangeHandler, false);
+
 
 			window.addEventListener('keydown', function( ev ) {
 				var keyCode = ev.keyCode;
 
-				console.log('Win key down', ev.target);
-
 				// 8  backspace
 				// 13 enter
 				// 9  tab
+				// 191 forward slash '/'
 				if ( ( keyCode === 8 && ev.target !== this) || keyCode === 13 || keyCode === 9 ) {
-					console.log('Win key down prevent default', ev.target);
 					ev.preventDefault();
 					// ev.stopPropagation();
 				} else if ( keyCode === 27 ) {
 
+				} else if ( keyCode === 191 ) {
+					if (this._input.textContent !== '')
+						ev.preventDefault();
 				} else {
 					this._input.focus();
 				}
@@ -216,14 +251,10 @@
 				if ( keyCode === 8 ) {
 					if ( ( ev.target !== this._input ) || ( ev.target === this && this._input.textContent.trim() === '' )
 					) {
-						console.log('Input IS focused but empty', this._input.textContent);
+						var ancestorPath = this._breadcrumbPaths[this._breadcrumbPaths.length - 2];
 
-						var ancestorCrumb = this.breadcrumbElements[this.breadcrumbElements.length - 2];
-
-						console.log('UP event');
-
-						if ( ancestorCrumb && this._input.textContent === '' ) {
-							this.oncrumbclick( ancestorCrumb.path );
+						if ( ancestorPath && this._input.textContent === '' ) {
+							this.oncrumbclick( ancestorPath );
 						}
 					}
 				}
@@ -249,43 +280,120 @@
 		};
 
 		BreadcrumbsProto.setPath = function( absolutePath ) {
-			this._currentPath = absolutePath;
+			console.log('initial absolutePath', absolutePath);
 
-			var breadcrumbs = this._currentPath.split('/');
 
-			if ( this._currentPath.startsWith('/home/leo/') ) {
-				breadcrumbs.shift();
-				breadcrumbs.shift();
-				breadcrumbs.shift();
-				breadcrumbs.unshift('⌂');
+			console.log('processed absolutePath', absolutePath);
+
+			var protocol = 'file',
+			    matches;
+
+			// ssh://
+			// http://
+			if ( matches = absolutePath.match(/^([a-z]+):\/\//) ) {
+				// set protocol
+				protocol     = matches[1];
+
+				// strip protocol from path string
+				absolutePath = absolutePath.replace(/^([a-z]+):\/\//, '');
 			}
 
+			this._protocol = protocol;
 
-			console.log('breadcrumbs', breadcrumbs);
+			// remove double starting slashed
+			// remove trailing slash
+			absolutePath = absolutePath.replace(/^\/\//,'/');
+
+			// if ( ! absolutePath.startsWith('/') )
+				// throw new Error('Has to be absolute path! ' + absolutePath);
+
+			// if ( absolutePath !== '/')
+				absolutePath = absolutePath.replace(/\/$/,'');
 
 
+			console.log('absolutePath', absolutePath);
+			console.log('protocol', protocol);
 
-			var path = '';
-
+			// Resets
+			this._breadcrumbPaths         = [];
+			this.breadcrumbElements       = [];
+			this._currentPath             = protocol + '://' + absolutePath;
 			this._buttonWrapper.innerHTML = '';
-			this.breadcrumbElements = [];
 
-			breadcrumbs.forEach(function( crumb ) {
-				path += crumb;
-				this.addBreadcrumb( crumb, path );
+			var pathSegments = absolutePath.split('/'),
+			    segmentCount = pathSegments.length;
+
+			var path = '',
+			    i;
+
+			var startIndex = 0;
+
+			if ( absolutePath.startsWith('/') ) {
+				this._breadcrumbPaths = [this._protocol + '://' + '/'];
+				startIndex            = 1;
+				path                  = '/';
+			}
+
+			console.log('pathSegments', pathSegments);
+
+			for ( i = startIndex; i < segmentCount; i++ ) {
+				var pathSegment = pathSegments[i];
+
+				path += pathSegment;
+
+				if ( path === '' ) {
+					path = '/';
+				}
+
+				this._breadcrumbPaths.push( this._protocol + '://' + path );
 				path += '/';
-			}.bind(this));
+			}
+
+			console.log( '_breadcrumbPaths', this._breadcrumbPaths);
+
+			startIndex = 0;
+
+			if ( this._breadcrumbPaths[2] === 'file://' + this._userhome )
+				startIndex = 2;
+
+			if ( protocol !== 'file' )
+				this.addBreadcrumb( protocol, null, null, 'badge' );
+
+			for ( i = startIndex; i < segmentCount; i++ ) {
+				var breadcrumbPath = this._breadcrumbPaths[i];
+				var breadcrumbName = breadcrumbPath.slice(breadcrumbPath.lastIndexOf('/') + 1);
+				var breadcrumbIcon = null;
+
+				// only display icons
+				// if on local machine
+				if ( breadcrumbPath === 'file://' + this._userhome ) {
+					breadcrumbIcon = this._homeIcon;
+					breadcrumbName = null;
+				} else if ( breadcrumbPath === 'file://' + '/' ) {
+					breadcrumbIcon = this._rootIcon;
+					breadcrumbName = null;
+				}
+
+				this.addBreadcrumb( breadcrumbName, breadcrumbPath, breadcrumbIcon );
+			}
 		};
 
-		BreadcrumbsProto.addBreadcrumb = function( value, path ) {
+		BreadcrumbsProto.addBreadcrumb = function( name, path, icon, cssClass ) {
 			var crumb = document.createElement('button');
 
-			if ( value === '' )
-				value = '/';
+			if ( name === '' )
+				name = '/';
 
-			crumb.className    = 'button';
-			crumb.textContent  = value;
-			crumb.path         = path;
+			crumb.className                = 'button';
+			crumb.path                     = path;
+			if ( name ) crumb.textContent  = name;
+			if ( icon ) {
+				var image = new Image();
+				image.src = icon;
+				crumb.appendChild( image )
+			}
+			if ( cssClass ) crumb.classList.add( cssClass );
+
 
 			this.breadcrumbElements.push( crumb );
 			this._buttonWrapper.appendChild( crumb );
