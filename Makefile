@@ -54,7 +54,7 @@ dev-reload:
 	test "$$(ps -A | grep node)" || node testing/server.js ./ &
 
 	# start chromium on localhost if not running
-	test "$$(ps -A | grep chromium)" || chromium http://localhost:8080/testing/shadow.html &
+	test "$$(ps -A | grep chromium)" || chromium http://localhost:8080/testing/crumb-test.html &
 
 	# start tiny-lr if not running
 	test "$$(ps -A --format pid | grep $$(cat tiny-lr.pid))" || make livereload-start &

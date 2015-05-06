@@ -142,7 +142,7 @@
 				if ( ev.target.className === 'button' ) {
 					console.log('Click', ev.target);
 
-					this.onclick( ev.target.path );
+					this.oncrumbclick( ev.target.path );
 				}
 			}.bind(this));
 
@@ -183,8 +183,11 @@
 			// or scripted change
 			// e.g. on blur clear etc
 			this._input.addEventListener('keyup', function( ev ) {
-
-				this.oninput( this._input.textContent );
+				if ( this._input.textContent === '' ) {
+					this.blur();
+				} else {
+					this.oninput( this._input.textContent );
+				}
 			}.bind(this));
 
 			window.addEventListener('keydown', function( ev ) {
@@ -215,7 +218,7 @@
 						console.log('UP event');
 
 						if ( ancestorCrumb && this._input.textContent === '' ) {
-							this.onclick( ancestorCrumb.path );
+							this.oncrumbclick( ancestorCrumb.path );
 						}
 					}
 				}
