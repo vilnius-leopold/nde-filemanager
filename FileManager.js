@@ -50,18 +50,48 @@ function FileManager() {
 
 	function markBookmark( path ) {
 		var bookmarkFile,
+		    selectedChildPath = '',
+		    selectedChildBookmark,
+		    matchFound = false,
 		    i;
 
-		for ( i = 0; i < bookmarkCount; i++ ) {
-			bookmarkFile = bookmarkFiles[i];
+		console.log( 'Path:', path);
 
-			bookmarkFile.getAbsolutePath(function( err, absPath ) {
-				if ( absPath === path || absPath + '/' === path ) {
-					bookmarkFile.element.classList.add('selected');
-				} else {
-					bookmarkFile.element.classList.remove('selected');
-				}
-			});
+
+		for ( i = 0; i < bookmarkCount; i++ ) {
+
+
+			(function(){
+				bookmarkFile = bookmarkFiles[i];
+
+				bookmarkFile.getAbsolutePath(function( err, bookmarkPath ) {
+
+					if ( bookmarkPath === path || bookmarkPath + '/' === path ) {
+						bookmarkFile.element.classList.add('selected');
+						matchFound = true;
+						console.log( 'Match found' );
+					} else {
+						bookmarkFile.element.classList.remove('selected');
+
+						if ( path.startsWith( bookmarkPath) ) {
+
+							if ( selectedChildPath.length < bookmarkPath.length ) {
+								selectedChildPath = bookmarkPath;
+								selectedChildBookmark = bookmarkFile;
+								console.log( 'Found Child:', bookmarkPath);
+							}
+						}
+					}
+
+					bookmarkFile.element.classList.remove('child-selected');
+				});
+			}());
+
+		}
+
+		if ( selectedChildBookmark && ! matchFound ) {
+			console.log( 'Marking Child Bookmark:', selectedChildPath );
+			selectedChildBookmark.element.classList.add('child-selected');
 		}
 	}
 

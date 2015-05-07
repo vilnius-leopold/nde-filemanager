@@ -145,14 +145,20 @@ html,body{
 	background: transparent;*/
 	/*transition: background-color .1s, border-color .1s;*/
 }
-.inline-item.selected{
-	background: #DDBCBC;
-}
 .inline-item:hover{
 	background: #eee;
 	border-color: #ddd;
 	color: black;
 }
+.inline-item.selected{
+	background: #DDBCBC;
+}
+
+.inline-item.child-selected {
+	/*background: #eee;*/
+	border-right: 6px solid #DDBCBC;
+}
+
 .inline-item:hover>img{
 	-webkit-filter: contrast(1.1) brightness(1.05);
 }
