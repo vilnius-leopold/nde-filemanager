@@ -92,17 +92,16 @@
 		min-width: 100px;
 		cursor: text;
 		font-family: sans-serif;
+		box-shadow: none;
 	}
-	.edit-input.button:hover{
+	/*.edit-input.button:hover{
 		background: white;
 		color: #111;
-		/*color: transparent;*/
-		/*border-color: #ccc;*/
 		z-index: 10;
 		box-shadow: inset 0 0 0.5em -0.3em rgba(0,0,0,0.3);
 		border-color: #ddd;
 		background: rgba(253, 253, 253, 1);
-	}
+	}*/
 	.edit-input.button:focus{
 		background: white;
 		color: #111;
@@ -154,8 +153,8 @@
 			this._buttonWrapper = shadowRoot.querySelector('#button-wrapper');
 
 			this._userhome = '/home/leo';
-			this._rootIcon = '/assets/icons/drive-harddisk.svg';
-			this._homeIcon = '/assets/icons/user-home.svg';
+			this._rootIcon = '/usr/share/icons/Flattr/devices/16/drive-harddisk.svg';
+			this._homeIcon = '/usr/share/icons/Flattr/places/16/user-home.svg';
 
 			// Events:
 			// oninput (when typing)

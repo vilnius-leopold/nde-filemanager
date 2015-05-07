@@ -14,13 +14,14 @@ function UI( options ) {
 	    sidebarElement,
 	    filesElement,
 	    scrollPaneElement,
+	    breadcrumbElement,
 	    locationElement,
 	    actionElement,
 	    contextmenuElement,
-	    selectionOverlay,
-	    navButtonContainer,
-	    nextButtonElement,
-	    prevButtonElement;
+	    // navButtonContainer,
+	    // nextButtonElement,
+	    // prevButtonElement,
+	    selectionOverlay;
 
 	var selectedFile,
 	    locationBarKeyControlsActive = true,
@@ -29,7 +30,8 @@ function UI( options ) {
 	    cutMode     = false,
 	    copyMode    = false,
 	    fileCount   = 0,
-	    fileObjects = [];
+	    fileObjects = [],
+	    viewFileObjects = [];
 
 	var upClickHandler        = function(){},
 	    selectedClickHandler  = function(){},
@@ -51,7 +53,7 @@ function UI( options ) {
 	*/
 
 	this.getLocation = function() {
-		return locationElement.value;
+		return breadcrumbElement.getPath();
 	};
 
 	// must likely run on directory change
@@ -59,12 +61,13 @@ function UI( options ) {
 		if ( newfileDialog.isOpen() )
 			newfileDialog.close();
 
-		locationElement.value = path;
+		// locationElement.value = path;
 
 		// blur so we can use
 		// enter/backspace buttons
 		// for navigation
-		locationElement.blur();
+		// locationElement.blur();
+		breadcrumbElement.setPath( path );
 	};
 
 	this.addFile = function( file ) {
@@ -73,11 +76,11 @@ function UI( options ) {
 		});
 	}.bind(this);
 
-	this.setFiles = function( files ) {
+	this.setViewFiles = function( files ) {
 		var file,
 		    i;
 
-		fileObjects = files;
+		viewFileObjects = files;
 
 		fileCount = files.length;
 
@@ -94,6 +97,12 @@ function UI( options ) {
 				}
 			}.bind(this));
 		}
+	}.bind(this);
+
+	this.setFiles = function( files ) {
+		fileObjects = files;
+
+		this.setViewFiles( files );
 	}.bind(this);
 
 	this.setView = function( view ) {
@@ -603,19 +612,19 @@ function UI( options ) {
 	this.onFileContextClick = function( callback ) {
 	};
 
-	this.onPrevClick = function( callback ) {
-		prevButtonElement.addEventListener('click', function( ev ) {
-			if ( ! prevButtonElement.classList.contains('disabled') )
-				callback();
-		});
-	};
+	// this.onPrevClick = function( callback ) {
+	// 	prevButtonElement.addEventListener('click', function( ev ) {
+	// 		if ( ! prevButtonElement.classList.contains('disabled') )
+	// 			callback();
+	// 	});
+	// };
 
-	this.onNextClick = function( callback ) {
-		nextButtonElement.addEventListener('click', function( ev ) {
-			if ( ! nextButtonElement.classList.contains('disabled') )
-				callback();
-		});
-	};
+	// this.onNextClick = function( callback ) {
+	// 	nextButtonElement.addEventListener('click', function( ev ) {
+	// 		if ( ! nextButtonElement.classList.contains('disabled') )
+	// 			callback();
+	// 	});
+	// };
 
 	this.showButton = function( id ) {
 		document.querySelector('#' + id).classList.remove('hide');
@@ -641,14 +650,14 @@ function UI( options ) {
 		locationEscapeHandler = callback;
 	};
 
-	this.onUpClick = function( callback ) {
-		upClickHandler = callback;
+	// this.onUpClick = function( callback ) {
+	// 	upClickHandler = callback;
 
-		document.querySelector('#up-button')
-		.addEventListener('click', function( ev ) {
-			upClickHandler();
-		});
-	};
+	// 	document.querySelector('#up-button')
+	// 	.addEventListener('click', function( ev ) {
+	// 		upClickHandler();
+	// 	});
+	// };
 
 	this.onHideClick = function( callback ) {
 		document.querySelector('#hide-button').addEventListener('click', function( ev ) {
@@ -716,11 +725,8 @@ function UI( options ) {
 		return [startPattern, pattern];
 	}
 
-	this.getMatches = function() {
-		var currentLocation     = locationElement.value,
-		    matches             = currentLocation.match(/([^\/]+)$/),
-		    entry               = matches ? matches[0] : '',
-		    patterns            = generateFuzzyPatterns(entry),
+	this.getMatches = function( entry ) {
+		var patterns            = generateFuzzyPatterns(entry),
 		    startFuzzyPattern   = patterns[0],
 		    genericFuzzyPattern = patterns[1],
 		    startMatchedFileObjects  = [],
@@ -745,7 +751,7 @@ function UI( options ) {
 
 		console.log('MATCHES', matchedFileObjects);
 
-		this.setFiles( startMatchedFileObjects.concat(matchedFileObjects) );
+		this.setViewFiles( startMatchedFileObjects.concat(matchedFileObjects) );
 	}.bind(this);
 
 	(function init( options ) {
@@ -763,17 +769,40 @@ function UI( options ) {
 		filesElement       = document.querySelector('#files');
 		scrollPaneElement  = document.querySelector('#scroll-pane');
 		locationElement    = document.querySelector('#location');
+		breadcrumbElement  = document.querySelector('bread-crumbs');
 		actionElement      = document.querySelector('#actions');
 		contextmenuElement = document.querySelector('.context-menu');
-		navButtonContainer = document.querySelector('#nav-button-container');
-		nextButtonElement  = document.querySelector('#next-button');
-		prevButtonElement  = document.querySelector('#prev-button');
+		// navButtonContainer = document.querySelector('#nav-button-container');
+		// nextButtonElement  = document.querySelector('#next-button');
+		// prevButtonElement  = document.querySelector('#prev-button');
 		createOverlay();
 
 		// cache style reference
 		filesStyle = window.getComputedStyle(filesElement);
 
+		breadcrumbElement.oncrumbinput = this.getMatches;
+		breadcrumbElement.onreturn = function( value ) {
+			// console.log('Return value', value);
+			locationChangeHandler( breadcrumbElement.getPath() + '/' + value );
+			// breadcrumbElement.clearInput();
+			breadcrumbElement.blur();
+		};
+		breadcrumbElement.oncrumbclick = function( path ) {
+			console.log('UI crumb', path);
 
+			locationChangeHandler( path );
+		};
+
+		document.onkeydown = function (ev) {
+			var keyCode = ev.keyCode;
+
+			console.log('Keypress', keyCode);
+
+			if ( keyCode === 13 && selectedFile )
+				onFileClickHandler( selectedFile );
+		};
+
+		/*
 		// key handlers
 		document.onkeydown = function (e) {
 			if ( ! locationBarKeyControlsActive ) return;
@@ -845,26 +874,27 @@ function UI( options ) {
 				}
 			}
 
-			/*
-				// entire filelist with hidden files
-				fileList.each file
-					if file.getCachedAbsoluteName().startsWith(hint)
-						add to suggestion
-					end
-				end
 
-				if no suggestions
-					check recently used locations
+				// // entire filelist with hidden files
+				// fileList.each file
+				// 	if file.getCachedAbsoluteName().startsWith(hint)
+				// 		add to suggestion
+				// 	end
+				// end
 
-				if no recent
-					search entire filesystem
+				// if no suggestions
+				// 	check recently used locations
 
-				ontabHit.use highest suggestion
-				--> set location
+				// if no recent
+				// 	search entire filesystem
 
-				onUp/Down hit --> cycle through suggestions
-			*/
+				// ontabHit.use highest suggestion
+				// --> set location
+
+				// onUp/Down hit --> cycle through suggestions
 		}.bind(this);
+		*/
+
 	}.bind(this)( options ));
 
 	// prevent default behavior from changing page on dropped file

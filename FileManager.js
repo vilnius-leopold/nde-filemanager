@@ -142,8 +142,8 @@ function FileManager() {
 		ndeFs.validPathCallback = function( path ) {
 			ndeHistory.push( path );
 			ui.setLocation( path );
-			renderUpButton();
-			renderHistoryButtons();
+			// renderUpButton();
+			// renderHistoryButtons();
 			markBookmark( path );
 		};
 
@@ -153,26 +153,27 @@ function FileManager() {
 		/////////////////
 		// UI Handlers //
 		ui.onLocationChange(function( path ){
+			console.log('onLocationChange', path);
 			ndeFs.getFilesInDirectory( path );
 		});
 
 		ui.onHideClick();
 
-		ui.onNextClick(function(){
-			ndeFs.getFilesInDirectory( ndeHistory.getNext() );
-		});
+		// ui.onNextClick(function(){
+		// 	ndeFs.getFilesInDirectory( ndeHistory.getNext() );
+		// });
 
-		ui.onPrevClick(function(){
-			ndeFs.getFilesInDirectory( ndeHistory.getPrevious() );
-		});
+		// ui.onPrevClick(function(){
+		// 	ndeFs.getFilesInDirectory( ndeHistory.getPrevious() );
+		// });
 
 		ui.onLocationEscape(function(){
 			ui.setLocation(ndeFs.currentDirectory);
 		});
 
-		ui.onUpClick(function(){
-			ndeFs.getFilesInDirectory( ndeFs.getParentDirectory() );
-		});
+		// ui.onUpClick(function(){
+		// 	ndeFs.getFilesInDirectory( ndeFs.getParentDirectory() );
+		// });
 
 		ui.onFileClick( ndeFs.openFile );
 
