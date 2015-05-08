@@ -205,7 +205,7 @@ function FileManager() {
 		// 	ndeFs.getFilesInDirectory( ndeFs.getParentDirectory() );
 		// });
 
-		ui.onFileClick( ndeFs.openFile );
+		ui.onfilerequestopen = ndeFs.openFile;
 
 		ui.fileDeleteHandler = function( files ) {
 			if ( window.confirm('Delete File(s)?') ) {

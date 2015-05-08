@@ -42,8 +42,7 @@ function UI( options ) {
 	    selectedClickHandler  = function(){},
 	    hintHandler           = function(){},
 	    locationEscapeHandler = function(){},
-	    locationChangeHandler = function(){},
-	    onFileClickHandler    = function(){};
+	    locationChangeHandler = function(){};
 
 	/*
 		add contextmenu event listener to window
@@ -102,6 +101,7 @@ function UI( options ) {
 				for ( i = 0; i < fileCount; i++ ) {
 					file = files[i];
 					this.addFile(file);
+					file.element.position = i;
 				}
 				currentFile.element.makeCurrent();
 			}.bind(this));
@@ -160,9 +160,19 @@ function UI( options ) {
 		}.bind(this));
 	}.bind(this);
 
-	this.onFileClick = function( callback ) {
-		onFileClickHandler = callback;
+	this.makeCurrent = function( file ) {
+		// this.onsetcurrentfile
+		currentFile.element.unmakeCurrent();
+		currentFilePosition = file.element.position;
+		currentFile = file;
+		file.element.makeCurrent();
 	};
+
+	this.requestFileOpen = function( fileObj ) {
+		this.makeCurrent( fileObj );
+
+		this.onfilerequestopen( fileObj );
+	}.bind(this);
 
 	////////////////////
 	// FILE SELECTION //
@@ -401,20 +411,20 @@ function UI( options ) {
 					target.select();
 				}
 			} else {
-				onFileClickHandler( fileObj );
+				this.requestFileOpen( fileObj );
 			}
 		// if bookmark
 		} else {
 			if (target.classList.contains('item') )  {
-				onFileClickHandler( fileObj );
+				this.requestFileOpen( fileObj );
 			}
 
 			if (parent.classList.contains('item') )  {
-				onFileClickHandler( parent.obj );
+				this.requestFileOpen( parent.obj );
 			}
 		}
 
-	});
+	}.bind(this));
 
 	function closeContextMenu() {
 		contextMenu.remove();
@@ -811,7 +821,7 @@ function UI( options ) {
 			console.log('Keypress', keyCode);
 
 			if ( keyCode === 13 && currentFile )
-				onFileClickHandler( currentFile );
+				this.requestFileOpen( currentFile );
 
 			if ( keyCode >= 37 || keyCode <= 40 ) {
 				currentFile.element.unmakeCurrent();
@@ -871,7 +881,7 @@ function UI( options ) {
 				console.log('New current file', currentFile);
 				currentFile.element.makeCurrent();
 			}
-		};
+		}.bind(this);
 
 		/*
 		// key handlers
@@ -924,7 +934,7 @@ function UI( options ) {
 						upClickHandler();
 						break;
 					case 13:
-						if ( selectedFile ) onFileClickHandler( selectedFile );
+						if ( selectedFile ) this.requestFileOpen( selectedFile );
 						break;
 				}
 			} else {
@@ -937,7 +947,7 @@ function UI( options ) {
 						// location += '/';
 
 
-					if ( selectedFile ) onFileClickHandler( selectedFile );
+					if ( selectedFile ) this.requestFileOpen( selectedFile );
 					// locationChangeHandler(location);
 				} else {
 					var hint = locationElement.value;

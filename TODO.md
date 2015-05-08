@@ -90,3 +90,12 @@
 - fix keyboard navigation
 	--> [x] for circular current selection
 	--> [ ] scroll into view
+- fix styles
+	- hover + current
+	- selected + current
+	- hover + selected + current
+	--> hover:    brighteness filter
+	--> normal:   grey
+	--> current:  blue
+	--> selected: red
+	--> current + selected: purple (mix red+blue)
