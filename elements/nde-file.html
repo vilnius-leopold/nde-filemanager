@@ -27,14 +27,20 @@
 			border-radius: 2px;
 		}
 		#container.current{
-			border: 1px solid #D6D6F5;
+			border-color: #D6D6F5;
 			background: #D6D6F5;
 		}
 
 		#container.selected{
-			border: 1px solid #F5D6D6;
+			border-color: #F5D6D6;
 			background: #F5D6D6;
 		}
+
+		#container.selected.current{
+			border-color: #ECD6FF;
+			background: #ECD6FF;
+		}
+
 		#image-wrapper{
 			height: 64px;
 			overflow: hidden;
@@ -90,6 +96,17 @@
 			border: 1px solid #F5D6D6;
 			background: #FAEAEA;
 		}
+
+		#file:hover #container.current{
+			border-color: #E6E6FF;
+			background: #EAEAFA;
+		}
+
+		#file:hover #container.selected.current{
+			border-color: #ECD6FF;
+			background: #EFDAFF;
+		}
+
 		#file:hover img {
 			-webkit-filter: contrast(1.05) brightness(1.02);
 		}
