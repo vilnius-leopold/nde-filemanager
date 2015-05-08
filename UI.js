@@ -859,9 +859,10 @@ function UI( options ) {
 				var columnCount   = calculateColumnCount(),
 				    currentColumn = currentFilePosition % columnCount;
 
+				var currentRow = Math.floor(currentFilePosition / columnCount);
+
 				// down
 				if ( keyCode === 40 ) {
-
 					if ( currentFilePosition + columnCount > fileCount - 1 ) {
 						currentFilePosition = currentColumn;
 					} else {
@@ -890,6 +891,42 @@ function UI( options ) {
 				currentFile = viewFileObjects[currentFilePosition];
 				console.log('New current file', currentFile);
 				currentFile.element.makeCurrent();
+
+				// now
+				// check if in view
+				columnCount   = calculateColumnCount(),
+				currentColumn = currentFilePosition % columnCount;
+
+				currentRow = Math.floor(currentFilePosition / columnCount);
+
+				console.log('Column', currentColumn);
+				console.log('Row   ', currentRow);
+
+				var rowTopEdge     = (currentRow + 1) * fileHeight + 15,
+				    rowBottomEdge  = (currentRow) * fileHeight + 15,
+				    isInBottomview = rowTopEdge < scrollPaneElement.scrollTop + scrollPaneElement.offsetHeight,
+				    isInTopview    = rowBottomEdge > scrollPaneElement.scrollTop,
+				    isInview       = isInBottomview && isInTopview;
+
+				var topOverlap    = rowBottomEdge - scrollPaneElement.scrollTop,
+				    bottomOverlap = scrollPaneElement.scrollTop + scrollPaneElement.offsetHeight - rowTopEdge;
+
+				// console.log('rowTopEdge', rowTopEdge);
+				// console.log('scrollPaneElement.scrollTop + scrollPaneElement.offsetHeight', scrollPaneElement.scrollTop + scrollPaneElement.offsetHeight);
+				console.log('isInBottomview', isInBottomview);
+				console.log('isInTopview', isInTopview);
+				console.log('isInview', isInview);
+				console.log('topOverlap', topOverlap);
+				console.log('bottomOverlap', bottomOverlap);
+
+				if ( ! isInview ) {
+					if (topOverlap < 0) {
+						scrollPaneElement.scrollTop += topOverlap;
+					} else {
+						scrollPaneElement.scrollTop -= bottomOverlap;
+					}
+				}
+
 			}
 		}.bind(this);
 
