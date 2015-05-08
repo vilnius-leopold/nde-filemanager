@@ -156,7 +156,8 @@ html,body{
 
 .inline-item.child-selected {
 	/*background: #eee;*/
-	border-right: 6px solid #DDBCBC;
+	background: linear-gradient(to right, #dddddd 0%,#ddbcbc 100%);
+	/*border-right: 6px solid #DDBCBC;*/
 }
 
 .inline-item:hover>img{

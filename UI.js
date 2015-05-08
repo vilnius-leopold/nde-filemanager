@@ -23,7 +23,12 @@ function UI( options ) {
 	    // prevButtonElement,
 	    selectionOverlay;
 
+	var fileWidth  = 170,
+	    fileHeight = 160;
+
 	var selectedFile,
+	    currentFile,
+	    currentFilePosition = 0,
 	    locationBarKeyControlsActive = true,
 	    cutFiles    = [],
 	    copyFiles   = [],
@@ -86,15 +91,19 @@ function UI( options ) {
 
 		this.clear('files');
 		selectedFile = null;
+		currentFile = null;
+		currentFilePosition = 0;
 
 		if ( fileCount > 0 ) {
 			selectedFile = files[0];
+			currentFile = files[currentFilePosition];
 
 			window.requestAnimationFrame(function() {
 				for ( i = 0; i < fileCount; i++ ) {
 					file = files[i];
 					this.addFile(file);
 				}
+				currentFile.element.makeCurrent();
 			}.bind(this));
 		}
 	}.bind(this);
@@ -200,13 +209,16 @@ function UI( options ) {
 		}
 	}
 
+	function calculateColumnCount() {
+		var availableWidth = filesElement.offsetWidth - parseInt(filesStyle.paddingLeft) - parseInt(filesStyle.paddingRight);
+
+		return parseInt( availableWidth / fileWidth );
+	}
+
 	function selectFiles( startX, startY, endX, endY ) {
 		unselectFiles();
 
-		var fileWidth      = 170,
-		    fileHeight     = 160,
-		    availableWidth = filesElement.offsetWidth - parseInt(filesStyle.paddingLeft) - parseInt(filesStyle.paddingRight),
-		    columneCount   = parseInt( availableWidth / fileWidth );
+		var columnCount = calculateColumnCount();
 
 		// center selection point
 		startX += fileWidth/2;
@@ -223,7 +235,7 @@ function UI( options ) {
 			return [];
 
 		var selectedColumneStart = Math.max( 0, parseInt( startX / fileWidth ) ),
-		    selectedColumneEnd   = Math.min( columneCount, parseInt( endX / fileWidth ) );
+		    selectedColumneEnd   = Math.min( columnCount, parseInt( endX / fileWidth ) );
 
 		// selection does not surround
 		// a columne --> empty selection
@@ -233,7 +245,7 @@ function UI( options ) {
 		// unselectFiles();
 
 		for ( var i = selectedRowStart; i < selectedRowEnd; i++ ) {
-			var rowOffset = i * columneCount;
+			var rowOffset = i * columnCount;
 
 			for ( var k = selectedColumneStart; k < selectedColumneEnd; k++ ) {
 				var fileNumber = rowOffset + k;
@@ -798,8 +810,41 @@ function UI( options ) {
 
 			console.log('Keypress', keyCode);
 
-			if ( keyCode === 13 && selectedFile )
-				onFileClickHandler( selectedFile );
+			if ( keyCode === 13 && currentFile )
+				onFileClickHandler( currentFile );
+
+			// right
+			if ( keyCode === 39 ) {
+				currentFile.element.unmakeCurrent();
+				currentFilePosition += 1;
+				currentFile = viewFileObjects[currentFilePosition];
+				currentFile.element.makeCurrent();
+			}
+
+			// left
+			if ( keyCode === 37 ) {
+				currentFile.element.unmakeCurrent();
+				currentFilePosition -= 1;
+				currentFile = viewFileObjects[currentFilePosition];
+				currentFile.element.makeCurrent();
+			}
+
+			// down
+			if ( keyCode === 40 ) {
+				currentFile.element.unmakeCurrent();
+				currentFilePosition += calculateColumnCount();
+				currentFile = viewFileObjects[currentFilePosition];
+				currentFile.element.makeCurrent();
+			}
+
+			// up
+			if ( keyCode === 38 ) {
+				currentFile.element.unmakeCurrent();
+				currentFilePosition -= calculateColumnCount();
+				currentFile = viewFileObjects[currentFilePosition];
+				currentFile.element.makeCurrent();
+			}
+
 		};
 
 		/*
