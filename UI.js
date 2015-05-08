@@ -813,38 +813,64 @@ function UI( options ) {
 			if ( keyCode === 13 && currentFile )
 				onFileClickHandler( currentFile );
 
-			// right
-			if ( keyCode === 39 ) {
+			if ( keyCode >= 37 || keyCode <= 40 ) {
 				currentFile.element.unmakeCurrent();
-				currentFilePosition += 1;
+
+				var fileCount = viewFileObjects.length;
+
+				// right
+				if ( keyCode === 39 ) {
+					if ( currentFilePosition === fileCount - 1 ) {
+						currentFilePosition = 0;
+					} else {
+						currentFilePosition += 1;
+					}
+				}
+
+				// left
+				if ( keyCode === 37 ) {
+					if ( currentFilePosition === 0 ) {
+						currentFilePosition = fileCount - 1;
+					} else {
+						currentFilePosition -= 1;
+					}
+				}
+
+				var columnCount   = calculateColumnCount(),
+				    currentColumn = currentFilePosition % columnCount;
+
+				// down
+				if ( keyCode === 40 ) {
+
+					if ( currentFilePosition + columnCount > fileCount - 1 ) {
+						currentFilePosition = currentColumn;
+					} else {
+						currentFilePosition += columnCount;
+					}
+				}
+
+				// up
+				if ( keyCode === 38 ) {
+					if ( currentFilePosition - columnCount < 0 ) {
+						var lastColumn = (fileCount - 1) % columnCount;
+
+						// last row HAS same column
+						if ( currentColumn <= lastColumn ) {
+							currentFilePosition = fileCount - 1 - (lastColumn - currentColumn);
+						// last row HAS NOT same column
+						} else {
+							currentFilePosition = fileCount - 1 - lastColumn - 1 - (columnCount - 1 - currentColumn);
+						}
+					} else {
+						currentFilePosition -= calculateColumnCount();
+					}
+
+				}
+
 				currentFile = viewFileObjects[currentFilePosition];
+				console.log('New current file', currentFile);
 				currentFile.element.makeCurrent();
 			}
-
-			// left
-			if ( keyCode === 37 ) {
-				currentFile.element.unmakeCurrent();
-				currentFilePosition -= 1;
-				currentFile = viewFileObjects[currentFilePosition];
-				currentFile.element.makeCurrent();
-			}
-
-			// down
-			if ( keyCode === 40 ) {
-				currentFile.element.unmakeCurrent();
-				currentFilePosition += calculateColumnCount();
-				currentFile = viewFileObjects[currentFilePosition];
-				currentFile.element.makeCurrent();
-			}
-
-			// up
-			if ( keyCode === 38 ) {
-				currentFile.element.unmakeCurrent();
-				currentFilePosition -= calculateColumnCount();
-				currentFile = viewFileObjects[currentFilePosition];
-				currentFile.element.makeCurrent();
-			}
-
 		};
 
 		/*

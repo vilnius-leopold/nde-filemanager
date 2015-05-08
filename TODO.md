@@ -87,3 +87,6 @@
 --> under 'Current implementors'
 - check gvfs and gio methods
 	--> https://developer.gnome.org/gnome-vfs/2.24/gnome-vfs-2.0-gnome-vfs-mime-database.html
+- fix keyboard navigation
+	--> [x] for circular current selection
+	--> [ ] scroll into view
