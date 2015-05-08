@@ -51,14 +51,12 @@ html,body{
 #menu-bar{
 	background: #ddd;
 	width: 100%;
-	height: 51px;
+	height: 49px;
 	border-bottom: 1px solid #bbb;
 	overflow: hidden;
 	font-size: 0;
 	display: block;
 	padding: 0;
-	padding-left: 109px;
-	padding-right: 5px;
 	position: absolute;
 	z-index: 6000;
 }
@@ -71,7 +69,7 @@ html,body{
 	position: absolute;
 	overflow: hidden;
 	position: absolute;
-	top: 51px;
+	top: 49px;
 	left: 0;
 	z-index: 6000;
 }
@@ -95,7 +93,7 @@ html,body{
 #content {
 	width: 100%;
 	height: 100%;
-	padding-top: 51px;
+	padding-top: 49px;
 	background: #f9f9f9;
 	position: relative;
 	padding-left: 200px;
@@ -147,14 +145,21 @@ html,body{
 	background: transparent;*/
 	/*transition: background-color .1s, border-color .1s;*/
 }
-.inline-item.selected{
-	background: #DDBCBC;
-}
 .inline-item:hover{
 	background: #eee;
 	border-color: #ddd;
 	color: black;
 }
+.inline-item.selected{
+	background: #DDBCBC;
+}
+
+.inline-item.child-selected {
+	/*background: #eee;*/
+	background: linear-gradient(to right, #dddddd 0%,#ddbcbc 100%);
+	/*border-right: 6px solid #DDBCBC;*/
+}
+
 .inline-item:hover>img{
 	-webkit-filter: contrast(1.1) brightness(1.05);
 }

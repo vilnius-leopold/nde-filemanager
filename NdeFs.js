@@ -15,8 +15,8 @@ var fs               = require('fs'),
 function NdeFs( options ) {
 	var directoryWatchers = [];
 
-	var sortSettings   = ['directoryFirst', 'displayName'],
-	    filterSettings = ['hiddenFiles'];
+	var sortSettings   = ['hiddenLast', 'directoryFirst', 'displayName'],
+	    filterSettings = [];
 
 	var fileSorter      = new FileSorter( sortSettings ),
 	    fileFilter      = new FileFilter( filterSettings ),

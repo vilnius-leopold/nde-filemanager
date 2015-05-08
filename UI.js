@@ -14,22 +14,29 @@ function UI( options ) {
 	    sidebarElement,
 	    filesElement,
 	    scrollPaneElement,
+	    breadcrumbElement,
 	    locationElement,
 	    actionElement,
 	    contextmenuElement,
-	    selectionOverlay,
-	    navButtonContainer,
-	    nextButtonElement,
-	    prevButtonElement;
+	    // navButtonContainer,
+	    // nextButtonElement,
+	    // prevButtonElement,
+	    selectionOverlay;
+
+	var fileWidth  = 170,
+	    fileHeight = 160;
 
 	var selectedFile,
+	    currentFile,
+	    currentFilePosition = 0,
 	    locationBarKeyControlsActive = true,
 	    cutFiles    = [],
 	    copyFiles   = [],
 	    cutMode     = false,
 	    copyMode    = false,
 	    fileCount   = 0,
-	    fileObjects = [];
+	    fileObjects = [],
+	    viewFileObjects = [];
 
 	var upClickHandler        = function(){},
 	    selectedClickHandler  = function(){},
@@ -51,7 +58,7 @@ function UI( options ) {
 	*/
 
 	this.getLocation = function() {
-		return locationElement.value;
+		return breadcrumbElement.getPath();
 	};
 
 	// must likely run on directory change
@@ -59,12 +66,13 @@ function UI( options ) {
 		if ( newfileDialog.isOpen() )
 			newfileDialog.close();
 
-		locationElement.value = path;
+		// locationElement.value = path;
 
 		// blur so we can use
 		// enter/backspace buttons
 		// for navigation
-		locationElement.blur();
+		// locationElement.blur();
+		breadcrumbElement.setPath( path );
 	};
 
 	this.addFile = function( file ) {
@@ -73,27 +81,37 @@ function UI( options ) {
 		});
 	}.bind(this);
 
-	this.setFiles = function( files ) {
+	this.setViewFiles = function( files ) {
 		var file,
 		    i;
 
-		fileObjects = files;
+		viewFileObjects = files;
 
 		fileCount = files.length;
 
 		this.clear('files');
 		selectedFile = null;
+		currentFile = null;
+		currentFilePosition = 0;
 
 		if ( fileCount > 0 ) {
 			selectedFile = files[0];
+			currentFile = files[currentFilePosition];
 
 			window.requestAnimationFrame(function() {
 				for ( i = 0; i < fileCount; i++ ) {
 					file = files[i];
 					this.addFile(file);
 				}
+				currentFile.element.makeCurrent();
 			}.bind(this));
 		}
+	}.bind(this);
+
+	this.setFiles = function( files ) {
+		fileObjects = files;
+
+		this.setViewFiles( files );
 	}.bind(this);
 
 	this.setView = function( view ) {
@@ -191,13 +209,16 @@ function UI( options ) {
 		}
 	}
 
+	function calculateColumnCount() {
+		var availableWidth = filesElement.offsetWidth - parseInt(filesStyle.paddingLeft) - parseInt(filesStyle.paddingRight);
+
+		return parseInt( availableWidth / fileWidth );
+	}
+
 	function selectFiles( startX, startY, endX, endY ) {
 		unselectFiles();
 
-		var fileWidth      = 170,
-		    fileHeight     = 160,
-		    availableWidth = filesElement.offsetWidth - parseInt(filesStyle.paddingLeft) - parseInt(filesStyle.paddingRight),
-		    columneCount   = parseInt( availableWidth / fileWidth );
+		var columnCount = calculateColumnCount();
 
 		// center selection point
 		startX += fileWidth/2;
@@ -214,7 +235,7 @@ function UI( options ) {
 			return [];
 
 		var selectedColumneStart = Math.max( 0, parseInt( startX / fileWidth ) ),
-		    selectedColumneEnd   = Math.min( columneCount, parseInt( endX / fileWidth ) );
+		    selectedColumneEnd   = Math.min( columnCount, parseInt( endX / fileWidth ) );
 
 		// selection does not surround
 		// a columne --> empty selection
@@ -224,7 +245,7 @@ function UI( options ) {
 		// unselectFiles();
 
 		for ( var i = selectedRowStart; i < selectedRowEnd; i++ ) {
-			var rowOffset = i * columneCount;
+			var rowOffset = i * columnCount;
 
 			for ( var k = selectedColumneStart; k < selectedColumneEnd; k++ ) {
 				var fileNumber = rowOffset + k;
@@ -603,19 +624,19 @@ function UI( options ) {
 	this.onFileContextClick = function( callback ) {
 	};
 
-	this.onPrevClick = function( callback ) {
-		prevButtonElement.addEventListener('click', function( ev ) {
-			if ( ! prevButtonElement.classList.contains('disabled') )
-				callback();
-		});
-	};
+	// this.onPrevClick = function( callback ) {
+	// 	prevButtonElement.addEventListener('click', function( ev ) {
+	// 		if ( ! prevButtonElement.classList.contains('disabled') )
+	// 			callback();
+	// 	});
+	// };
 
-	this.onNextClick = function( callback ) {
-		nextButtonElement.addEventListener('click', function( ev ) {
-			if ( ! nextButtonElement.classList.contains('disabled') )
-				callback();
-		});
-	};
+	// this.onNextClick = function( callback ) {
+	// 	nextButtonElement.addEventListener('click', function( ev ) {
+	// 		if ( ! nextButtonElement.classList.contains('disabled') )
+	// 			callback();
+	// 	});
+	// };
 
 	this.showButton = function( id ) {
 		document.querySelector('#' + id).classList.remove('hide');
@@ -641,14 +662,14 @@ function UI( options ) {
 		locationEscapeHandler = callback;
 	};
 
-	this.onUpClick = function( callback ) {
-		upClickHandler = callback;
+	// this.onUpClick = function( callback ) {
+	// 	upClickHandler = callback;
 
-		document.querySelector('#up-button')
-		.addEventListener('click', function( ev ) {
-			upClickHandler();
-		});
-	};
+	// 	document.querySelector('#up-button')
+	// 	.addEventListener('click', function( ev ) {
+	// 		upClickHandler();
+	// 	});
+	// };
 
 	this.onHideClick = function( callback ) {
 		document.querySelector('#hide-button').addEventListener('click', function( ev ) {
@@ -672,6 +693,79 @@ function UI( options ) {
 		newfileDialog.open();
 	}.bind(this));
 
+	// Returns two pattern
+	// one generic fuzzy pattern
+	// and one that requires the first
+	// pattern character to also be
+	// the first letter in the word
+	// that should be matched
+	// e.g.
+	// ^w.*o.*r.*d.*
+	// ^.*w.*o.*r.*d.*
+	//
+	// @return array [startFuzzyPattern, genericFuzzyPattern]
+	function generateFuzzyPatterns( string ) {
+		var stringLength = string.length,
+		    patternString = '',
+		    startPatternString = '',
+		    pattern,
+		    startPattern,
+		    character;
+
+		console.log("string", string);
+
+		// word
+		// .*w.*o.*r.*d.*
+		for ( var i = 0; i < stringLength; i++ ) {
+			console.log("character", i, character);
+			character = string.charAt(i);
+			character = character.replace(/([\.\[\]\\\/\+\*\?])/g,'\\$1');
+			startPatternString += character + '.*';
+		}
+
+		patternString      = '^.*' + startPatternString;
+		startPatternString = '^' + startPatternString;
+
+		console.log("patternString", patternString);
+		console.log("startPatternString", startPatternString);
+
+		pattern      = new RegExp(patternString, 'i');
+		startPattern = new RegExp(startPatternString, 'i');
+
+		console.log("pattern", pattern);
+
+		return [startPattern, pattern];
+	}
+
+	this.getMatches = function( entry ) {
+		var patterns            = generateFuzzyPatterns(entry),
+		    startFuzzyPattern   = patterns[0],
+		    genericFuzzyPattern = patterns[1],
+		    startMatchedFileObjects  = [],
+		    matchedFileObjects  = [];
+
+		console.log('entry', entry);
+
+		fileObjects.forEach(function( fileObject ){
+			var displayName = fileObject.getCachedDisplayName();
+			if ( displayName.match( startFuzzyPattern ) ) {
+				// console.log('Match', displayName);
+				startMatchedFileObjects.push( fileObject );
+				// fileObject.element.style.display = 'block';
+			} else if ( displayName.match( genericFuzzyPattern ) ) {
+				// console.log('Match', displayName);
+				matchedFileObjects.push( fileObject );
+				// fileObject.element.style.display = 'block';
+			} else {
+				// fileObject.element.style.display = 'none';
+			}
+		});
+
+		console.log('MATCHES', matchedFileObjects);
+
+		this.setViewFiles( startMatchedFileObjects.concat(matchedFileObjects) );
+	}.bind(this);
+
 	(function init( options ) {
 		// init renderer
 		fileRenderer = new FileRenderer({
@@ -687,16 +781,99 @@ function UI( options ) {
 		filesElement       = document.querySelector('#files');
 		scrollPaneElement  = document.querySelector('#scroll-pane');
 		locationElement    = document.querySelector('#location');
+		breadcrumbElement  = document.querySelector('bread-crumbs');
 		actionElement      = document.querySelector('#actions');
 		contextmenuElement = document.querySelector('.context-menu');
-		navButtonContainer = document.querySelector('#nav-button-container');
-		nextButtonElement  = document.querySelector('#next-button');
-		prevButtonElement  = document.querySelector('#prev-button');
+		// navButtonContainer = document.querySelector('#nav-button-container');
+		// nextButtonElement  = document.querySelector('#next-button');
+		// prevButtonElement  = document.querySelector('#prev-button');
 		createOverlay();
 
 		// cache style reference
 		filesStyle = window.getComputedStyle(filesElement);
 
+		breadcrumbElement.oncrumbinput = this.getMatches;
+		breadcrumbElement.onreturn = function( value ) {
+			// console.log('Return value', value);
+			locationChangeHandler( breadcrumbElement.getPath() + '/' + value );
+			// breadcrumbElement.clearInput();
+			breadcrumbElement.blur();
+		};
+		breadcrumbElement.oncrumbclick = function( path ) {
+			console.log('UI crumb', path);
+
+			locationChangeHandler( path );
+		};
+
+		document.onkeydown = function (ev) {
+			var keyCode = ev.keyCode;
+
+			console.log('Keypress', keyCode);
+
+			if ( keyCode === 13 && currentFile )
+				onFileClickHandler( currentFile );
+
+			if ( keyCode >= 37 || keyCode <= 40 ) {
+				currentFile.element.unmakeCurrent();
+
+				var fileCount = viewFileObjects.length;
+
+				// right
+				if ( keyCode === 39 ) {
+					if ( currentFilePosition === fileCount - 1 ) {
+						currentFilePosition = 0;
+					} else {
+						currentFilePosition += 1;
+					}
+				}
+
+				// left
+				if ( keyCode === 37 ) {
+					if ( currentFilePosition === 0 ) {
+						currentFilePosition = fileCount - 1;
+					} else {
+						currentFilePosition -= 1;
+					}
+				}
+
+				var columnCount   = calculateColumnCount(),
+				    currentColumn = currentFilePosition % columnCount;
+
+				// down
+				if ( keyCode === 40 ) {
+
+					if ( currentFilePosition + columnCount > fileCount - 1 ) {
+						currentFilePosition = currentColumn;
+					} else {
+						currentFilePosition += columnCount;
+					}
+				}
+
+				// up
+				if ( keyCode === 38 ) {
+					if ( currentFilePosition - columnCount < 0 ) {
+						var lastColumn = (fileCount - 1) % columnCount;
+
+						// last row HAS same column
+						if ( currentColumn <= lastColumn ) {
+							currentFilePosition = fileCount - 1 - (lastColumn - currentColumn);
+						// last row HAS NOT same column
+						} else {
+							currentFilePosition = fileCount - 1 - lastColumn - 1 - (columnCount - 1 - currentColumn);
+						}
+					} else {
+						currentFilePosition -= calculateColumnCount();
+					}
+
+				}
+
+				currentFile = viewFileObjects[currentFilePosition];
+				console.log('New current file', currentFile);
+				currentFile.element.makeCurrent();
+			}
+		};
+
+		/*
 		// key handlers
 		document.onkeydown = function (e) {
 			if ( ! locationBarKeyControlsActive ) return;
@@ -716,6 +893,7 @@ function UI( options ) {
 			if ( exclude.indexOf( keyCode ) === -1 ) {
 				locationElement.focus();
 			}
+
 		};
 
 		document.onkeyup = function (e) {
@@ -731,7 +909,8 @@ function UI( options ) {
 				upClickHandler();
 			}
 
-		};
+			this.getMatches();
+		}.bind(this);
 
 		document.onkeypress = function (e) {
 			if ( ! locationBarKeyControlsActive ) return;
@@ -758,32 +937,35 @@ function UI( options ) {
 						// location += '/';
 
 
-					locationChangeHandler(location);
+					if ( selectedFile ) onFileClickHandler( selectedFile );
+					// locationChangeHandler(location);
 				} else {
 					var hint = locationElement.value;
 					hintHandler();
 				}
 			}
-			/*
-				// entire filelist with hidden files
-				fileList.each file
-					if file.getCachedAbsoluteName().startsWith(hint)
-						add to suggestion
-					end
-				end
 
-				if no suggestions
-					check recently used locations
 
-				if no recent
-					search entire filesystem
+				// // entire filelist with hidden files
+				// fileList.each file
+				// 	if file.getCachedAbsoluteName().startsWith(hint)
+				// 		add to suggestion
+				// 	end
+				// end
 
-				ontabHit.use highest suggestion
-				--> set location
+				// if no suggestions
+				// 	check recently used locations
 
-				onUp/Down hit --> cycle through suggestions
-			*/
+				// if no recent
+				// 	search entire filesystem
+
+				// ontabHit.use highest suggestion
+				// --> set location
+
+				// onUp/Down hit --> cycle through suggestions
 		}.bind(this);
+		*/
+
 	}.bind(this)( options ));
 
 	// prevent default behavior from changing page on dropped file

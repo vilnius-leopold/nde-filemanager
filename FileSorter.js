@@ -9,6 +9,10 @@ function FileSorter( sortSettings ) {
 			dependencies: 'isDirectory',
 			sorter:        sortByDirectoryFirst
 		},
+		'hiddenLast': {
+			dependencies: 'isHidden',
+			sorter:        sortByHiddenLast
+		},
 		'fileName': {
 			dependencies: 'getFileName',
 			sorter:        sortByFileName
@@ -101,6 +105,19 @@ function FileSorter( sortSettings ) {
 			return -1;
 		} else {
 			return 1;
+		}
+	}
+
+	function sortByHiddenLast( fileA, fileB ) {
+		var isDirA = fileA.cachedIsHidden();
+		var isDirB = fileB.cachedIsHidden();
+
+		if ( isDirA === isDirB )
+			return 0;
+		if ( isDirA === true ) {
+			return 1;
+		} else {
+			return -1;
 		}
 	}
 

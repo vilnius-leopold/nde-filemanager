@@ -231,9 +231,25 @@ File.prototype.open = function( asRoot ) {
 			return;
 		}
 
+		var env = process.env;
+
+		// xdg-open has this very silly
+		// feature / bug that if it doesn't
+		// know the desktop environment
+		// it will always try to open
+		// a file in the browser
+		// so by setting gnome as the
+		// desktop environment
+		// environment variable
+		// we can fix this behaviour
+		env.DE = 'gnome';
+
 		var command     = asRoot ? 'gksudo' : '/usr/bin/xdg-open',
 		    commandArgs = asRoot ? ['/usr/bin/xdg-open', absPath] : [absPath],
-		    app         = spawn( command, commandArgs, {detached: true});
+		    app         = spawn( command, commandArgs, {
+		                                                   detached: true,
+                                                           env:      env
+		                                               });
 
 		app.on('error', function ( err ) {
 			console.error('child process error ' + err);

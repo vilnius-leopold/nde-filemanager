@@ -1,0 +1,414 @@
+<template>
+<style>
+	* {
+		margin: 0;
+		padding: 0;
+		outline: none;
+		border: none;
+		box-sizing: border-box;
+		-webkit-user-select: none;
+	}
+	html{
+		font-size: 16px;
+		font-family: sans-serif;
+	}
+	body{
+		/*padding: 15px;*/
+	}
+	.group:after {
+		content: "";
+		display: table;
+		clear: both;
+	}
+	.table{
+		display: table;
+	}
+	.table-cell{
+		display: table-cell;
+		vertical-align: top;
+	}
+	#breadcrumbs{
+		width: 100%;
+		padding: 5px 5px;
+		padding-right: 3px;
+		border-bottom: 1px solid #ccc;
+		background: #ddd;
+		box-sizing: border-box;
+	}
+	.button{
+		border: 1px solid #bbb;
+		padding: 0 1.2em;
+		background: #f0f0f0;
+		color: #333;
+		line-height: 2.4em;
+		vertical-align: top;
+		text-align: center;
+		font-size: 16px;
+		display: inline-block;
+		float: none;
+		position: relative;
+		cursor: pointer;
+		height: 2.4em;
+		margin-left: -1px;
+	}
+	.button>img{
+		height: 1.25em;
+		vertical-align: middle;
+		margin-top: -0.075em;
+	}
+	.button:hover{
+		background: #f9f9f9;
+		color: #111;
+		border-color: #aaa;
+		z-index: 10;
+		box-shadow: 0 0.1em 0.5em -0.3em rgba(0,0,0,0.3);
+	}
+	.button:active{
+		background: #f1f1f1;
+		box-shadow: 0 0.1em 0.3em -0.2em rgba(0,0,0,0.6);
+	}
+	.button:first-child{
+		border-top-left-radius: 0.15em;
+		border-bottom-left-radius: 0.15em;
+		margin-left: 0px;
+	}
+	.button:last-child{
+		border-top-right-radius: 0.15em;
+		border-bottom-right-radius: 0.15em;
+	}
+	#button-wrapper{
+		white-space: nowrap;
+		font-size: 0;
+	}
+	#button-cell{
+		width: 1px;
+	}
+	.edit-input.button{
+		text-align: left;
+		/*-webkit-appearance: button;*/
+		background: transparent;
+		border-color: transparent;
+		color: transparent;
+		float: none;
+		width: 100%;
+		margin-left: -2px;
+		white-space: nowrap;
+		min-width: 100px;
+		cursor: default;
+		font-family: sans-serif;
+		box-shadow: none;
+	}
+	/*.edit-input.button:hover{
+		background: white;
+		color: #111;
+		z-index: 10;
+		box-shadow: inset 0 0 0.5em -0.3em rgba(0,0,0,0.3);
+		border-color: #ddd;
+		background: rgba(253, 253, 253, 1);
+	}*/
+	.edit-input.button:focus{
+		background: #f9f9f9;
+		color: #111;
+		/*color: transparent;*/
+		border-color: #aaa;
+		z-index: 10;
+		box-shadow: inset 0 0 0.5em -0.3em rgba(0,0,0,0.3);
+		cursor: text;
+	}
+	.button.badge{
+		background: rgba(253, 253, 253, 1);
+		color: #aaa;
+		box-shadow: none;
+		border-color: #ddd;
+		padding: 0 8px;
+		cursor: default;
+		font-size: 13px;
+		height: 38px;
+	}
+</style>
+<div>
+	<div id="breadcrumbs" class="table">
+		<div id="button-cell" class="table-cell">
+			<div id="button-wrapper" class="group"></div>
+		</div>
+		<!-- /home/leo/Videos/Batman The Animated Series DvDRip x264 Complete/Volume 1 rips -->
+		<div class="table-cell">
+			<div id="input" contenteditable="true" class="edit-input button button-right" value="">
+		</div>
+	</div>
+</div>
+</template>
+
+<script>
+	(function(window, document, undefined) {
+		var thatDoc        = document,
+		    thisDoc        =  (thatDoc._currentScript || thatDoc.currentScript).ownerDocument,
+		    template       = thisDoc.querySelector('template').content,
+		    BreadcrumbsProto = Object.create(HTMLElement.prototype);
+
+		// Fires when an instance of the element is created
+		BreadcrumbsProto.createdCallback = function() {
+			// Creates the shadow root
+			var shadowRoot = this.createShadowRoot();
+			    clone      = thatDoc.importNode(template, true);
+
+			shadowRoot.appendChild(clone);
+
+			this._input         = shadowRoot.querySelector('#input');
+			this._buttonWrapper = shadowRoot.querySelector('#button-wrapper');
+
+			this._userhome = '/home/leo';
+			this._rootIcon = '/usr/share/icons/Flattr/devices/16/drive-harddisk.svg';
+			this._homeIcon = '/usr/share/icons/Flattr/places/16/user-home.svg';
+
+			// Events:
+			// oninput (when typing)
+			// onclick (when breadcrumb is clicked)
+			// onup (when backspace pressed in empty input field)
+			// --> equal to onclick( breadcrumbs[breadcrumbs.length -2].path )
+
+			this._buttonWrapper.addEventListener('click', function( ev ) {
+				if ( ev.target.className === 'button' ) {
+					// console.log('Click', ev.target);
+
+					this.oncrumbclick( ev.target.path );
+				} else if ( ev.target.parentNode.className === 'button' ) {
+					this.oncrumbclick( ev.target.parentNode.path );
+
+				}
+			}.bind(this));
+
+			this._input.addEventListener('blur', function( ev ) {
+				this._input.innerHTML = '';
+			}.bind(this));
+
+			this._input.addEventListener('keyup', function( ev ) {
+				var keyCode = ev.keyCode;
+
+				// ESC
+				if ( keyCode === 27 ) {
+					this._input.blur();
+				} else if ( keyCode === 13 || keyCode === 9 || keyCode === 191  ) {
+					var value = this._input.textContent.trim();
+
+					if ( value === '' ) {
+						this._input.blur();
+					} else {
+						this.onreturn( value );
+					}
+				}
+			}.bind(this));
+
+			window.addEventListener('keyup', function( ev ) {
+				var keyCode = ev.keyCode;
+			}.bind(this));
+
+			// Not sufficient
+			// general change event
+			// use Mutation observer
+			// to monitor content
+			// e.g. on copy/paste
+			// or scripted change
+			// e.g. on blur clear etc
+			var contentChangeHandler = function ( ev ) {
+				var content = this._input.textContent.trim();
+
+				if ( content === '' ) {
+					this.blur();
+					this.oncrumbinput( content );
+				} else if ( content === '/' ) {
+					this.setPath('/');
+					this.blur();
+				} else {
+					this.oncrumbinput( content );
+				}
+
+			}.bind(this);
+
+			this._input.addEventListener("input", contentChangeHandler, false);
+			this._input.addEventListener("DOMNodeInserted", contentChangeHandler, false);
+			this._input.addEventListener("DOMNodeRemoved", contentChangeHandler, false);
+			this._input.addEventListener("DOMCharacterDataModified", contentChangeHandler, false);
+
+
+			window.addEventListener('keydown', function( ev ) {
+				var keyCode = ev.keyCode;
+
+				// 8  backspace
+				// 13 enter
+				// 9  tab
+				// 191 forward slash '/'
+				if ( ( keyCode === 8 && ev.target !== this) || keyCode === 13 || keyCode === 9 ) {
+					ev.preventDefault();
+					// ev.stopPropagation();
+				} else if ( keyCode === 27 ) {
+
+				} else if ( keyCode === 191 ) {
+					if (this._input.textContent !== '')
+						ev.preventDefault();
+				} else {
+					this._input.focus();
+				}
+
+
+				// backspace
+				if ( keyCode === 8 ) {
+					if ( ( ev.target !== this._input ) || ( ev.target === this && this._input.textContent.trim() === '' )
+					) {
+						var ancestorPath = this._breadcrumbPaths[this._breadcrumbPaths.length - 2];
+
+						if ( ancestorPath && this._input.textContent === '' ) {
+							this.oncrumbclick( ancestorPath );
+						}
+					}
+				}
+			}.bind(this));
+
+
+			// window.addEventListener('keyup', function( ev ) {
+
+
+			// }.bind(this));
+		};
+
+		BreadcrumbsProto.getPath = function( absolutePath ) {
+			return this._currentPath;
+		};
+
+		BreadcrumbsProto.clearInput = function( absolutePath ) {
+			this._input.textContent = '';
+		};
+
+		BreadcrumbsProto.blur = function( absolutePath ) {
+			this._input.blur();
+		};
+
+		BreadcrumbsProto.setPath = function( absolutePath ) {
+			// console.log('initial absolutePath', absolutePath);
+
+
+			// console.log('processed absolutePath', absolutePath);
+
+			var protocol = 'file',
+			    matches;
+
+			// ssh://
+			// http://
+			if ( matches = absolutePath.match(/^([a-z]+):\/\//) ) {
+				// set protocol
+				protocol     = matches[1];
+
+				// strip protocol from path string
+				absolutePath = absolutePath.replace(/^([a-z]+):\/\//, '');
+			}
+
+			this._protocol = protocol;
+
+			// remove double starting slashed
+			// remove trailing slash
+			absolutePath = absolutePath.replace(/^\/\//,'/');
+
+			// if ( ! absolutePath.startsWith('/') )
+				// throw new Error('Has to be absolute path! ' + absolutePath);
+
+			// if ( absolutePath !== '/')
+				absolutePath = absolutePath.replace(/\/$/,'');
+
+
+			// console.log('absolutePath', absolutePath);
+			// console.log('protocol', protocol);
+
+			// Resets
+			this._breadcrumbPaths         = [];
+			this.breadcrumbElements       = [];
+			this._currentPath             = protocol + '://' + absolutePath;
+			this._buttonWrapper.innerHTML = '';
+
+			var pathSegments = absolutePath.split('/'),
+			    segmentCount = pathSegments.length;
+
+			var path = '',
+			    i;
+
+			var startIndex = 0;
+
+			if ( absolutePath.startsWith('/') ) {
+				this._breadcrumbPaths = [this._protocol + '://' + '/'];
+				startIndex            = 1;
+				path                  = '/';
+			}
+
+			// console.log('pathSegments', pathSegments);
+
+			for ( i = startIndex; i < segmentCount; i++ ) {
+				var pathSegment = pathSegments[i];
+
+				path += pathSegment;
+
+				if ( path === '' ) {
+					path = '/';
+				}
+
+				this._breadcrumbPaths.push( this._protocol + '://' + path );
+				path += '/';
+			}
+
+			// console.log( '_breadcrumbPaths', this._breadcrumbPaths);
+
+			startIndex = 0;
+
+			if ( this._breadcrumbPaths[2] === 'file://' + this._userhome )
+				startIndex = 2;
+
+			if ( protocol !== 'file' )
+				this.addBreadcrumb( protocol, null, null, 'badge' );
+
+			for ( i = startIndex; i < segmentCount; i++ ) {
+				var breadcrumbPath = this._breadcrumbPaths[i];
+				var breadcrumbName = breadcrumbPath.slice(breadcrumbPath.lastIndexOf('/') + 1);
+				var breadcrumbIcon = null;
+
+				// only display icons
+				// if on local machine
+				if ( breadcrumbPath === 'file://' + this._userhome ) {
+					breadcrumbIcon = this._homeIcon;
+					breadcrumbName = null;
+				} else if ( breadcrumbPath === 'file://' + '/' ) {
+					breadcrumbIcon = this._rootIcon;
+					breadcrumbName = null;
+				}
+
+				this.addBreadcrumb( breadcrumbName, breadcrumbPath, breadcrumbIcon );
+			}
+		};
+
+		BreadcrumbsProto.addBreadcrumb = function( name, path, icon, cssClass ) {
+			var crumb = document.createElement('button');
+
+			if ( name === '' )
+				name = '/';
+
+			crumb.className                = 'button';
+			crumb.path                     = path;
+			if ( name ) crumb.textContent  = name;
+			if ( icon ) {
+				var image = new Image();
+				image.src = icon;
+				crumb.appendChild( image )
+			}
+			if ( cssClass ) crumb.classList.add( cssClass );
+
+
+			this.breadcrumbElements.push( crumb );
+			this._buttonWrapper.appendChild( crumb );
+		};
+
+		BreadcrumbsProto.attachedCallback = function() {};
+
+		BreadcrumbsProto.attributeChangedCallback = function(attr, oldVal, newVal) {};
+
+		window.Breadcrumbs = thatDoc.registerElement('bread-crumbs', {
+			prototype: BreadcrumbsProto
+		});
+	})(window, document);
+</script>
