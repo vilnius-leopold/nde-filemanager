@@ -99,3 +99,17 @@
 	--> current:  blue
 	--> selected: red
 	--> current + selected: purple (mix red+blue)
+- fix bookmark implementation
+	--> issue with makeCurrent
+- fix makeCurrent --> single point of entry
+- fix breakcrumbs
+	--> way to access home/root and applications:// from location input
+	--> buggy/conflicting key bindings
+	--> cleaner attribute based api
+	--> set user-home path
+	--> set home icon
+	--> set root icon
+	--> green protocol badge
+
+- add nde command input
+	--> with terminal icon as protocol

@@ -160,12 +160,22 @@ function UI( options ) {
 		}.bind(this));
 	}.bind(this);
 
+	// CAUTION: keep in mind
+	// single point of
+	// entry for resource
+	// manipulation!
+	// cleanup other
+	// makeCurrent code
 	this.makeCurrent = function( file ) {
+		// handler to set preferences
+		// in backend
 		// this.onsetcurrentfile
-		currentFile.element.unmakeCurrent();
-		currentFilePosition = file.element.position;
-		currentFile = file;
-		file.element.makeCurrent();
+		if ( file.element.tagName === 'NDE-FILE' ) {
+			currentFile.element.unmakeCurrent();
+			currentFilePosition = file.element.position;
+			currentFile = file;
+			file.element.makeCurrent();
+		}
 	};
 
 	this.requestFileOpen = function( fileObj ) {
