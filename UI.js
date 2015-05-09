@@ -104,8 +104,12 @@ function UI( options ) {
 					file.element.position = i;
 				}
 				currentFile.element.makeCurrent();
+				updateCurtains();
 			}.bind(this));
+		} else {
+			updateCurtains();
 		}
+
 	}.bind(this);
 
 	this.setFiles = function( files ) {
@@ -713,6 +717,36 @@ function UI( options ) {
 		newfileDialog.open();
 	}.bind(this));
 
+	function updateCurtains() {
+		var viewFrameHeight = contentElement.scrollHeight - 49,
+		    contentHeight   = filesElement.offsetHeight,
+		    scrollTop       = scrollPaneElement.scrollTop,
+		    tolerance       = 50;
+
+		console.log('viewFrameHeight', viewFrameHeight);
+		console.log('contentHeight  ', contentHeight);
+		console.log('scrollTop      ', scrollTop);
+		console.log('tolerance      ', tolerance);
+		console.log('Scroll Percent ', scrollTop / (contentHeight - viewFrameHeight) )
+
+		if ( contentHeight <= viewFrameHeight ) {
+			document.querySelector('#top-curtain').style.display = 'none';
+			document.querySelector('#bottom-curtain').style.display = 'none';
+		} else {
+			if ( scrollTop < tolerance ) {
+				document.querySelector('#top-curtain').style.display = 'none';
+			} else {
+				document.querySelector('#top-curtain').style.display = 'block';
+			}
+
+			if ( contentHeight - scrollTop - viewFrameHeight < tolerance ) {
+				document.querySelector('#bottom-curtain').style.display = 'none';
+			} else {
+				document.querySelector('#bottom-curtain').style.display = 'block';
+			}
+		}
+	}
+
 	// Returns two pattern
 	// one generic fuzzy pattern
 	// and one that requires the first
@@ -825,7 +859,7 @@ function UI( options ) {
 			locationChangeHandler( path );
 		};
 
-		document.onkeydown = function (ev) {
+		document.onkeydown = function ( ev ) {
 			var keyCode = ev.keyCode;
 
 			console.log('Keypress', keyCode);
@@ -921,14 +955,21 @@ function UI( options ) {
 
 				if ( ! isInview ) {
 					if (topOverlap < 0) {
-						scrollPaneElement.scrollTop += topOverlap;
+						scrollPaneElement.scrollTop += topOverlap - 15;
 					} else {
 						scrollPaneElement.scrollTop -= bottomOverlap;
 					}
+
 				}
 
+				updateCurtains();
 			}
 		}.bind(this);
+
+
+
+		scrollPaneElement.onscroll = updateCurtains;
+		window.addEventListener('resize', updateCurtains);
 
 		/*
 		// key handlers
